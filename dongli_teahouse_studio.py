@@ -921,7 +921,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 
 		#先打印出来确认一下
-		warning_text="确认要从库中删除文件吗（文件将会移动到回收站），\n同时与该文件相关的concept、diary text链接信息也会被抹去）\n"
+		warning_text="确认要从库中删除文件吗（文件将会移动到回收站），\n同时与该文件相关的concept、diary text链接信息也会被抹去）\n这是无法撤销的操作！\n"
 		for file_index in sorted([item.row() for item in self.listWidget_search_file.selectedIndexes()]):
 			file=self.searching_file[file_index]
 			y=file["y"]
@@ -1151,20 +1151,27 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#为了不卡界面还是得用QT的QThread……
 		#然后尝试QThread的class又不允许用__init__传参……
 		#咋就没想到传参函数呢？
-		def partial_work_done(rss_url):
-			
+		def partial_work_done(rss_url,updated):
+		
 			self.qlock.lock()
 			
-			#正序遍历，每个都放在第一个，所以最新的就在最前面了
-			for article in self.daily_update_thread.new_article_list:
-				
-				self.rss_data[rss_url]["article_list"].insert(0,article)
-				self.rss_data[rss_url]["unread"]+=1
+			#标记最新更新日期
+			last_update=str(self.y)+str(self.m)+str(self.d)
+			self.rss_data[rss_url]["last_update"]=last_update
+			
+			#如果有新文章，那就append，并且更新tree列表和文章列表
+			if updated==True:
+				#正序遍历，每个都放在第一个，所以最新的就在最前面了
+				for article in self.daily_update_thread.new_article_list:
+					
+					self.rss_data[rss_url]["article_list"].insert(0,article)
+					self.rss_data[rss_url]["unread"]+=1
+			
+				self.rss_feed_show()
+				self.rss_tree_build()
 			
 			self.qlock.unlock()
 			
-			self.rss_feed_show()
-			self.rss_tree_build()
 		
 		def fuckyou():
 			self.treeWidget_rss.setDragEnabled(1)
@@ -1177,12 +1184,17 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		# 所以禁止拖动树
 		self.treeWidget_rss.setDragEnabled(0)
 		self.treeWidget_rss.setDragDropMode(QAbstractItemView.NoDragDrop)
-		
+
+
 		#制定今天更新的列表
 		today=what_day_is_today()
+		last_update=str(self.y)+str(self.m)+str(self.d)
+		
 		updating_url_list=[]
 		for rss_url in self.rss_data.keys():
-			if today in self.rss_data[rss_url]["frequency"]:
+			
+			#选出今天应该更新，并且今天没有更新过的feed
+			if today in self.rss_data[rss_url]["frequency"] and last_update!=self.rss_data[rss_url]["last_update"]:
 				updating_url_list.append(rss_url)
 
 		# print("Today is",today)
@@ -1461,7 +1473,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 
 	def rss_feed_delete(self):
-		def deepin(root,pointer,delete_feed_url):
+		def deepin_del_feed_in_tree(root,pointer,delete_feed_url):
 			for index in range(root.childCount()):
 				
 				#如果是RSS
@@ -1488,49 +1500,55 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				else:
 					
 					#传入这个folder中的rss列表的pointer
-					deepin(root.child(index),pointer[index]["RSS"],delete_feed_url)
+					deepin_del_feed_in_tree(root.child(index),pointer[index]["RSS"],delete_feed_url)
 		
 		delete_list=[item for item in self.treeWidget_rss.selectedItems()]
-		
-		#先删feed
+
+		dlg = QDialog(self)
+		dlg.setWindowTitle("Delete Warning")
+
+		warning_text="确认要删除这些RSS Feed吗？注意，删除文件夹将会删除文件夹下的所有Feed！\n这是无法撤销的操作！\n"
 		for item in delete_list:
-			#如果是Feed
 			if item.text(2)!="":
-
-				root=self.treeWidget_rss.invisibleRootItem()
-				deepin(root,self.rss_tree_data,item.text(2))
-
-
-				self.qlock.lock()
-
-				del self.rss_data[item.text(2)]
-				
-				self.qlock.unlock()
+				warning_text+="RSS: "+item.text(0)+": "+item.text(2)+"\n"
+			else:
+				warning_text+="Folder: "+item.text(0)+"\n"
+		name_label=QLabel(warning_text)
 		
-		
-		for item in delete_list:
-			#如果是Folder
-			if item.text(2)=="":
-				folder_name=re.findall("(?<=\d\]\|).*",item.text(0))[0]
+		QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+		buttonBox = QDialogButtonBox(QBtn)
+		buttonBox.accepted.connect(dlg.accept)
+		buttonBox.rejected.connect(dlg.reject)
 
-				dlg = QDialog(self)
-				dlg.setWindowTitle("Warning")
-				
-				label=QLabel("确定要删除文件夹 %s 吗？\n这将会删除文件夹包括文件夹下的所有Feed！"%folder_name)
+		layout=QVBoxLayout()
+		layout.addWidget(name_label)
+		layout.addWidget(buttonBox)
+		dlg.setLayout(layout)
 
-				QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
-				buttonBox = QDialogButtonBox(QBtn)
-				buttonBox.accepted.connect(dlg.accept)
-				buttonBox.rejected.connect(dlg.reject)
+		if dlg.exec_():
+			
+			#先删feed
+			for item in delete_list:
+				#如果是Feed
+				if item.text(2)!="":
 
-				layout=QVBoxLayout()
-				layout.addWidget(label)
-				layout.addWidget(buttonBox)
-				dlg.setLayout(layout)
+					#去rss_tree_data中删除那个元组
+					root=self.treeWidget_rss.invisibleRootItem()
+					deepin_del_feed_in_tree(root,self.rss_tree_data,item.text(2))
 
-				if dlg.exec_():
+
+					self.qlock.lock()
+
+					del self.rss_data[item.text(2)]
 					
-					
+					self.qlock.unlock()
+			
+			#再删Folder
+			for item in delete_list:
+				#如果是Folder
+				if item.text(2)=="":
+					folder_name=re.findall("(?<=\d\]\|).*",item.text(0))[0]
+
 					self.qlock.lock()
 
 					for i in range(len(self.rss_tree_data)):
@@ -1548,8 +1566,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					self.qlock.unlock()
 
 
-		self.rss_tree_build()
-		self.listWidget_rss.clear()
+			self.rss_tree_build()
+			self.listWidget_rss.clear()
 
 
 	def rss_edit(self):
@@ -2071,37 +2089,45 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 		if dlg.exec_():
 			tab_name=tab_name_enter.text()
-			try:
-				tab_selection_id=int(tab_selection_id_enter.text())
-				self.concept_data[tab_selection_id]
-			except:
-				QMessageBox.warning(self,"Error","请输入合法的Concept ID！")
+
+			#查重
+			already_have=[x[0] for x in self.custom_tab_data]
+			if tab_name in already_have:
+				QMessageBox.warning(self,"Warning","Tab页不能重名！")
 				return
-			try:
-				tab_selection_depth=int(tab_selection_depth_enter.text())
-			except:
-				QMessageBox.warning(self,"Error","请输入合法的Tree Depth！")
-				return
-
-			#新建一个tab，调用自定义的MyTabWidget
-			tab=MyTabWidget(self,tab_selection_id,tab_selection_depth)
-
-			#这里的tab应该算是一个指针，可以在这里链上一些槽
-			#点击内部的leaf，回传到这里，去显示concept
-			tab.clicked.connect(lambda ID:self.concept_show(ID))
-
-			#一开始不让操作
-			tab.listWidget_file_root.setEnabled(0)
-			tab.listWidget_file_leafs.setEnabled(0)
 			
-			self.tabWidget.addTab(tab,QIcon(":/icon/trello.svg"),tab_name)
-			self.tabWidget.setCurrentIndex(self.tabWidget.indexOf(tab))
+			else:
+				try:
+					tab_selection_id=int(tab_selection_id_enter.text())
+					self.concept_data[tab_selection_id]
+				except:
+					QMessageBox.warning(self,"Error","请输入合法的Concept ID！")
+					return
+				try:
+					tab_selection_depth=int(tab_selection_depth_enter.text())
+				except:
+					QMessageBox.warning(self,"Error","请输入合法的Tree Depth！")
+					return
 
-			#更新custom_tab_data的数据
-			self.custom_tab_data.append([tab_name,tab_selection_id,tab_selection_depth,True])
+				#新建一个tab，调用自定义的MyTabWidget
+				tab=MyTabWidget(self,tab_selection_id,tab_selection_depth)
 
-			#custom_tabs_shown存储正在界面上展示的tabs，这些是用来实时与concept data同步更新的
-			self.custom_tabs_shown.append(tab)
+				#这里的tab应该算是一个指针，可以在这里链上一些槽
+				#点击内部的leaf，回传到这里，去显示concept
+				tab.clicked.connect(lambda ID:self.concept_show(ID))
+
+				#一开始不让操作
+				tab.listWidget_file_root.setEnabled(0)
+				tab.listWidget_file_leafs.setEnabled(0)
+				
+				self.tabWidget.addTab(tab,QIcon(":/icon/trello.svg"),tab_name)
+				self.tabWidget.setCurrentIndex(self.tabWidget.indexOf(tab))
+
+				#更新custom_tab_data的数据
+				self.custom_tab_data.append([tab_name,tab_selection_id,tab_selection_depth,True])
+
+				#custom_tabs_shown存储正在界面上展示的tabs，这些是用来实时与concept data同步更新的
+				self.custom_tabs_shown.append(tab)
 
 		else:
 			return
@@ -2160,114 +2186,131 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		
 		if tab_name not in ["Home","Diary","RSS"]:
 			
-			index=0
-			for i in range(len(self.custom_tab_data)):
-				if self.custom_tab_data[i][0]==tab_name:
-					break
-				index+=1
+			dlg = QDialog(self)
+			dlg.setWindowTitle("Delete Warning")
+
+			name_label=QLabel("确认要删除Tab:%s吗？"%tab_name)
 			
-			self.custom_tab_data.pop(index)
+			QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+			buttonBox = QDialogButtonBox(QBtn)
+			buttonBox.accepted.connect(dlg.accept)
+			buttonBox.rejected.connect(dlg.reject)
 
-			#custom_tabs_shown存储正在界面上展示的tabs，这些是用来实时与concept data同步更新的
-			tab=self.tabWidget.currentWidget()
-			self.custom_tabs_shown.remove(tab)
-			
-			#tab窗删除这个tab
-			self.tabWidget.removeTab(tab_index)
+			layout=QVBoxLayout()
+			layout.addWidget(name_label)
+			layout.addWidget(buttonBox)
+			dlg.setLayout(layout)
 
-
-	####
-		# 要摒弃树就彻底一点，这个就别用了哈~
-		# 这东西也没法用了哈哈，现在是固定格式、固定位置的File Library了
-		# 是不能允许在外面逍遥自在的文件树的存在的
-		# 这东西还是留着吧，当时自己敲这个一遍通过，还挺高兴的呢
-		# 想看这东西的效果的话，去旧版本看吧。
-		# 现在在这里数据结构不匹配，存进去了file也打不开。
-		# def concept_import_file_tree(self):
-			
-		# 	def deepin(current_dir,parent_ID):
-
-		# 		current_dir=current_dir.replace("\\","/")
-		# 		ID=len(self.concept_data)
-		# 		name=current_dir.split("/")[-1]
-		# 		self.concept_data.append({
-		# 			"id": ID,
-		# 			"name": name,
-		# 			"detail": "",
-		# 			"parent": [],
-		# 			"child": [],
-		# 			"relative": [],
-		# 			"az": convert_to_az(name),
-		# 			"file": []
-		# 		})
-		# 		if parent_ID!=-1:
-		# 			#和上一级建立父子关系
-		# 			self.concept_data[parent_ID]["child"].append(ID)
-		# 			self.concept_data[ID]["parent"].append(parent_ID)
-
-		# 		dir_list=os.listdir(current_dir)
-		# 		dir_list.sort()
-		# 		for i in dir_list:
-					
-		# 			next_dir=os.path.join(current_dir,i)
-		# 			#是file
-		# 			if not os.path.isdir(next_dir):
-		# 				next_dir=next_dir.replace("\\","/")
-		# 				file_name=next_dir.split("/")[-1]
-		# 				file_icon=which_icon(file_name)
-		# 				self.concept_data[ID]["file"].append({
-		# 					"file_name":file_name,
-		# 					"file_link":next_dir,
-		# 					"file_icon":file_icon
-		# 				})
-					
-		# 			#是dir
-		# 			else:
-		# 				if self.progress.wasCanceled():
-		# 					return
-		# 				self.cnt+=1
-		# 				self.progress.setValue(self.cnt)
-
-		# 				deepin(next_dir,ID)
+			if dlg.exec_():
+				index=0
+				for i in range(len(self.custom_tab_data)):
+					if self.custom_tab_data[i][0]==tab_name:
+						break
+					index+=1
 				
-		# 		self.concept_data[ID]["parent"].sort()
-		# 		self.concept_data[ID]["child"].sort()
-		# 		self.concept_data[ID]["file"].sort(key=lambda x:x["file_name"])
-		# 		return
+				self.custom_tab_data.pop(index)
+
+				#custom_tabs_shown存储正在界面上展示的tabs，这些是用来实时与concept data同步更新的
+				tab=self.tabWidget.currentWidget()
+				self.custom_tabs_shown.remove(tab)
+				
+				#tab窗删除这个tab
+				self.tabWidget.removeTab(tab_index)
+
+
+
+	############################################################################
+	# 要摒弃树就彻底一点，这个就别用了哈~
+	# 这东西也没法用了哈哈，现在是固定格式、固定位置的File Library了
+	# 是不能允许在外面逍遥自在的文件树的存在的
+	# 这东西还是留着吧，当时自己敲这个一遍通过，还挺高兴的呢
+	# 想看这东西的效果的话，去旧版本看吧。
+	# 现在在这里数据结构不匹配，存进去了file也打不开。
+	# def concept_import_file_tree(self):
+		
+	# 	def deepin(current_dir,parent_ID):
+
+	# 		current_dir=current_dir.replace("\\","/")
+	# 		ID=len(self.concept_data)
+	# 		name=current_dir.split("/")[-1]
+	# 		self.concept_data.append({
+	# 			"id": ID,
+	# 			"name": name,
+	# 			"detail": "",
+	# 			"parent": [],
+	# 			"child": [],
+	# 			"relative": [],
+	# 			"az": convert_to_az(name),
+	# 			"file": []
+	# 		})
+	# 		if parent_ID!=-1:
+	# 			#和上一级建立父子关系
+	# 			self.concept_data[parent_ID]["child"].append(ID)
+	# 			self.concept_data[ID]["parent"].append(parent_ID)
+
+	# 		dir_list=os.listdir(current_dir)
+	# 		dir_list.sort()
+	# 		for i in dir_list:
+				
+	# 			next_dir=os.path.join(current_dir,i)
+	# 			#是file
+	# 			if not os.path.isdir(next_dir):
+	# 				next_dir=next_dir.replace("\\","/")
+	# 				file_name=next_dir.split("/")[-1]
+	# 				file_icon=which_icon(file_name)
+	# 				self.concept_data[ID]["file"].append({
+	# 					"file_name":file_name,
+	# 					"file_link":next_dir,
+	# 					"file_icon":file_icon
+	# 				})
+				
+	# 			#是dir
+	# 			else:
+	# 				if self.progress.wasCanceled():
+	# 					return
+	# 				self.cnt+=1
+	# 				self.progress.setValue(self.cnt)
+
+	# 				deepin(next_dir,ID)
 			
+	# 		self.concept_data[ID]["parent"].sort()
+	# 		self.concept_data[ID]["child"].sort()
+	# 		self.concept_data[ID]["file"].sort(key=lambda x:x["file_name"])
+	# 		return
+		
 
-		# 	QMessageBox.warning(self,"Warning","这个功能将会导入文件树，其中的文件夹算作concept，\n文件夹中的文件算作concept linked file，这并不是\n很符合软件的理念，但也许有人会用得上吧。")
-			
-		# 	dlg=QFileDialog(self)
-		# 	directory=dlg.getExistingDirectory()
+	# 	QMessageBox.warning(self,"Warning","这个功能将会导入文件树，其中的文件夹算作concept，\n文件夹中的文件算作concept linked file，这并不是\n很符合软件的理念，但也许有人会用得上吧。")
+		
+	# 	dlg=QFileDialog(self)
+	# 	directory=dlg.getExistingDirectory()
 
-		# 	self.progress=QProgressDialog("Importing Concept From File Tree...","Cancel",0,20000,self)
-		# 	################################################################
-		# 	#################他奶奶的凭什么加上这句话就不会假死?!!!!##############
-		# 	########################我他妈折腾这东西花了快两个小时？！！##########
-		# 	####################又是用多线程又是用延迟，！######################
-		# 	####################结果你就告诉我用这个?！#########################
-		# 	self.progress.setWindowModality(Qt.WindowModal)
-		# 	#####他妈的学校这破网还连不上VPN，##################################
-		# 	#############################没有GOOGLE怎么活啊？！！##############
-		# 	################################################################
-		# 	self.progress.setMinimumDuration(1)
-		# 	self.cnt=0
+	# 	self.progress=QProgressDialog("Importing Concept From File Tree...","Cancel",0,20000,self)
+	# 	################################################################
+	# 	#################他奶奶的凭什么加上这句话就不会假死?!!!!##############
+	# 	########################我他妈折腾这东西花了快两个小时？！！##########
+	# 	####################又是用多线程又是用延迟，！######################
+	# 	####################结果你就告诉我用这个?！#########################
+	# 	self.progress.setWindowModality(Qt.WindowModal)
+	# 	#####他妈的学校这破网还连不上VPN，##################################
+	# 	#############################没有GOOGLE怎么活啊？！！##############
+	# 	################################################################
+	# 	self.progress.setMinimumDuration(1)
+	# 	self.cnt=0
 
-		# 	deepin(directory,-1)
-			
-		# 	self.progress.setValue(20000)
+	# 	deepin(directory,-1)
+		
+	# 	self.progress.setValue(20000)
 
-		# 	del self.progress
-		# 	del self.cnt
+	# 	del self.progress
+	# 	del self.cnt
 
 
-		# 	self.concept_search_list_update()
-		# 	self.window_title_update()
+	# 	self.concept_search_list_update()
+	# 	self.window_title_update()
 
-		# 	for tab in self.custom_tabs_shown:
-		# 		tab.tab_update()
-
+	# 	for tab in self.custom_tabs_shown:
+	# 		tab.tab_update()
+	############################################################################
 
 	def about(self):
 		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 0.1.9.0\nAuthor: 鍵山狐\nContact: Holence08@gmail.com")
@@ -3027,164 +3070,181 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		try:
 			ID=int(self.lineEdit_id.text())
 
-			#删除宇宙的后果
-			if ID==0:
-				if self.easter_egg_deleting_universe==0:
-					QMessageBox.warning(self,"Warning","哦我的上帝，你不可以删除宇宙，你真的，不可以。")
-					self.easter_egg_deleting_universe+=1
-					return
-				if self.easter_egg_deleting_universe==1:
-					QMessageBox.warning(self,"Error","哦上帝，为什么你不听我的话，伙计，西姆叔叔不喜欢倔脾气小孩的。")
-					self.easter_egg_deleting_universe+=1
-					return
-				if self.easter_egg_deleting_universe==2:
-					QMessageBox.warning(self,"Error","我亲爱的上朋友！看看你在干些什么？真见鬼！我已经说过了，你不可以删除宇宙。我发誓，如果你要是再尝试删除宇宙，我就要立刻告诉詹妮弗牧师去！")
-					self.easter_egg_deleting_universe+=1
-					return
-				if self.easter_egg_deleting_universe==3:
-					QMessageBox.warning(self,"Error","真是见鬼！看在上帝的份上，请不要再删除宇宙了。我敢发誓你的老屁股要和我祖父的老靴子马上会来个亲密接触了。伙计，别担心，如果你愿意支付给我150马克的话，也许我会在我祖父面前为你求求请。")
-					self.easter_egg_deleting_universe+=1
-					return
-				if self.easter_egg_deleting_universe==4:
-					QMessageBox.warning(self,"Error","该死，这已经够糟糕了。如果你再不收手，我就去狠狠的踢隔壁欧德毛猫的屁股，我发誓！")
-					self.easter_egg_deleting_universe+=1
-					return
-				if self.easter_egg_deleting_universe==5:
-					QMessageBox.critical(self,"Critical Error","程序崩溃！\n\n请联系开发人员，并提供您的错误信息，以及更好玩的翻译腔生成器。\n\n邮箱地址：Holence08@gmail.com")
-					QCoreApplication.exit()
-					return
+			dlg = QDialog(self)
+			dlg.setWindowTitle("Delete Warning")
 
-
-			#判断diary中是否已链接了这个item
-			#把已链接了这个item的文本打印出来看
-			text_list=[]
-			for year_index in range(1970-1970,2170-1970):
-				for month_index in range(0,12):
-					for day_index in range(len(self.diary_data[year_index]["date"][month_index])):
-						for line_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"])):
-							for linked_item_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_concept"])):
-								item_id=self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_concept"][linked_item_index]
-								if item_id==ID:
-									text_list.append({
-										"date":str(year_index+1970)+"."+str(month_index+1)+"."+str(self.diary_data[year_index]["date"][month_index][day_index]["day"]),
-										"text":self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["line_text"]
-									})
-			if text_list!=[]:
-				message=QMessageBox()
-				message.setWindowTitle("Warning")
-
-				#淦QMessageBox的大小不能直接改
-				# message.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
-				# message.setGeometry(0,0,800,400)
-
-				message.setIcon(QMessageBox.Warning)
-
-				#然而\n
-				#\n
-				#"这就是最简单(zhizhang)的改大小方法                                                         用空格和回车填充                           简单易用好上手！"
-				warning_text=str(ID)+"|"+"%s"%self.concept_data[ID]["name"]+" 在日志中已存在：\n\n\n                                                                "
-				message.setText(warning_text)
-
-				warning_detailed_text=""
-				for i in text_list:
-					warning_detailed_text+=i["date"]+" : "+i["text"]+"\n"
-				message.setDetailedText(warning_detailed_text)
-
-				message.exec_()
-				return
+			name_label=QLabel("确定要删除 ID = %s 吗？\n这是无法撤销的操作！\n"%ID)
 			
+			QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+			buttonBox = QDialogButtonBox(QBtn)
+			buttonBox.accepted.connect(dlg.accept)
+			buttonBox.rejected.connect(dlg.reject)
 
-			#把关联物的关联信息删掉
-			if self.concept_data[ID]["parent"]!=-1:
-				for i in self.concept_data[ID]["parent"]:
-					self.concept_data[i]["child"].remove(ID)
-			
-			for i in self.concept_data[ID]["child"]:
-				self.concept_data[i]["parent"].remove(ID)
-			
-			for i in self.concept_data[ID]["relative"]:
-				self.concept_data[i]["relative"].remove(ID)
+			layout=QVBoxLayout()
+			layout.addWidget(name_label)
+			layout.addWidget(buttonBox)
+			dlg.setLayout(layout)
 
-			#把关联file的链接ID信息删掉
-			for file in self.concept_data[ID]["file"]:
-				file_name=file["file_name"]
-				y=file["y"]
-				m=file["m"]
-				d=file["d"]
-				self.file_data[y][m][d][file_name].remove(ID)
+			if dlg.exec_():
 
-			#清空展示区
-			self.lineEdit_id.clear()
-			self.lineEdit_name.clear()
-			self.plainTextEdit_detail.clear()
-			self.listWidget_parent.clear()
-			self.listWidget_child.clear()
-			self.listWidget_relative.clear()
-			self.listWidget_concept_linked_file.clear()
+				#删除宇宙的后果
+				if ID==0:
+					if self.easter_egg_deleting_universe==0:
+						QMessageBox.warning(self,"Warning","哦我的上帝，你不可以删除宇宙，你真的，不可以。")
+						self.easter_egg_deleting_universe+=1
+						return
+					if self.easter_egg_deleting_universe==1:
+						QMessageBox.warning(self,"Error","哦上帝，为什么你不听我的话，伙计，西姆叔叔不喜欢倔脾气小孩的。")
+						self.easter_egg_deleting_universe+=1
+						return
+					if self.easter_egg_deleting_universe==2:
+						QMessageBox.warning(self,"Error","我亲爱的上朋友！看看你在干些什么？真见鬼！我已经说过了，你不可以删除宇宙。我发誓，如果你要是再尝试删除宇宙，我就要立刻告诉詹妮弗牧师去！")
+						self.easter_egg_deleting_universe+=1
+						return
+					if self.easter_egg_deleting_universe==3:
+						QMessageBox.warning(self,"Error","真是见鬼！看在上帝的份上，请不要再删除宇宙了。我敢发誓你的老屁股要和我祖父的老靴子马上会来个亲密接触了。伙计，别担心，如果你愿意支付给我150马克的话，也许我会在我祖父面前为你求求请。")
+						self.easter_egg_deleting_universe+=1
+						return
+					if self.easter_egg_deleting_universe==4:
+						QMessageBox.warning(self,"Error","该死，这已经够糟糕了。如果你再不收手，我就去狠狠的踢隔壁欧德毛猫的屁股，我发誓！")
+						self.easter_egg_deleting_universe+=1
+						return
+					if self.easter_egg_deleting_universe==5:
+						QMessageBox.critical(self,"Critical Error","程序崩溃！\n\n请联系开发人员，并提供您的错误信息，以及更好玩的翻译腔生成器。\n\n邮箱地址：Holence08@gmail.com")
+						QCoreApplication.exit()
+						return
 
-			#当前没有展示item了，就禁用file列表
-			self.listWidget_concept_linked_file.setEnabled(0)
 
+				#判断diary中是否已链接了这个item
+				#把已链接了这个item的文本打印出来看
+				text_list=[]
+				for year_index in range(1970-1970,2170-1970):
+					for month_index in range(0,12):
+						for day_index in range(len(self.diary_data[year_index]["date"][month_index])):
+							for line_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"])):
+								for linked_item_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_concept"])):
+									item_id=self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_concept"][linked_item_index]
+									if item_id==ID:
+										text_list.append({
+											"date":str(year_index+1970)+"."+str(month_index+1)+"."+str(self.diary_data[year_index]["date"][month_index][day_index]["day"]),
+											"text":self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["line_text"]
+										})
+				if text_list!=[]:
+					message=QMessageBox()
+					message.setWindowTitle("Warning")
 
-			del self.concept_data[ID]
+					#淦QMessageBox的大小不能直接改
+					# message.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
+					# message.setGeometry(0,0,800,400)
 
-			changed_id_dict={}
-			#找出id改变的序偶
-			for i in range(len(self.concept_data)):
-				if i!=self.concept_data[i]["id"]:
-					self.concept_data[i]["id"]-=1
-					changed_id_dict[i]=i-1
-			#因为之前删除了一个元素，所以range里漏掉了最后一个元素
-			#这里手动添加
-			previouse_len=len(self.concept_data)+1
-			previouse_last_id=previouse_len-1
-			changed_id_dict[previouse_last_id]=previouse_last_id-1
+					message.setIcon(QMessageBox.Warning)
 
-			changed_id_dict_keys=list(changed_id_dict.keys())
-			#修改id、parent、child、relative中有改变的id
-			for item in self.concept_data:
-				if item["parent"]!=-1:
-					for i in range(len(item["parent"])):
-						if item["parent"][i] in changed_id_dict_keys:
-							item["parent"][i]=changed_id_dict[item["parent"][i]]
+					#然而\n
+					#\n
+					#"这就是最简单(zhizhang)的改大小方法                                                         用空格和回车填充                           简单易用好上手！"
+					warning_text=str(ID)+"|"+"%s"%self.concept_data[ID]["name"]+" 在日志中已存在：\n\n\n                                                                "
+					message.setText(warning_text)
+
+					warning_detailed_text=""
+					for i in text_list:
+						warning_detailed_text+=i["date"]+" : "+i["text"]+"\n"
+					message.setDetailedText(warning_detailed_text)
+
+					message.exec_()
+					return
 				
-				for i in range(len(item["child"])):
-						if item["child"][i] in changed_id_dict_keys:
-							item["child"][i]=changed_id_dict[item["child"][i]]
+
+				#把关联物的关联信息删掉
+				if self.concept_data[ID]["parent"]!=-1:
+					for i in self.concept_data[ID]["parent"]:
+						self.concept_data[i]["child"].remove(ID)
 				
-				for i in range(len(item["relative"])):
-						if item["relative"][i] in changed_id_dict_keys:
-							item["relative"][i]=changed_id_dict[item["relative"][i]]
-			
-			#修改diary_data中有改变的id
-			for year_index in range(1970-1970,2170-1970):
-				for month_index in range(0,12):
-					for day_index in range(len(self.diary_data[year_index]["date"][month_index])):
-						for line_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"])):
-							for linked_item_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_concept"])):
-								item_old_id=self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_concept"][linked_item_index]
-								if item_old_id in changed_id_dict_keys:
-									self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_concept"][linked_item_index]=changed_id_dict[item_old_id]
-			
-			#修改file_data中有改变的id
-			#这里的数据都是是字典……索引和diary的方式不一样的……
-			for year_index in range(1970,2170):
-				for month_index in range(1,13):
-					for day in self.file_data[year_index][month_index].keys():
-						for file in self.file_data[year_index][month_index][day].keys():
-							for item_old_id in self.file_data[year_index][month_index][day][file]:
-								if item_old_id in changed_id_dict_keys:
-									self.file_data[year_index][month_index][day][file].remove(item_old_id)
-									self.file_data[year_index][month_index][day][file].append(changed_id_dict[item_old_id])
-			
+				for i in self.concept_data[ID]["child"]:
+					self.concept_data[i]["parent"].remove(ID)
+				
+				for i in self.concept_data[ID]["relative"]:
+					self.concept_data[i]["relative"].remove(ID)
+
+				#把关联file的链接ID信息删掉
+				for file in self.concept_data[ID]["file"]:
+					file_name=file["file_name"]
+					y=file["y"]
+					m=file["m"]
+					d=file["d"]
+					self.file_data[y][m][d][file_name].remove(ID)
+
+				#清空展示区
+				self.lineEdit_id.clear()
+				self.lineEdit_name.clear()
+				self.plainTextEdit_detail.clear()
+				self.listWidget_parent.clear()
+				self.listWidget_child.clear()
+				self.listWidget_relative.clear()
+				self.listWidget_concept_linked_file.clear()
+
+				#当前没有展示item了，就禁用file列表
+				self.listWidget_concept_linked_file.setEnabled(0)
 
 
-			self.diary_line_concept_list_update()
-			self.window_title_update()
-			self.concept_search_list_update()
+				del self.concept_data[ID]
 
-			for tab in self.custom_tabs_shown:
-				tab.tab_update()
+				changed_id_dict={}
+				#找出id改变的序偶
+				for i in range(len(self.concept_data)):
+					if i!=self.concept_data[i]["id"]:
+						self.concept_data[i]["id"]-=1
+						changed_id_dict[i]=i-1
+				#因为之前删除了一个元素，所以range里漏掉了最后一个元素
+				#这里手动添加
+				previouse_len=len(self.concept_data)+1
+				previouse_last_id=previouse_len-1
+				changed_id_dict[previouse_last_id]=previouse_last_id-1
+
+				changed_id_dict_keys=list(changed_id_dict.keys())
+				#修改id、parent、child、relative中有改变的id
+				for item in self.concept_data:
+					if item["parent"]!=-1:
+						for i in range(len(item["parent"])):
+							if item["parent"][i] in changed_id_dict_keys:
+								item["parent"][i]=changed_id_dict[item["parent"][i]]
+					
+					for i in range(len(item["child"])):
+							if item["child"][i] in changed_id_dict_keys:
+								item["child"][i]=changed_id_dict[item["child"][i]]
+					
+					for i in range(len(item["relative"])):
+							if item["relative"][i] in changed_id_dict_keys:
+								item["relative"][i]=changed_id_dict[item["relative"][i]]
+				
+				#修改diary_data中有改变的id
+				for year_index in range(1970-1970,2170-1970):
+					for month_index in range(0,12):
+						for day_index in range(len(self.diary_data[year_index]["date"][month_index])):
+							for line_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"])):
+								for linked_item_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_concept"])):
+									item_old_id=self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_concept"][linked_item_index]
+									if item_old_id in changed_id_dict_keys:
+										self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_concept"][linked_item_index]=changed_id_dict[item_old_id]
+				
+				#修改file_data中有改变的id
+				#这里的数据都是是字典……索引和diary的方式不一样的……
+				for year_index in range(1970,2170):
+					for month_index in range(1,13):
+						for day in self.file_data[year_index][month_index].keys():
+							for file in self.file_data[year_index][month_index][day].keys():
+								for item_old_id in self.file_data[year_index][month_index][day][file]:
+									if item_old_id in changed_id_dict_keys:
+										self.file_data[year_index][month_index][day][file].remove(item_old_id)
+										self.file_data[year_index][month_index][day][file].append(changed_id_dict[item_old_id])
+				
+
+
+				self.diary_line_concept_list_update()
+				self.window_title_update()
+				self.concept_search_list_update()
+
+				for tab in self.custom_tabs_shown:
+					tab.tab_update()
 
 
 		
@@ -3259,22 +3319,82 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 	def concept_realationship_remove(self):
 		try:
 			item_ID=int(self.lineEdit_id.text())
+
 			if self.listWidget_parent.hasFocus():
-				# if mode=="parent":
-					link_ID=int(self.listWidget_parent.currentItem().text().split("|")[0])
+				
+				link_ID=int(self.listWidget_parent.currentItem().text().split("|")[0])
+
+				dlg = QDialog(self)
+				dlg.setWindowTitle("Delete Warning")
+
+				name_label=QLabel("确定要删除 Linked ID = %s 吗？\n这是无法撤销的操作！\n"%link_ID)
+				
+				QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+				buttonBox = QDialogButtonBox(QBtn)
+				buttonBox.accepted.connect(dlg.accept)
+				buttonBox.rejected.connect(dlg.reject)
+
+				layout=QVBoxLayout()
+				layout.addWidget(name_label)
+				layout.addWidget(buttonBox)
+				dlg.setLayout(layout)
+
+				if dlg.exec_():
 					self.concept_data[item_ID]["parent"].remove(link_ID)
 					self.concept_data[link_ID]["child"].remove(item_ID)
-			if self.listWidget_child.hasFocus():
-			# if mode=="child":
-				link_ID=int(self.listWidget_child.currentItem().text().split("|")[0])
-				self.concept_data[item_ID]["child"].remove(link_ID)
-				self.concept_data[link_ID]["parent"].remove(item_ID)
-			if self.listWidget_relative.hasFocus():
-			# if mode=="relative":
-				link_ID=int(self.listWidget_relative.currentItem().text().split("|")[0])
-				self.concept_data[item_ID]["relative"].remove(link_ID)
-				self.concept_data[link_ID]["relative"].remove(item_ID)
+				else:
+					return
+			
+			elif self.listWidget_child.hasFocus():
 
+				link_ID=int(self.listWidget_child.currentItem().text().split("|")[0])
+				
+				dlg = QDialog(self)
+				dlg.setWindowTitle("Delete Warning")
+
+				name_label=QLabel("确定要删除Linked ID=%s吗？"%link_ID)
+				
+				QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+				buttonBox = QDialogButtonBox(QBtn)
+				buttonBox.accepted.connect(dlg.accept)
+				buttonBox.rejected.connect(dlg.reject)
+
+				layout=QVBoxLayout()
+				layout.addWidget(name_label)
+				layout.addWidget(buttonBox)
+				dlg.setLayout(layout)
+
+				if dlg.exec_():
+					self.concept_data[item_ID]["child"].remove(link_ID)
+					self.concept_data[link_ID]["parent"].remove(item_ID)
+				else:
+					return
+				
+			elif self.listWidget_relative.hasFocus():
+				
+				link_ID=int(self.listWidget_relative.currentItem().text().split("|")[0])
+				
+				dlg = QDialog(self)
+				dlg.setWindowTitle("Delete Warning")
+
+				name_label=QLabel("确定要删除Linked ID=%s吗？"%link_ID)
+				
+				QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+				buttonBox = QDialogButtonBox(QBtn)
+				buttonBox.accepted.connect(dlg.accept)
+				buttonBox.rejected.connect(dlg.reject)
+
+				layout=QVBoxLayout()
+				layout.addWidget(name_label)
+				layout.addWidget(buttonBox)
+				dlg.setLayout(layout)
+
+				if dlg.exec_():
+					self.concept_data[item_ID]["relative"].remove(link_ID)
+					self.concept_data[link_ID]["relative"].remove(item_ID)
+				else:
+					return
+			
 			#更新事物界面
 			self.concept_show(item_ID)
 			self.window_title_update()
@@ -3433,47 +3553,72 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		
 		#支持多行删除
 		if [item.row() for item in self.listWidget_lines.selectedIndexes()]!=[]:
-			self.plainTextEdit_single_line.clear()
+			
+			dlg = QDialog(self)
+			dlg.setWindowTitle("Delete Warning")
 
-			do=0
-			#记录一下删掉的concept的index，万一页面中显示的concept正好就与编辑的文本块有关，那就要更新concept related text
-			poped_item_index_list=[]
+			warning_text="确定要删除Lines吗？\n这是无法撤销的操作！\n"
 			for line_index in sorted([item.row() for item in self.listWidget_lines.selectedIndexes()]):
-				#selectedIndexes的顺序由点击顺序决定，所以重排序以便从前往后删除
-				poped_item_line=self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"].pop(line_index-do)
-
-				for poped_item_index in poped_item_line["linked_concept"]:
-					if poped_item_index not in poped_item_index_list:
-						poped_item_index_list.append(poped_item_index)
-				#每删掉一个，索引时候的下标要往多前减少一个
-				do+=1
+				poped_item_line=self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][line_index]
+				warning_text+=poped_item_line["line_text"]+"\n"
+			name_label=QLabel(warning_text)
 			
-			try:
-				#万一页面中显示的concept正好就与编辑的文本块有关，那就要更新concept related text
-				item_id=int(self.lineEdit_id.text())
-				if item_id in poped_item_index_list:
-					#要更新一下concept related text，就用这个好了
-					self.concept_show(item_id)
-			except:
-				pass
+			QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+			buttonBox = QDialogButtonBox(QBtn)
+			buttonBox.accepted.connect(dlg.accept)
+			buttonBox.rejected.connect(dlg.reject)
 
-			self.diary_line_fix_index()
+			layout=QVBoxLayout()
+			layout.addWidget(name_label)
+			layout.addWidget(buttonBox)
+			dlg.setLayout(layout)
 
-			self.current_line_index=-1
-			
+			if dlg.exec_():
+				
+				self.plainTextEdit_single_line.clear()
 
-			#这里不用下面的更新法，因为current_line_index不知道会指向哪个，所以只清空就行了
-			# self.diary_line_concept_list_update()
-			# self.diary_line_file_show()
-			self.listWidget_text_related_concept.clear()
-			self.listWidget_text_linked_file.clear()
+				do=0
+				#记录一下删掉的concept的index，万一页面中显示的concept正好就与编辑的文本块有关，那就要更新concept related text
+				poped_item_index_list=[]
+				for line_index in sorted([item.row() for item in self.listWidget_lines.selectedIndexes()]):
+					#selectedIndexes的顺序由点击顺序决定，所以重排序以便从前往后删除
+					poped_item_line=self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"].pop(line_index-do)
 
-			self.window_title_update()
-			self.diary_text_update()
+					for poped_item_index in poped_item_line["linked_concept"]:
+						if poped_item_index not in poped_item_index_list:
+							poped_item_index_list.append(poped_item_index)
+					#每删掉一个，索引时候的下标要往多前减少一个
+					do+=1
+				
+				try:
+					#万一页面中显示的concept正好就与编辑的文本块有关，那就要更新concept related text
+					item_id=int(self.lineEdit_id.text())
+					if item_id in poped_item_index_list:
+						#要更新一下concept related text，就用这个好了
+						self.concept_show(item_id)
+				except:
+					pass
+
+				self.diary_line_fix_index()
+
+				self.current_line_index=-1
+				
+
+				#这里不用下面的更新法，因为current_line_index不知道会指向哪个，所以只清空就行了
+				# self.diary_line_concept_list_update()
+				# self.diary_line_file_show()
+				self.listWidget_text_related_concept.clear()
+				self.listWidget_text_linked_file.clear()
+
+				self.window_title_update()
+				self.diary_text_update()
 	
 	def diary_line_concept_link(self):
+		
+		if self.is_first_arrived==1:
+			QMessageBox.warning(self,"Warning","请选中行后再进行链接！")
+			return
 		try:
-			
 			item_id=int(self.lineEdit_id.text())
 			#支持多行同时添加链接物
 			#支持过滤已有链接物
@@ -3497,29 +3642,50 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 	def diary_line_concept_remove(self):
 		#初来乍到的，连选中行都没选，删除什么行链接物啊
 		if self.is_first_arrived==1:
+			QMessageBox.warning(self,"Warning","请选中行后再进行删除！")
 			return
 		
-		do=0
-		#记录一下删掉的concept的index，万一页面中显示的concept正好就与编辑的文本块有关，那就要更新concept related text
-		poped_item_index_list=[]
+		dlg = QDialog(self)
+		dlg.setWindowTitle("Delete Warning")
+
+		warning_text="确定要删除Line Linked ID吗？\n这是无法撤销的操作！\n"
 		for linked_item_index in sorted([item.row() for item in self.listWidget_text_related_concept.selectedIndexes()]):
-			poped_item_index=self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_concept"].pop(linked_item_index-do)
-			poped_item_index_list.append(poped_item_index)
-			#每删掉一个，索引时候的下标要往多前减少一个
-			do+=1
+			poped_item_index=self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_concept"][linked_item_index]
+			warning_text+=str(poped_item_index)+"|"+self.concept_data[poped_item_index]["name"]+"\n"
+		name_label=QLabel(warning_text)
+		
+		QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+		buttonBox = QDialogButtonBox(QBtn)
+		buttonBox.accepted.connect(dlg.accept)
+		buttonBox.rejected.connect(dlg.reject)
 
-		try:
+		layout=QVBoxLayout()
+		layout.addWidget(name_label)
+		layout.addWidget(buttonBox)
+		dlg.setLayout(layout)
+
+		if dlg.exec_():
+			do=0
 			#记录一下删掉的concept的index，万一页面中显示的concept正好就与编辑的文本块有关，那就要更新concept related text
-			item_id=int(self.lineEdit_id.text())
-			if item_id in poped_item_index_list:
-				#要更新一下concept related text，就用这个好了
-				self.concept_show(item_id)
-		except:
-			pass
+			poped_item_index_list=[]
+			for linked_item_index in sorted([item.row() for item in self.listWidget_text_related_concept.selectedIndexes()]):
+				poped_item_index=self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_concept"].pop(linked_item_index-do)
+				poped_item_index_list.append(poped_item_index)
+				#每删掉一个，索引时候的下标要往多前减少一个
+				do+=1
 
-		#列出当前行的关联事物
-		self.diary_line_concept_list_update()
-		self.window_title_update()
+			try:
+				#记录一下删掉的concept的index，万一页面中显示的concept正好就与编辑的文本块有关，那就要更新concept related text
+				item_id=int(self.lineEdit_id.text())
+				if item_id in poped_item_index_list:
+					#要更新一下concept related text，就用这个好了
+					self.concept_show(item_id)
+			except:
+				pass
+
+			#列出当前行的关联事物
+			self.diary_line_concept_list_update()
+			self.window_title_update()
 		
 
 		
@@ -3780,75 +3946,97 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 	def concept_linked_file_remove(self):
 		
 		ID=int(self.lineEdit_id.text())
-		
-		do=0
+
+		dlg = QDialog(self)
+		dlg.setWindowTitle("Delete Warning")
+
+		warning_text="确定要删除链接的文件吗？\n这是无法撤销的操作！\n"
 		for file_index in sorted([item.row() for item in self.listWidget_concept_linked_file.selectedIndexes()]):
-			#取消file data中对concept的标记
-			#del之后列表的长度就变了，索引的下标也要多减一
-			file=self.concept_data[ID]["file"][file_index-do]
+			file=self.concept_data[ID]["file"][file_index]
 			file_name=file["file_name"]
-			y=file["y"]
-			m=file["m"]
-			d=file["d"]
-			self.file_data[y][m][d][file_name].remove(ID)
-
-			del self.concept_data[ID]["file"][file_index-do]
-			do+=1
-
-		#更新事物界面
-		self.concept_show(ID)
-		self.window_title_update()
-
-		for tab in self.custom_tabs_shown:
-			tab.tab_update()
+			warning_text+=file_name+"\n"
+		name_label=QLabel(warning_text)
 		
-		#如果没有选中，返回的是-1，这样下标索引会到倒数第一个
-		# if file_index!=-1:
+		QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+		buttonBox = QDialogButtonBox(QBtn)
+		buttonBox.accepted.connect(dlg.accept)
+		buttonBox.rejected.connect(dlg.reject)
+
+		layout=QVBoxLayout()
+		layout.addWidget(name_label)
+		layout.addWidget(buttonBox)
+		dlg.setLayout(layout)
+
+		if dlg.exec_():
+		
+			do=0
+			for file_index in sorted([item.row() for item in self.listWidget_concept_linked_file.selectedIndexes()]):
+				#取消file data中对concept的标记
+				#del之后列表的长度就变了，索引的下标也要多减一
+				file=self.concept_data[ID]["file"][file_index-do]
+				file_name=file["file_name"]
+				y=file["y"]
+				m=file["m"]
+				d=file["d"]
+				self.file_data[y][m][d][file_name].remove(ID)
+
+				del self.concept_data[ID]["file"][file_index-do]
+				do+=1
+
+			#更新事物界面
+			self.concept_show(ID)
+			self.window_title_update()
+
+			for tab in self.custom_tabs_shown:
+				tab.tab_update()
 			
-			####
-				#现在所有的文件都在file manager中，所以concept中文件存在与否就与diary没多大关系了
-				#
-				# file_link=self.concept_data[ID]["file"][file_index]["file_link"]
-				#
-				# 判断是否有文本块链接到该文件
-				# text_list=[]
-				# for year_index in range(1970-1970,2170-1970):
-				# 	for month_index in range(0,11):
-				# 		for day_index in range(len(self.diary_data[year_index]["date"][month_index])):
-				# 			for line_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"])):
-				# 				for file_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"])):
-									
-				# 					linked_file_link=self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][file_index]["file_link"]
-				# 					line_text=self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["line_text"]
+			#如果没有选中，返回的是-1，这样下标索引会到倒数第一个
+			# if file_index!=-1:
+				
+				####
+					#现在所有的文件都在file manager中，所以concept中文件存在与否就与diary没多大关系了
+					#
+					# file_link=self.concept_data[ID]["file"][file_index]["file_link"]
+					#
+					# 判断是否有文本块链接到该文件
+					# text_list=[]
+					# for year_index in range(1970-1970,2170-1970):
+					# 	for month_index in range(0,11):
+					# 		for day_index in range(len(self.diary_data[year_index]["date"][month_index])):
+					# 			for line_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"])):
+					# 				for file_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"])):
+										
+					# 					linked_file_link=self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][file_index]["file_link"]
+					# 					line_text=self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["line_text"]
 
-				# 					if linked_file_link==file_link:
-				# 						text_list.append({
-				# 							"date":str(year_index+1970)+"."+str(month_index+1)+"."+str(self.diary_data[year_index]["date"][month_index][day_index]["day"]),
-				# 							"text":line_text
-				# 					})
-				# if text_list!=[]:
-				# 	message=QMessageBox()
-				# 	message.setWindowTitle("Warning")
+					# 					if linked_file_link==file_link:
+					# 						text_list.append({
+					# 							"date":str(year_index+1970)+"."+str(month_index+1)+"."+str(self.diary_data[year_index]["date"][month_index][day_index]["day"]),
+					# 							"text":line_text
+					# 					})
+					# if text_list!=[]:
+					# 	message=QMessageBox()
+					# 	message.setWindowTitle("Warning")
 
-				# 	#淦QMessageBox的大小不能直接改
-				# 	# message.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
-				# 	# message.setGeometry(0,0,800,400)
+					# 	#淦QMessageBox的大小不能直接改
+					# 	# message.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
+					# 	# message.setGeometry(0,0,800,400)
 
-				# 	message.setIcon(QMessageBox.Warning)
+					# 	message.setIcon(QMessageBox.Warning)
 
-				# 	#然而\n
-				# 	#\n
-				# 	#"这就是最简单(zhizhang)的改大小方法                                                         用空格和回车填充                           简单易用好上手！"
-				# 	warning_text=file_link+" 在日志中已存在：\n\n\n                                                                "
-				# 	message.setText(warning_text)
+					# 	#然而\n
+					# 	#\n
+					# 	#"这就是最简单(zhizhang)的改大小方法                                                         用空格和回车填充                           简单易用好上手！"
+					# 	warning_text=file_link+" 在日志中已存在：\n\n\n                                                                "
+					# 	message.setText(warning_text)
 
-				# 	warning_detailed_text=""
-				# 	for i in text_list:
-				# 		warning_detailed_text+=i["date"]+" : "+i["text"]+"\n"
-				# 	message.setDetailedText(warning_detailed_text)
+					# 	warning_detailed_text=""
+					# 	for i in text_list:
+					# 		warning_detailed_text+=i["date"]+" : "+i["text"]+"\n"
+					# 	message.setDetailedText(warning_detailed_text)
 
-				# 	message.exec_()
-				# 	return
+					# 	message.exec_()
+					# 	return
 
 			
 
@@ -4021,14 +4209,35 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 	def diary_line_file_remove(self):
 		if self.is_first_arrived==0:
-			do=0
+			dlg = QDialog(self)
+			dlg.setWindowTitle("Delete Warning")
+
+			warning_text="确定要删除链接的文件吗？\n这是无法撤销的操作！\n"
 			for file_index in sorted([item.row() for item in self.listWidget_text_linked_file.selectedIndexes()]):
-				
-				del self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"][file_index-do]
-				do+=1
-				
-			self.diary_line_file_show()
-			self.window_title_update()
+				file=self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"][file_index]
+				file_name=file["file_name"]
+				warning_text+=file_name+"\n"
+			name_label=QLabel(warning_text)
+			
+			QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+			buttonBox = QDialogButtonBox(QBtn)
+			buttonBox.accepted.connect(dlg.accept)
+			buttonBox.rejected.connect(dlg.reject)
+
+			layout=QVBoxLayout()
+			layout.addWidget(name_label)
+			layout.addWidget(buttonBox)
+			dlg.setLayout(layout)
+
+			if dlg.exec_():
+				do=0
+				for file_index in sorted([item.row() for item in self.listWidget_text_linked_file.selectedIndexes()]):
+					
+					del self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"][file_index-do]
+					do+=1
+					
+				self.diary_line_file_show()
+				self.window_title_update()	
 
 	
 

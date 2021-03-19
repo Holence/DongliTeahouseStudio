@@ -20,7 +20,7 @@ class RSS_Updator_Threador(QThread):
 	注意要正序插入到最前面
 	"""
 
-	progress = Signal(str)
+	progress = Signal(str,bool)
 	def setdata(self,parent,updating_url_list):
 		#这里传进来的rss_data竟然是指针……因为它是列表……
 		self.parent=parent
@@ -108,12 +108,11 @@ class RSS_Updator_Threador(QThread):
 					self.new_article_list.append([article["title"],article["link"],False,int(time.time())])
 					updated=True
 
-			
+
+			#每做完一个，都要出去更新last_update，另外如果updated==True，外面还要append new_article_list，并且更新tree列表和文章列表
+			self.progress.emit(rss_url,updated)
 
 			if updated==True:
-				#只有更新了，才出去把rss_data保存到外存
-				self.progress.emit(rss_url)
-
 				self.tray.hide()
 				self.tray.show()
 				self.tray.showMessage("Infomation","RSS更新成功:\n%s"%self.parent.rss_data[rss_url]["feed_name"],QIcon(":/icon/holoico.ico"))
@@ -226,41 +225,18 @@ class RSS_Adding_Getor_Threador(QThread):
 		
 		if Status=="Done":
 			
-			
-			
-			if self.update_type=="Standard":
-				#新建feed容器
-				self.successed[rss_url]={
-					"type":"Standard",
-					"feed_name":feed_name,
-					"unread":0,
-					"frequency":[1,2,3,4,5,6,7],
-					"article_list":[]
-				}
-			
-			elif self.update_type=="Bilibili Video":
-				#新建feed容器
-				self.successed[rss_url]={
-					"type":"Bilibili Video",
-					"feed_name":feed_name,
-					"unread":0,
-					"frequency":[1,2,3,4,5,6,7],
-					"article_list":[]
-				}
-			
-			elif self.update_type=="Bandcamp":
-				#新建feed容器
-				self.successed[rss_url]={
-					"type":"Bandcamp",
-					"feed_name":feed_name,
-					"unread":0,
-					"frequency":[1,2,3,4,5,6,7],
-					"article_list":[]
-				}
+			#标记最新更新日期
+			last_update=str(self.parent.y)+str(self.parent.m)+str(self.parent.d)
 
-		
-							############################################################
-			
+			#新建feed容器
+			self.successed[rss_url]={
+				"type":self.update_type,
+				"feed_name":feed_name,
+				"unread":0,
+				"frequency":[1,2,3,4,5,6,7],
+				"last_update":last_update,
+				"article_list":[]
+			}
 
 			for article in update_link_list:
 				#一般的feed都是新发布的在前，所以新建的时候可以从前往后直接append在list里面
@@ -457,75 +433,96 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		
 		ID=int(self.parent.lineEdit_id.text())
 
-		do=0
+		dlg = QDialog(self)
+		dlg.setWindowTitle("Delete Warning")
+
+		warning_text="确定要删除链接的文件吗？\n这是无法撤销的操作！\n"
 		for file_index in sorted([item.row() for item in self.listWidget_file_root.selectedIndexes()]):
-			
-			#取消file data中对concept的标记
-			file=self.parent.concept_data[ID]["file"][file_index-do]
+			file=self.parent.concept_data[ID]["file"][file_index]
 			file_name=file["file_name"]
-			y=file["y"]
-			m=file["m"]
-			d=file["d"]
-			self.parent.file_data[y][m][d][file_name].remove(ID)
+			warning_text+=file_name+"\n"
+		name_label=QLabel(warning_text)
+		
+		QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+		buttonBox = QDialogButtonBox(QBtn)
+		buttonBox.accepted.connect(dlg.accept)
+		buttonBox.rejected.connect(dlg.reject)
 
-			del self.parent.concept_data[ID]["file"][file_index-do]
-			#del之后列表的长度就变了，索引的下标也要多减一
-			do+=1
+		layout=QVBoxLayout()
+		layout.addWidget(name_label)
+		layout.addWidget(buttonBox)
+		dlg.setLayout(layout)
 
-		#更新事物界面
-		self.parent.concept_show(ID)
-		self.parent.window_title_update()
+		if dlg.exec_():
+			do=0
+			for file_index in sorted([item.row() for item in self.listWidget_file_root.selectedIndexes()]):
+				
+				#取消file data中对concept的标记
+				file=self.parent.concept_data[ID]["file"][file_index-do]
+				file_name=file["file_name"]
+				y=file["y"]
+				m=file["m"]
+				d=file["d"]
+				self.parent.file_data[y][m][d][file_name].remove(ID)
 
-		for tab in self.parent.custom_tabs_shown:
-			tab.tab_update()
+				del self.parent.concept_data[ID]["file"][file_index-do]
+				#del之后列表的长度就变了，索引的下标也要多减一
+				do+=1
 
-		#如果没有选中，返回的是-1，这样下标索引会到倒数第一个
-		# if file_index!=-1:
-			
-			####
-				#现在所有的文件都在file manager中，所以concept中文件存在与否就与diary没多大关系了
-				#
-				# file_link=self.parent.concept_data[ID]["file"][file_index]["file_link"]
-				#
-				# 判断是否有文本块链接到该文件
-				# text_list=[]
-				# for year_index in range(1970-1970,2170-1970):
-				# 	for month_index in range(0,11):
-				# 		for day_index in range(len(self.parent.diary_data[year_index]["date"][month_index])):
-				# 			for line_index in range(len(self.parent.diary_data[year_index]["date"][month_index][day_index]["text"])):
-				# 				for file_index in range(len(self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"])):
-									
-				# 					linked_file_link=self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][file_index]["file_link"]
-				# 					line_text=self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["line_text"]
+			#更新事物界面
+			self.parent.concept_show(ID)
+			self.parent.window_title_update()
 
-				# 					if linked_file_link==file_link:
-				# 						text_list.append({
-				# 							"date":str(year_index+1970)+"."+str(month_index+1)+"."+str(self.parent.diary_data[year_index]["date"][month_index][day_index]["day"]),
-				# 							"text":line_text
-				# 					})
-				# if text_list!=[]:
-				# 	message=QMessageBox()
-				# 	message.setWindowTitle("Warning")
+			for tab in self.parent.custom_tabs_shown:
+				tab.tab_update()
 
-				# 	#淦QMessageBox的大小不能直接改
-				# 	# message.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
-				# 	# message.setGeometry(0,0,800,400)
+			#如果没有选中，返回的是-1，这样下标索引会到倒数第一个
+			# if file_index!=-1:
+				
+				####
+					#现在所有的文件都在file manager中，所以concept中文件存在与否就与diary没多大关系了
+					#
+					# file_link=self.parent.concept_data[ID]["file"][file_index]["file_link"]
+					#
+					# 判断是否有文本块链接到该文件
+					# text_list=[]
+					# for year_index in range(1970-1970,2170-1970):
+					# 	for month_index in range(0,11):
+					# 		for day_index in range(len(self.parent.diary_data[year_index]["date"][month_index])):
+					# 			for line_index in range(len(self.parent.diary_data[year_index]["date"][month_index][day_index]["text"])):
+					# 				for file_index in range(len(self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"])):
+										
+					# 					linked_file_link=self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][file_index]["file_link"]
+					# 					line_text=self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["line_text"]
 
-				# 	message.setIcon(QMessageBox.Warning)
+					# 					if linked_file_link==file_link:
+					# 						text_list.append({
+					# 							"date":str(year_index+1970)+"."+str(month_index+1)+"."+str(self.parent.diary_data[year_index]["date"][month_index][day_index]["day"]),
+					# 							"text":line_text
+					# 					})
+					# if text_list!=[]:
+					# 	message=QMessageBox()
+					# 	message.setWindowTitle("Warning")
 
-				# 	#然而\n
-				# 	#\n
-				# 	#"这就是最简单(zhizhang)的改大小方法                                                         用空格和回车填充                           简单易用好上手！"
-				# 	warning_text=file_link+" 在日志中已存在：\n\n\n                                                                "
-				# 	message.setText(warning_text)
+					# 	#淦QMessageBox的大小不能直接改
+					# 	# message.setSizePolicy(QSizePolicy.Expanding,QSizePolicy.Expanding)
+					# 	# message.setGeometry(0,0,800,400)
 
-				# 	warning_detailed_text=""
-				# 	for i in text_list:
-				# 		warning_detailed_text+=i["date"]+" : "+i["text"]+"\n"
-				# 	message.setDetailedText(warning_detailed_text)
+					# 	message.setIcon(QMessageBox.Warning)
 
-				# 	message.exec_()
-				# 	return
+					# 	#然而\n
+					# 	#\n
+					# 	#"这就是最简单(zhizhang)的改大小方法                                                         用空格和回车填充                           简单易用好上手！"
+					# 	warning_text=file_link+" 在日志中已存在：\n\n\n                                                                "
+					# 	message.setText(warning_text)
+
+					# 	warning_detailed_text=""
+					# 	for i in text_list:
+					# 		warning_detailed_text+=i["date"]+" : "+i["text"]+"\n"
+					# 	message.setDetailedText(warning_detailed_text)
+
+					# 	message.exec_()
+					# 	return
 
 
 	def update_file_list_and_show_parent_concept(self):
