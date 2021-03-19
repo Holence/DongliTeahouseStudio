@@ -1322,14 +1322,19 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		dlg.setWindowTitle("Add New RSS Feed")
 		text="""Rss Url:（支持多行导入，一行一个，不用空行）
 已经内置Bilibili视频RSS（在上方选择Bilibili Video模式，添加https://space.bilibili.com/用户ID）
+已经内置Bandcamp RSS（在上方选择Bandcamp模式，添加https://BANDNAME.bandcamp.com）
 
 其他自制RSS源站点：
 https://rsshub.app/
 https://feedx.net/
 https://feedx.top/
+
+豆瓣动态: https://rsshub.app/douban/people/ID/status
 知乎: https://rss.lilydjwg.me/zhihu/用户ID
 Youtube: https://www.youtube.com/feeds/videos.xml?channel_id=频道ID
-Pixiv: https://rsshub.app/pixiv/user/用户ID"""
+Pixiv: https://rsshub.app/pixiv/user/用户ID
+Reddit: https://www.reddit.com/r/SUBREDDIT.rss
+"""
 		rss_url_label=QTextBrowser(self)
 		rss_url_label.setText(text)
 		rss_url_label.setSizePolicy(QSizePolicy.Preferred,QSizePolicy.Maximum)
@@ -1339,6 +1344,7 @@ Pixiv: https://rsshub.app/pixiv/user/用户ID"""
 		combobox=QComboBox(self)
 		combobox.addItem("Standard")
 		combobox.addItem("Bilibili Video")
+		combobox.addItem("Bandcamp")
 		
 		QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
 		buttonBox = QDialogButtonBox(QBtn)

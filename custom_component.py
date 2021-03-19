@@ -61,6 +61,10 @@ class RSS_Updator_Threador(QThread):
 			# print("BILIBILI",rss_url)
 
 			(Status,feed_name,update_link_list)=self.rss_parser.update_BiliBili_Video(rss_url)
+		
+		elif self.parent.rss_data[rss_url]["type"]=="Bandcamp":
+			
+			(Status,feed_name,update_link_list)=self.rss_parser.updata_Bandcamp(rss_url)
 
 
 
@@ -194,6 +198,10 @@ class RSS_Adding_Getor_Threador(QThread):
 		elif self.update_type=="Bilibili Video":
 			# print("BILIBILI")
 			(Status,feed_name,update_link_list)=self.rss_parser.update_BiliBili_Video(rss_url)
+		
+		elif self.update_type=="Bandcamp":
+			
+			(Status,feed_name,update_link_list)=self.rss_parser.updata_Bandcamp(rss_url)
 
 		################################################################################
 
@@ -234,6 +242,16 @@ class RSS_Adding_Getor_Threador(QThread):
 				#新建feed容器
 				self.successed[rss_url]={
 					"type":"Bilibili Video",
+					"feed_name":feed_name,
+					"unread":0,
+					"frequency":[1,2,3,4,5,6,7],
+					"article_list":[]
+				}
+			
+			elif self.update_type=="Bandcamp":
+				#新建feed容器
+				self.successed[rss_url]={
+					"type":"Bandcamp",
 					"feed_name":feed_name,
 					"unread":0,
 					"frequency":[1,2,3,4,5,6,7],

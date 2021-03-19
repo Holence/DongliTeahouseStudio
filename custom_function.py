@@ -266,3 +266,30 @@ class RSS_Parser():
 		
 		except:
 			return ("Failed",None,None)
+
+	def updata_Bandcamp(self,rss_url):
+		"Bandcamp导入格式：https://NAME.bandcamp.com/"
+		try:
+			try:
+				band_name=re.findall("(?<=https\://).+(?=\.bandcamp\.com)",rss_url)[0]
+			except:
+				#不符合格式
+				return ("Invalid",None,None)
+
+			url_list=[]
+			response=getHTML(rss_url+"/music")
+			html=etree.HTML(response)
+			album_list=html.xpath('//*[@id="music-grid"]/li/a/@href')
+			title_list=list(map(lambda x:x.strip(),html.xpath('//*[@id="music-grid"]/li/a/p/text()')))
+			
+			for i in range(len(album_list)):
+				url_list.append(
+					{
+						"title":title_list[i],
+						"link":rss_url+"/"+album_list[i]
+					}
+				)
+			return ("Done",band_name,url_list)
+		
+		except:
+			return ("Failed",None,None)
