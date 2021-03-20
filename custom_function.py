@@ -225,6 +225,9 @@ class RSS_Parser():
 	# 
 	# 各自写各自的抓取方式！
 	#
+	# ERROR Status: Invalid 输入的url格式错误，无法匹配格式
+	# ERROR Status: Failed 获取Feed信息错误
+	#
 	################################################################################
 	
 	def __init__(self):
@@ -301,15 +304,24 @@ class RSS_Parser():
 		"Pixiv导入格式：https://www.pixiv.net/users/3371956"
 
 		try:
-			ID=rss_url.split("/")[-1]
+			try:
+				ID=rss_url.split("/")[-1]
+				int(ID)
+			except:
+				#不符合格式
+				return ("Invalid",None,None)
 			
 			response=json.loads(getHTML("https://www.pixiv.net/ajax/user/%s/profile/all"%ID))
 			
 			try:
 				rss_name=response["body"]["pickup"][0]["userName"]
 			except:
-				#不符合格式
-				return ("Invalid",None,None)
+				#有一些用户pickup里面竟然是空的……
+				#那就换一个包
+				try:
+					rss_name=json.loads(getHTML("https://www.pixiv.net/ajax/user/%s/profile/top"%ID))["body"]["extraData"]["meta"]["title"]
+				except:
+					rss_name="Unkown Feed"
 			
 			url_list=[]
 			
@@ -332,15 +344,24 @@ class RSS_Parser():
 		"Pixiv导入格式：https://www.pixiv.net/users/3371956"
 
 		try:
-			ID=rss_url.split("/")[-1]
+			try:
+				ID=rss_url.split("/")[-1]
+				int(ID)
+			except:
+				#不符合格式
+				return ("Invalid",None,None)
 			
 			response=json.loads(getHTML("https://www.pixiv.net/ajax/user/%s/profile/all"%ID))
 
 			try:
 				rss_name=response["body"]["pickup"][0]["userName"]
 			except:
-				#不符合格式
-				return ("Invalid",None,None)
+				#有一些用户pickup里面竟然是空的……
+				#那就换一个包
+				try:
+					rss_name=json.loads(getHTML("https://www.pixiv.net/ajax/user/%s/profile/top"%ID))["body"]["extraData"]["meta"]["title"]
+				except:
+					rss_name="Unkown Feed"
 			
 			url_list=[]
 			

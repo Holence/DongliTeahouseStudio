@@ -1375,6 +1375,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		dlg.setMinimumSize(600,600)
 
 		if dlg.exec_():
+			
+			TYPE=combobox.currentText()
+			
 			#支持多行导入，一行一个，不用空行
 			rss_url_list=rss_url_enter.toPlainText().split("\n")
 			
@@ -1387,13 +1390,16 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			warning_dont_need_to_add_text=""
 
 			for i in rss_url_list:
-				i=i.strip("/")
-				if i in alredy_have:
+				i=i.strip().strip("/")
+
+				#alredy_have里的rss_url是已经加了||TYPE信息的东西了，这里比较的时候也要加上去
+				if i+"||"+TYPE in alredy_have:
 					dont_need_to_add.append(i)
 					warning_dont_need_to_add_text+=i+"\n"
 				else:
 					#可能有糊涂蛋一次导入了多个一模一样的家伙
 					#这里自动去重
+					#这里need_to_add中是要传到parser中的，所以先不要加||TYPE信息
 					if i not in need_to_add:
 						need_to_add.append(i)
 						warning_need_to_add_text+=i+"\n"
