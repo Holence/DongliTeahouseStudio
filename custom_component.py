@@ -63,14 +63,14 @@ class RSS_Updator_Threador(QThread):
 
 		elif self.parent.rss_data[rss_url]["type"]=="Pixiv Illustration":
 			cookie=self.parent.user_settings.value("pixiv_cookie")
-			if cookie!="":
+			if cookie!="" and cookie!=None:
 				cookie=decrypt(cookie)
 			
 			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Illustration(rss_url,cookie)
 		
 		elif self.parent.rss_data[rss_url]["type"]=="Pixiv Manga":
 			cookie=self.parent.user_settings.value("pixiv_cookie")
-			if cookie!="":
+			if cookie!="" and cookie!=None:
 				cookie=decrypt(cookie)
 			
 			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Manga(rss_url,cookie)
@@ -213,7 +213,7 @@ class RSS_Adding_Getor_Threador(QThread):
 
 		elif self.update_type=="Pixiv Illustration":
 			cookie=self.parent.user_settings.value("pixiv_cookie")
-			if cookie!="":
+			if cookie!="" and cookie!=None:
 				cookie=decrypt(cookie)
 			
 			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Illustration(rss_url,cookie)
@@ -221,7 +221,7 @@ class RSS_Adding_Getor_Threador(QThread):
 
 		elif self.update_type=="Pixiv Manga":
 			cookie=self.parent.user_settings.value("pixiv_cookie")
-			if cookie!="":
+			if cookie!="" and cookie!=None:
 				cookie=decrypt(cookie)
 			
 			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Manga(rss_url,cookie)
