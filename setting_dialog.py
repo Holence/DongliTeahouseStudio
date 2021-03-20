@@ -18,7 +18,7 @@ class Ui_setting_dialog(object):
     def setupUi(self, setting_dialog):
         if not setting_dialog.objectName():
             setting_dialog.setObjectName(u"setting_dialog")
-        setting_dialog.resize(433, 237)
+        setting_dialog.resize(550, 335)
         icon = QIcon()
         icon.addFile(u":/icon/holoico.ico", QSize(), QIcon.Normal, QIcon.Off)
         setting_dialog.setWindowIcon(icon)
@@ -33,6 +33,23 @@ class Ui_setting_dialog(object):
 
         self.gridLayout.addWidget(self.label_2, 2, 0, 1, 1)
 
+        self.lineEdit_font = QLineEdit(setting_dialog)
+        self.lineEdit_font.setObjectName(u"lineEdit_font")
+        self.lineEdit_font.setEnabled(False)
+        self.lineEdit_font.setReadOnly(False)
+
+        self.gridLayout.addWidget(self.lineEdit_font, 3, 0, 1, 1)
+
+        self.label_3 = QLabel(setting_dialog)
+        self.label_3.setObjectName(u"label_3")
+
+        self.gridLayout.addWidget(self.label_3, 4, 0, 1, 1)
+
+        self.label = QLabel(setting_dialog)
+        self.label.setObjectName(u"label")
+
+        self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
+
         self.lineEdit_file_saving_base = QLineEdit(setting_dialog)
         self.lineEdit_file_saving_base.setObjectName(u"lineEdit_file_saving_base")
         self.lineEdit_file_saving_base.setEnabled(False)
@@ -44,22 +61,15 @@ class Ui_setting_dialog(object):
 
         self.gridLayout.addWidget(self.pushButtonfile_saving_base, 1, 1, 1, 1)
 
-        self.label = QLabel(setting_dialog)
-        self.label.setObjectName(u"label")
-
-        self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
-
-        self.lineEdit_font = QLineEdit(setting_dialog)
-        self.lineEdit_font.setObjectName(u"lineEdit_font")
-        self.lineEdit_font.setEnabled(False)
-        self.lineEdit_font.setReadOnly(False)
-
-        self.gridLayout.addWidget(self.lineEdit_font, 3, 0, 1, 1)
-
         self.pushButton_font = QPushButton(setting_dialog)
         self.pushButton_font.setObjectName(u"pushButton_font")
 
         self.gridLayout.addWidget(self.pushButton_font, 3, 1, 1, 1)
+
+        self.lineEdit_pixiv_cookie = QLineEdit(setting_dialog)
+        self.lineEdit_pixiv_cookie.setObjectName(u"lineEdit_pixiv_cookie")
+
+        self.gridLayout.addWidget(self.lineEdit_pixiv_cookie, 5, 0, 1, 1)
 
 
         self.verticalLayout.addLayout(self.gridLayout)
@@ -89,8 +99,9 @@ class Ui_setting_dialog(object):
     def retranslateUi(self, setting_dialog):
         setting_dialog.setWindowTitle(QCoreApplication.translate("setting_dialog", u"Dialog", None))
         self.label_2.setText(QCoreApplication.translate("setting_dialog", u"Font", None))
-        self.pushButtonfile_saving_base.setText(QCoreApplication.translate("setting_dialog", u"Open...", None))
+        self.label_3.setText(QCoreApplication.translate("setting_dialog", u"Pixiv Cookie\uff08\u4e00\u4e9b\u753b\u5e08\u7684\u9650\u5236\u6bd4\u8f83\u4e25\u683c\uff0c\u9700\u8981cookie\u624d\u80fd\u8bbf\u95ee\u5230\uff09", None))
         self.label.setText(QCoreApplication.translate("setting_dialog", u"File Saving Directory", None))
+        self.pushButtonfile_saving_base.setText(QCoreApplication.translate("setting_dialog", u"Open...", None))
         self.pushButton_font.setText(QCoreApplication.translate("setting_dialog", u"Font...", None))
     # retranslateUi
 

@@ -335,7 +335,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 		#自动保存file data
 		encrypt_save(self.file_data,"File_Data.dlcw")
-		self.user_settings.setValue("file_saving_base",encrypt(self.file_saving_base))
 
 		#自动保存RSS data
 		encrypt_save(self.rss_data,"RSS_Data.dlcw")
@@ -1101,29 +1100,39 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			font=self.user_settings.value("font")
 			font_size=self.user_settings.value("font_size")
 		except:
+			font=None
+			font_size=""
 			pass
 		
-		dlg=SettingDialog(self.file_saving_base,font,font_size)
+		try:
+			pixiv_cookie=decrypt(self.user_settings.value("pixiv_cookie"))
+		except:
+			pixiv_cookie=""
+			pass
+		
+		dlg=SettingDialog(self.file_saving_base,font,font_size,pixiv_cookie)
 		
 
 		if dlg.exec_():
-			self.file_saving_base=dlg.file_saving_base
-			font=dlg.font
-			font_size=dlg.font_size
 
-			if font==None:
-				QMessageBox.warning(self,"Warning","Font设置错误")
-				return
-			if self.file_saving_base=="":
-				QMessageBox.warning(self,"Warning","File Library基地址错误")
-				return
+			if dlg.font!=None:
+				font=dlg.font
+				font_size=dlg.font_size
+
+				self.user_settings.setValue("font",font)
+				self.user_settings.setValue("font_size",font_size)
+				self.font_set(font,font_size)
 			
+			
+			self.file_saving_base=dlg.lineEdit_file_saving_base.text()
+			self.user_settings.setValue("file_saving_base",encrypt(self.file_saving_base))
 			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.y)+"/"+str(self.m)+"/"+str(self.d)
-			self.user_settings.setValue("font",font)
-			self.user_settings.setValue("font_size",font_size)
-
 			self.file_library_list_update()
-			self.font_set(font,font_size)
+			
+
+			pixiv_cookie=dlg.lineEdit_pixiv_cookie.text()
+			self.user_settings.setValue("pixiv_cookie",encrypt(pixiv_cookie))
+			
 		else:
 			pass
 

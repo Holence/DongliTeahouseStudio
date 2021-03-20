@@ -62,10 +62,18 @@ class RSS_Updator_Threador(QThread):
 			(Status,feed_name,update_link_list)=self.rss_parser.updata_Bandcamp(rss_url)
 
 		elif self.parent.rss_data[rss_url]["type"]=="Pixiv Illustration":
-			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Illustration(rss_url)
+			cookie=self.parent.user_settings.value("pixiv_cookie")
+			if cookie!="":
+				cookie=decrypt(cookie)
+			
+			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Illustration(rss_url,cookie)
 		
 		elif self.parent.rss_data[rss_url]["type"]=="Pixiv Manga":
-			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Manga(rss_url)
+			cookie=self.parent.user_settings.value("pixiv_cookie")
+			if cookie!="":
+				cookie=decrypt(cookie)
+			
+			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Manga(rss_url,cookie)
 
 
 		################################################################################
@@ -204,11 +212,19 @@ class RSS_Adding_Getor_Threador(QThread):
 			rss_url+="||Bandcamp"
 
 		elif self.update_type=="Pixiv Illustration":
-			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Illustration(rss_url)
+			cookie=self.parent.user_settings.value("pixiv_cookie")
+			if cookie!="":
+				cookie=decrypt(cookie)
+			
+			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Illustration(rss_url,cookie)
 			rss_url+="||Pixiv Illustration"
 
 		elif self.update_type=="Pixiv Manga":
-			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Manga(rss_url)
+			cookie=self.parent.user_settings.value("pixiv_cookie")
+			if cookie!="":
+				cookie=decrypt(cookie)
+			
+			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Manga(rss_url,cookie)
 			rss_url+="||Pixiv Manga"
 
 		################################################################################
@@ -757,29 +773,32 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 
 
 class SettingDialog(QDialog,Ui_setting_dialog):
-	def __init__(self,file_saving_base,font,font_size):
+	def __init__(self,file_saving_base,font,font_size,pixiv_cookie):
 		super().__init__()
 		self.setupUi(self)
 		
 		self.pushButtonfile_saving_base.clicked.connect(self.dir_dialog)
 		self.pushButton_font.clicked.connect(self.font_dialog)
 
-		self.file_saving_base=file_saving_base
+
+		self.lineEdit_file_saving_base.setText(file_saving_base)
+
 		self.font=font
 		self.font_size=font_size
-
 		try:
 			self.lineEdit_font.setText(self.font.family()+";"+str(self.font_size))
 		except:
 			pass
 
-		self.lineEdit_file_saving_base.setText(self.file_saving_base)
-
+		try:
+			self.lineEdit_pixiv_cookie.setText(pixiv_cookie)
+		except:
+			pass
 
 	def dir_dialog(self):
 		dlg=QFileDialog(self)
-		self.file_saving_base=dlg.getExistingDirectory()
-		self.lineEdit_file_saving_base.setText(self.file_saving_base)
+		file_saving_base=dlg.getExistingDirectory()
+		self.lineEdit_file_saving_base.setText(file_saving_base)
 
 	def font_dialog(self):
 		ok, font = QFontDialog.getFont(QFont(), self)

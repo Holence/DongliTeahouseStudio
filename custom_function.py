@@ -19,9 +19,13 @@ def delete_to_recyclebin(filename):
 	return not result[1]
 
 
-def getHTML(url):
+def getHTML(url,cookie=""):
 	head={}
+
 	head['User-Agent']='Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.152 YaBrowser/21.2.3.73 (beta) Yowser/2.5 Safari/537.36'
+	
+	if cookie!="":
+		head["cookie"]=cookie
 	
 	response=requests.get(url,headers=head)
 	return response.text
@@ -234,7 +238,7 @@ class RSS_Parser():
 		
 		pass
 
-	def update_normal_rss(self,rss_url):
+	def update_normal_rss(self,rss_url,cookie=""):
 		try:
 			rss=feedparser.parse(rss_url)
 			if "title" in rss.feed and rss.entries!=[]:
@@ -244,7 +248,7 @@ class RSS_Parser():
 		except:
 			return ("Failed",None,None)
 
-	def update_BiliBili_Video(self,rss_url):
+	def update_BiliBili_Video(self,rss_url,cookie=""):
 		"Bilibili导入格式：https://space.bilibili.com/up_ID"
 		try:
 			try:
@@ -273,7 +277,7 @@ class RSS_Parser():
 		except:
 			return ("Failed",None,None)
 
-	def updata_Bandcamp(self,rss_url):
+	def updata_Bandcamp(self,rss_url,cookie=""):
 		"Bandcamp导入格式：https://NAME.bandcamp.com/"
 		try:
 			try:
@@ -300,7 +304,7 @@ class RSS_Parser():
 		except:
 			return ("Failed",None,None)
 	
-	def update_Pixiv_Illustration(self,rss_url):
+	def update_Pixiv_Illustration(self,rss_url,cookie=""):
 		"Pixiv导入格式：https://www.pixiv.net/users/3371956"
 
 		try:
@@ -311,7 +315,7 @@ class RSS_Parser():
 				#不符合格式
 				return ("Invalid",None,None)
 			
-			response=json.loads(getHTML("https://www.pixiv.net/ajax/user/%s/profile/all"%ID))
+			response=json.loads(getHTML("https://www.pixiv.net/ajax/user/%s/profile/all"%ID,cookie))
 			
 			try:
 				rss_name=response["body"]["pickup"][0]["userName"]
@@ -319,7 +323,7 @@ class RSS_Parser():
 				#有一些用户pickup里面竟然是空的……
 				#那就换一个包
 				try:
-					rss_name=json.loads(getHTML("https://www.pixiv.net/ajax/user/%s/profile/top"%ID))["body"]["extraData"]["meta"]["title"]
+					rss_name=json.loads(getHTML("https://www.pixiv.net/ajax/user/%s/profile/top"%ID,cookie))["body"]["extraData"]["meta"]["title"]
 				except:
 					rss_name="Unkown Feed"
 			
@@ -340,7 +344,7 @@ class RSS_Parser():
 		except:
 			return ("Failed",None,None)
 	
-	def update_Pixiv_Manga(self,rss_url):
+	def update_Pixiv_Manga(self,rss_url,cookie=""):
 		"Pixiv导入格式：https://www.pixiv.net/users/3371956"
 
 		try:
@@ -351,7 +355,7 @@ class RSS_Parser():
 				#不符合格式
 				return ("Invalid",None,None)
 			
-			response=json.loads(getHTML("https://www.pixiv.net/ajax/user/%s/profile/all"%ID))
+			response=json.loads(getHTML("https://www.pixiv.net/ajax/user/%s/profile/all"%ID,cookie))
 
 			try:
 				rss_name=response["body"]["pickup"][0]["userName"]
@@ -359,7 +363,7 @@ class RSS_Parser():
 				#有一些用户pickup里面竟然是空的……
 				#那就换一个包
 				try:
-					rss_name=json.loads(getHTML("https://www.pixiv.net/ajax/user/%s/profile/top"%ID))["body"]["extraData"]["meta"]["title"]
+					rss_name=json.loads(getHTML("https://www.pixiv.net/ajax/user/%s/profile/top"%ID,cookie))["body"]["extraData"]["meta"]["title"]
 				except:
 					rss_name="Unkown Feed"
 			
