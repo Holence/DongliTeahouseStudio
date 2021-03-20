@@ -53,19 +53,19 @@ class RSS_Updator_Threador(QThread):
 
 		#普通RSS
 		if self.parent.rss_data[rss_url]["type"]=="Standard":
-			# print("RSS",rss_url)
-			
 			(Status,feed_name,update_link_list)=self.rss_parser.update_normal_rss(rss_url)
 			
 		elif self.parent.rss_data[rss_url]["type"]=="Bilibili Video":
-			# print("BILIBILI",rss_url)
-
 			(Status,feed_name,update_link_list)=self.rss_parser.update_BiliBili_Video(rss_url)
 		
 		elif self.parent.rss_data[rss_url]["type"]=="Bandcamp":
-			
 			(Status,feed_name,update_link_list)=self.rss_parser.updata_Bandcamp(rss_url)
 
+		elif self.parent.rss_data[rss_url]["type"]=="Pixiv Illustration":
+			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Illustration(rss_url)
+		
+		elif self.parent.rss_data[rss_url]["type"]=="Pixiv Manga":
+			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Manga(rss_url)
 
 
 		################################################################################
@@ -98,13 +98,13 @@ class RSS_Updator_Threador(QThread):
 			#清空单位更新列表
 			self.new_article_list=[]
 			
-			#一般的feed都是新发布的在前，所以这里倒序插入到首位
-			#这里直接把最新的扔到更新列表的最后面，出去的时候再正序遍历更新列表，append到rss_data中时，最新的就回到最前面了
+			#update_link_list中新文章在最前面，这里用append，new_article_list中依旧是新文章在最前面
+			#出去的时候再正序遍历new_article_list，insert到rss_data中的最前面
 			for article in update_link_list:
 				
 				if article["link"] not in alreay_have_list:
 					# 手动更新和每日自动更新在这里是不会冲突的，因为外面有qlock锁死着呢
-					# print(self.parent.rss_data[rss_url]["feed_name"],article["title"])
+					
 					self.new_article_list.append([article["title"],article["link"],False,int(time.time())])
 					updated=True
 
@@ -189,18 +189,27 @@ class RSS_Adding_Getor_Threador(QThread):
 
 		################################################################################
 
-		#普通RSS
+		#因为记录到rss_data中的rss_url只是一个用于查找字典的标记符，并不是用来去访问的，所以可以在添加信息
+		#比如Pixiv的Illustration和Manga的输入是同样的rss_url，而解析模式不同，自然也应该有不同的标记符
 		if self.update_type=="Standard":
-			# print("RSS")
 			(Status,feed_name,update_link_list)=self.rss_parser.update_normal_rss(rss_url)
+			rss_url+="||Standard"
 			
 		elif self.update_type=="Bilibili Video":
-			# print("BILIBILI")
 			(Status,feed_name,update_link_list)=self.rss_parser.update_BiliBili_Video(rss_url)
+			rss_url+="||Bilibili Video"
 		
 		elif self.update_type=="Bandcamp":
-			
 			(Status,feed_name,update_link_list)=self.rss_parser.updata_Bandcamp(rss_url)
+			rss_url+="||Bandcamp"
+
+		elif self.update_type=="Pixiv Illustration":
+			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Illustration(rss_url)
+			rss_url+="||Pixiv Illustration"
+
+		elif self.update_type=="Pixiv Manga":
+			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Manga(rss_url)
+			rss_url+="||Pixiv Manga"
 
 		################################################################################
 
@@ -238,8 +247,9 @@ class RSS_Adding_Getor_Threador(QThread):
 				"article_list":[]
 			}
 
+			#update_link_list中新文章在最前面，所以添加新feed的时候，可以从前往后直接append在list里面
 			for article in update_link_list:
-				#一般的feed都是新发布的在前，所以新建的时候可以从前往后直接append在list里面
+				
 				self.successed[rss_url]["article_list"].append([article["title"],article["link"],False,int(time.time())])
 				self.successed[rss_url]["unread"]+=1
 			
@@ -282,7 +292,7 @@ class RSS_Adding_Getor_Threador(QThread):
 			
 			self.parent.qlock.unlock()
 			
-			time.sleep(1)
+			time.sleep(2)
 
 
 

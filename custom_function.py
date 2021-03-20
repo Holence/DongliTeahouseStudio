@@ -220,6 +220,9 @@ class RSS_Parser():
 	# 		"link":"",
 	# 	}
 	# ]
+	# 
+	# 重要！！！update_link_list中较新的文章在列表的前面，旧的在后面
+	# 
 	# 各自写各自的抓取方式！
 	#
 	################################################################################
@@ -290,6 +293,68 @@ class RSS_Parser():
 					}
 				)
 			return ("Done",band_name,url_list)
+		
+		except:
+			return ("Failed",None,None)
+	
+	def update_Pixiv_Illustration(self,rss_url):
+		"Pixiv导入格式：https://www.pixiv.net/users/3371956"
+
+		try:
+			ID=rss_url.split("/")[-1]
+			
+			response=json.loads(getHTML("https://www.pixiv.net/ajax/user/%s/profile/all"%ID))
+			
+			try:
+				rss_name=response["body"]["pickup"][0]["userName"]
+			except:
+				#不符合格式
+				return ("Invalid",None,None)
+			
+			url_list=[]
+			
+			illustration_dict=response["body"]["illusts"]
+			
+			for i in illustration_dict.keys():
+				url_list.append(
+					{
+						"title":i,
+						"link":"https://www.pixiv.net/artworks/"+i
+					}
+				)
+			
+			return ("Done",rss_name,url_list)
+		
+		except:
+			return ("Failed",None,None)
+	
+	def update_Pixiv_Manga(self,rss_url):
+		"Pixiv导入格式：https://www.pixiv.net/users/3371956"
+
+		try:
+			ID=rss_url.split("/")[-1]
+			
+			response=json.loads(getHTML("https://www.pixiv.net/ajax/user/%s/profile/all"%ID))
+
+			try:
+				rss_name=response["body"]["pickup"][0]["userName"]
+			except:
+				#不符合格式
+				return ("Invalid",None,None)
+			
+			url_list=[]
+			
+			manga_dict=response["body"]["manga"]
+			
+			for i in manga_dict.keys():
+				url_list.append(
+					{
+						"title":i,
+						"link":"https://www.pixiv.net/artworks/"+i
+					}
+				)
+			
+			return ("Done",rss_name,url_list)
 		
 		except:
 			return ("Failed",None,None)
