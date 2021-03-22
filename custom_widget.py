@@ -184,6 +184,7 @@ class MyConceptLinkedFileList(QListWidget):
 		urlList = []
 		
 		for itemindex in [item.row() for item in self.selectedIndexes()]:
+			
 			urlList.append(QUrl("file:///"+self.item(itemindex).toolTip()))
 		
 		mime.setUrls(urlList)
@@ -214,6 +215,7 @@ class MyConceptLinkedFileList(QListWidget):
 				#如果是网页url
 				elif url_str[:4]=="http" or url_str[:5]=="https":
 					links.append(url_str)
+			
 			self.dropped.emit(links)
 		else:
 			super(MyConceptLinkedFileList,self).dropEvent(event)

@@ -51,29 +51,31 @@ class RSS_Updator_Threador(QThread):
 		################################################################################
 		################################################################################
 
-		#普通RSS
+
+		
+		#注意要去掉屁股上的后缀信息rss_url.split("||")[0]
 		if self.parent.rss_data[rss_url]["type"]=="Standard":
-			(Status,feed_name,update_link_list)=self.rss_parser.update_normal_rss(rss_url)
+			(Status,feed_name,update_link_list)=self.rss_parser.update_normal_rss(rss_url.split("||")[0])
 			
 		elif self.parent.rss_data[rss_url]["type"]=="Bilibili Video":
-			(Status,feed_name,update_link_list)=self.rss_parser.update_BiliBili_Video(rss_url)
+			(Status,feed_name,update_link_list)=self.rss_parser.update_BiliBili_Video(rss_url.split("||")[0])
 		
 		elif self.parent.rss_data[rss_url]["type"]=="Bandcamp":
-			(Status,feed_name,update_link_list)=self.rss_parser.updata_Bandcamp(rss_url)
+			(Status,feed_name,update_link_list)=self.rss_parser.updata_Bandcamp(rss_url.split("||")[0])
 
 		elif self.parent.rss_data[rss_url]["type"]=="Pixiv Illustration":
 			cookie=self.parent.user_settings.value("pixiv_cookie")
 			if cookie!="" and cookie!=None:
 				cookie=decrypt(cookie)
 			
-			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Illustration(rss_url,cookie)
+			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Illustration(rss_url.split("||")[0],cookie)
 		
 		elif self.parent.rss_data[rss_url]["type"]=="Pixiv Manga":
 			cookie=self.parent.user_settings.value("pixiv_cookie")
 			if cookie!="" and cookie!=None:
 				cookie=decrypt(cookie)
 			
-			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Manga(rss_url,cookie)
+			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Manga(rss_url.split("||")[0],cookie)
 
 
 		################################################################################
@@ -197,8 +199,9 @@ class RSS_Adding_Getor_Threador(QThread):
 
 		################################################################################
 
-		#因为记录到rss_data中的rss_url只是一个用于查找字典的标记符，并不是用来去访问的，所以可以在添加信息
 		#比如Pixiv的Illustration和Manga的输入是同样的rss_url，而解析模式不同，自然也应该有不同的标记符
+		#所以可以在rss_url的屁股上添加信息
+		#在update thread中去掉屁股就可以正常更新解析了
 		if self.update_type=="Standard":
 			(Status,feed_name,update_link_list)=self.rss_parser.update_normal_rss(rss_url)
 			rss_url+="||Standard"
@@ -340,7 +343,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 	def concept_linked_file_add(self,links):
 		"""
 		从file library中进来的直接添加到当前日期，（如果带有内部路径，报错！）
-		从concept或者tab root进来的判断是否为内部文件，
+		从concept或者tab root或者diary line进来的判断是否为内部文件，
 			如果是外部文件那就放到当前日期，
 			如果是内部文件，先按照ymd查filedata中有没有，
 				如果有就只做链接操作，
@@ -369,9 +372,9 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		#移动文件到当日路径
 		for i in links:
 			
-			#拥有内部路径
+			#拥有内部路径吗？
 			try:
-				date=list(map(lambda x:int(x),i.split("/")[-4:-1]))
+				date=list(map(lambda x:int(x),i.split("|")[0].split("/")[-4:-1]))
 				y=date[0]
 				m=date[1]
 				d=date[2]
@@ -382,10 +385,18 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 						
 						#如果filedata中已经存在，就只做链接操作
 						try:
-							file_name=os.path.basename(i)
+							#如果是link
+							if "|" in i:
+								file_name=">"+i.split(">")[-1]
+								file_icon=which_icon(file_name+".url")
+							else:
+								file_name=os.path.basename(i)
+								file_icon=which_icon(file_name)
+							
+							#file_data中是否存在该文件\link
 							self.parent.file_data[y][m][d][file_name]
 
-							file_icon=which_icon(file_name)
+							#如果存在
 							adding_file.append(
 								{
 									"y":y,
@@ -400,24 +411,45 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 							QMessageBox.warning(self,"Warning","禁止从内部路径导入文件（可以用File Chack功能添加abundant文件）")
 							return
 
-			#拥有外部路径，移动到当日的文件库
+			#没有内部路径，说明是新来的，移动到当日的文件库
 			except:
-
-				#如果是网址的话要预处理一下，生成一个url文件
+				#如果是新来的link
 				if i[:4]=="http" or i[:5]=="https":
-					url_file_result=creat_net_url_file(i)
-					if url_file_result[0]==False:
-						QMessageBox.critical(self,"Error","导入网址失败:\n%s\n%s\n\n网络连接正常吗？\n网页编码标准吗？\n网页标题有没有文件名不允许出现的字符？\n\n请及时更改url文件名，否则第二次会被覆盖掉"%(url_file_result[2],i))
-					
-					i=url_file_result[1]
-				
-				file_name=os.path.basename(i)
-				file_dst=self.parent.file_saving_today_dst+"/"+file_name
-				shutil.move(i,file_dst)
-				#文件链接concept置空
-				self.parent.file_data[self.parent.y][self.parent.m][self.parent.d][file_name]=[]
+					i=i.strip().strip("/")
 
-				file_icon=which_icon(file_name)
+					#link查重
+					for y in range(1970,2170):
+						for m in range(1,13):
+							for d in self.parent.file_data[y][m].keys():
+								for file_name in self.parent.file_data[y][m][d].keys():
+									if ">" in file_name:
+										link=file_name.split("|")[1]
+										if link==i:
+											QMessageBox.warning(self,"Warning","该链接已存在！\n%s"%i)
+											return
+					
+					result=getTitle(i)
+					if result[0]==True:
+						title=result[1]
+					else:
+						title="Unkown Page"
+						QMessageBox.critical(self,"Error","获取网页Title失败，请查看网络连接是否正常！")
+					
+					file_name=">"+title+"|"+i
+					self.parent.file_data[self.parent.y][self.parent.m][self.parent.d][file_name]=[]
+
+					file_icon=which_icon(file_name+".url")
+
+				else:
+				
+					file_name=os.path.basename(i)
+					file_dst=self.parent.file_saving_today_dst+"/"+file_name
+					shutil.move(i,file_dst)
+					#文件链接concept置空
+					self.parent.file_data[self.parent.y][self.parent.m][self.parent.d][file_name]=[]
+
+					file_icon=which_icon(file_name)
+				
 				adding_file.append(
 					{
 						"y":self.parent.y,
@@ -430,7 +462,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		
 		#链接concept与文件的信息
 
-		ID=int(self.parent.lineEdit_id.text())
+		ID=self.current_select_ID
 
 		already_have=self.parent.concept_data[ID]["file"]
 
@@ -447,9 +479,10 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		#按照文件名排序
 		self.parent.concept_data[ID]["file"].sort(key=lambda x:x["file_name"])
 
-		#更新事物界面
-		self.parent.concept_show(ID)
-		self.parent.window_title_update()
+		if self.current_select_ID==int(self.parent.lineEdit_id.text()):
+			#更新事物界面
+			self.parent.concept_show(ID)
+		
 		self.parent.file_library_list_update()
 
 		for tab in self.parent.custom_tabs_shown:
@@ -457,7 +490,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 
 	def concept_linked_file_remove(self):
 		
-		ID=int(self.parent.lineEdit_id.text())
+		ID=self.current_select_ID
 
 		dlg = QDialog(self)
 		dlg.setWindowTitle("Delete Warning")
@@ -495,9 +528,10 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 				#del之后列表的长度就变了，索引的下标也要多减一
 				do+=1
 
-			#更新事物界面
-			self.parent.concept_show(ID)
-			self.parent.window_title_update()
+
+			if self.current_select_ID==int(self.parent.lineEdit_id.text()):
+				#更新事物界面
+				self.parent.concept_show(ID)
 
 			for tab in self.parent.custom_tabs_shown:
 				tab.tab_update()
@@ -623,11 +657,25 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 
 		item=self.parent.concept_data[ID]
 		for file in item["file"]:
-			temp=QListWidgetItem()
-			temp.setText(file["file_name"])
-			temp.setIcon(QIcon(file["file_icon"]))
+			y=file["y"]
+			m=file["m"]
+			d=file["d"]
+			file_name=file["file_name"]
 
-			file_url=self.parent.file_saving_base+"/"+str(file["y"])+"/"+str(file["m"])+"/"+str(file["d"])+"/"+file["file_name"]
+			#如果是link
+			if "|" in file_name:
+				#link的tooltip没有直接设置成url网址
+				#考虑到几个file listwidget间的拖动操作需要判断link是否已经在file_data中存在，所以需要附带ymd信息
+				#这样损失了直接往浏览器拖动打开网页的功能，但双击、回车打开就行了
+				file_url=self.parent.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
+				# ">Google|http://www.google.com"
+				file_name=file_name[:file_name.rfind("|")][1:]
+			else:
+				file_url=self.parent.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
+			
+			temp=QListWidgetItem()
+			temp.setText(file_name)
+			temp.setIcon(QIcon(file["file_icon"]))
 			temp.setToolTip(file_url)
 			
 			self.listWidget_file_leafs.addItem(temp)
@@ -646,11 +694,25 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		#本层的文件
 		self.listWidget_file_root.clear()
 		for file in item["file"]:
-			temp=QListWidgetItem()
-			temp.setText(file["file_name"])
-			temp.setIcon(QIcon(file["file_icon"]))
+			y=file["y"]
+			m=file["m"]
+			d=file["d"]
+			file_name=file["file_name"]
 
-			file_url=self.parent.file_saving_base+"/"+str(file["y"])+"/"+str(file["m"])+"/"+str(file["d"])+"/"+file["file_name"]
+			#如果是link
+			if "|" in file_name:
+				#link的tooltip没有直接设置成url网址
+				#考虑到几个file listwidget间的拖动操作需要判断link是否已经在file_data中存在，所以需要附带ymd信息
+				#这样损失了直接往浏览器拖动打开网页的功能，但双击、回车打开就行了
+				file_url=self.parent.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
+				# ">Google|http://www.google.com"
+				file_name=file_name[:file_name.rfind("|")][1:]
+			else:
+				file_url=self.parent.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
+				
+			temp=QListWidgetItem()
+			temp.setText(file_name)
+			temp.setIcon(QIcon(file["file_icon"]))
 			temp.setToolTip(file_url)
 
 			self.listWidget_file_root.addItem(temp)
@@ -683,6 +745,12 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		
 		clicked_file_link=self.listWidget_file_root.currentItem().toolTip()
 
+		#如果是link
+		if "|" in clicked_file_link:
+			clicked_file_link=clicked_file_link.split("|")[-1]
+			os.system("start explorer \"%s\""%clicked_file_link)
+			return
+		
 		#Alt双击打开文件所在目录
 		if self.listWidget_file_root.alt_pressed==True:
 			self.listWidget_file_root.alt_pressed=False
@@ -733,7 +801,13 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		#######################################
 
 		clicked_file_link=self.listWidget_file_leafs.currentItem().toolTip()
-
+		
+		#如果是link
+		if "|" in clicked_file_link:
+			clicked_file_link=clicked_file_link.split("|")[-1]
+			os.system("start explorer \"%s\""%clicked_file_link)
+			return
+		
 		#Alt双击打开文件所在目录
 		if self.listWidget_file_leafs.alt_pressed==True:
 			self.listWidget_file_leafs.alt_pressed=False
@@ -903,11 +977,16 @@ class RSS_Feed_Edit_Dialog(QDialog,Ui_rss_feed_edit_dialog):
 				QMessageBox.warning(self,"Warning","Wrong Format")
 				return
 			
+			#如果设定为手动更新，那就不能有1-7的日期
+			if 0 in frequency and len(frequency)>1:
+				QMessageBox.warning(self,"Warning","Wrong Format")
+				return
+				
 			checked=[]
 			#检查frequency合法性
 			for i in frequency:
 				#查星期几的范围
-				if i not in range(1,8):
+				if i not in range(0,8):
 					QMessageBox.warning(self,"Warning","Wrong Format")
 					return
 				#查重
@@ -947,11 +1026,16 @@ class RSS_Feed_Edit_Dialog(QDialog,Ui_rss_feed_edit_dialog):
 					QMessageBox.warning(self,"Warning","Wrong Format")
 					return
 				
+				#如果设定为手动更新，那就不能有1-7的日期
+				if 0 in frequency and len(frequency)>1:
+					QMessageBox.warning(self,"Warning","Wrong Format")
+					return
+				
 				checked=[]
 				#检查frequency合法性
 				for i in frequency:
 					#查星期几的范围
-					if i not in range(1,8):
+					if i not in range(0,8):
 						QMessageBox.warning(self,"Warning","Wrong Format")
 						return
 					#查重
@@ -1374,9 +1458,9 @@ class DiarySearchDialog(QDialog,Ui_diary_search_dialog):
 		self.listing_result=[]
 		mode=1
 		
-		# 普通搜索 格式：asd qwe zxc（然后去text和text linked concept中把所有可能的项目都列出来）
+		# 普通搜索 “与”模式 格式：asd&qwe&zxc（然后去text和text linked concept中把所有可能的项目都列出来）
 		if mode==1:
-			search=search.split()
+			search=search.split("&")
 			for year_index in range(1970-1970,2170-1970):
 				for month_index in range(0,12):
 					d_index=0
@@ -1398,7 +1482,7 @@ class DiarySearchDialog(QDialog,Ui_diary_search_dialog):
 								have_concept=False
 								for ID in concept_id_list:
 									concept=self.parent.concept_data[ID]
-									if ss==concept["name"] or ss==concept["az"]:
+									if ss in concept["name"].split("|") or ss in concept["az"].split("|"):
 										concept_weight=2
 										have_concept=True
 										break
@@ -1466,8 +1550,8 @@ class DiarySearchDialog(QDialog,Ui_diary_search_dialog):
 			
 		self.listing_result.sort(key=lambda x:x["weight"],reverse=True)
 		
-		#展示最多前十五条
-		self.listing_result=self.listing_result[:15]
-		for i in self.listing_result[:15]:
+		#展示最多前30条
+		self.listing_result=self.listing_result[:30]
+		for i in self.listing_result[:30]:
 			self.listWidget.addItem(str(i["weight"])+"|"+i["text"])
 			# self.listWidget.addItem(i["text"])
