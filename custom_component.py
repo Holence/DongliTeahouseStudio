@@ -382,43 +382,52 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		
 			#拥有内部路径吗？
 			if self.parent.file_saving_base in i:
-				date_and_name=i.replace(self.parent.file_saving_base,"")[1:].split("/")
-				y=int(date_and_name[0])
-				m=int(date_and_name[1])
-				d=int(date_and_name[2])
+				try:
+					date_and_name=i.replace(self.parent.file_saving_base,"")[1:].split("/")
+					y=int(date_and_name[0])
+					m=int(date_and_name[1])
+					d=int(date_and_name[2])
 
-				if y in range(1970,2170) and m in range(1,13) and d in range(1,32):
-					#如果filedata中已经存在，就只做链接操作
-					try:
-					
-						if "|" in i:
-							file_name=i[i.find(">"):]
-							file_icon=which_icon(file_name+".url")
-						else:
-							file_name=date_and_name[3]
-							file_icon=which_icon(file_name)
-							
-						#file_data中是否存在该文件\link
-						self.parent.file_data[y][m][d][file_name]
+					if y in range(1970,2170) and m in range(1,13) and d in range(1,32):
+						#如果filedata中已经存在，就只做链接操作
+						try:
+						
+							if "|" in i:
+								file_name=i[i.find(">"):]
+								file_icon=which_icon(file_name+".url")
+							else:
+								file_name=date_and_name[3]
+								file_icon=which_icon(file_name)
+								
+							#file_data中是否存在该文件\link
+							self.parent.file_data[y][m][d][file_name]
 
-						#如果存在
-						adding_file.append(
-							{
-								"y":y,
-								"m":m,
-								"d":d,
-								"file_name":file_name,
-								"file_icon":file_icon
-							}
-						)
-					#如果不存在，那就说明熊孩子在乱搞，明明可以用file check来添加他非得手拖进来
-					except:
-						QMessageBox.warning(self,"Warning","禁止从内部路径导入文件（可以用File Chack功能添加abundant文件）")
+							#如果存在
+							adding_file.append(
+								{
+									"y":y,
+									"m":m,
+									"d":d,
+									"file_name":file_name,
+									"file_icon":file_icon
+								}
+							)
+						#如果不存在，那就说明熊孩子在乱搞，明明可以用file check来添加他非得手拖进来
+						except:
+							QMessageBox.warning(self,"Warning","禁止从内部路径导入文件（可以用File Chack功能添加abundant文件）")
+							self.parent.progress.setValue(len(links))
+							self.parent.progress.deleteLater()
+							return
+					else:
+						QMessageBox.warning(self,"Warning","请不要在file_base下乱建文件夹！")
+						self.parent.progress.setValue(len(links))
+						self.parent.progress.deleteLater()
 						return
-				else:
-					QMessageBox.warning(self,"Warning","请不要在file_base下乱建文件夹！")
+				except:
+					QMessageBox.warning(self,"Warning","请不要在file_base下乱放文件！")
+					self.parent.progress.setValue(len(links))
+					self.parent.progress.deleteLater()
 					return
-			
 			#没有内部路径，说明是新来的，移动到当日的文件库
 			else:
 				#如果是新来的link
@@ -466,7 +475,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 					}
 				)
 		
-		self.parent.progress.setValue(value)
+		self.parent.progress.setValue(len(links))
 		self.parent.progress.deleteLater()
 
 		#链接concept与文件的信息

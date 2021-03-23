@@ -10,7 +10,7 @@ import json
 import time
 from win32com.shell import shell,shellcon
 from lxml import etree
-
+import chardet
 
 
 def delete_to_recyclebin(filename):
@@ -28,7 +28,12 @@ def getHTML(url,cookie=""):
 		head["cookie"]=cookie
 	
 	response=requests.get(url,headers=head,timeout=10)#
-	response.encoding='utf-8'
+	
+	if response.encoding!="GB2312" and response.encoding!="GBK":
+		response.encoding='utf-8'
+	else:
+		response.encoding="GBK"
+	
 	return response.text
 
 def getTitle(url):
@@ -37,8 +42,13 @@ def getTitle(url):
 		html=etree.HTML(getHTML(url))
 		title=html.xpath("/html/head/title/text()")
 		return (True,title[0])
-	except Exception as e:
-		return (False,e)
+	except:
+		try:
+			#YouTube的channel页面的标题竟然在body里面……
+			title=html.xpath("/html/body/title/text()")
+			return (True,title[0])
+		except Exception as e:
+			return (False,e)
 
 def creat_net_url_file(net_url):
 	"在根目录生成一个TEMP文件来制造url链接文件，如果解析成功返回(True,文件地址,error),否则返回(False,文件地址,error)"

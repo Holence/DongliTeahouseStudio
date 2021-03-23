@@ -817,7 +817,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		# self.progress.setMinimumDuration(0)
 		self.progress.setValue(0)
 		value=0
-
+		
 		#移动文件到当日路径
 		for i in links:
 			
@@ -827,6 +827,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			#内部的link不要拖到file区了！
 			if ">" in i:
 				QMessageBox.warning(self,"Warning","禁止内部拖动Link到File区！")
+				self.progress.setValue(len(links))
+				self.progress.deleteLater()
 				return
 			
 			#如果是网址的，不生成文件
@@ -875,9 +877,14 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 						d=int(date_and_name[2])
 						if y in range(1970,2170) and m in range(1,13) and d in range(1,32):
 							QMessageBox.warning(self,"Warning","禁止内部拖动文件到File区！同时禁止从内部路径导入文件（可以用File Chack功能添加abundant文件）")
+							self.progress.setValue(len(links))
+							self.progress.deleteLater()
 							return
 				except:
-					pass
+					QMessageBox.warning(self,"Warning","请不要在file_base下乱放文件！")
+					self.progress.setValue(len(links))
+					self.progress.deleteLater()
+					return
 				
 				file_name=os.path.basename(i)
 				file_dst=self.file_saving_today_dst+"/"+file_name
@@ -885,7 +892,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				#文件链接concept置空
 				self.file_data[self.y][self.m][self.d][file_name]=[]
 			
-		self.progress.setValue(value)
+		self.progress.setValue(len(links))
 		self.progress.deleteLater()
 		
 		self.file_library_list_update()
@@ -3995,41 +4002,51 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			
 			#拥有内部路径吗？
 			if self.file_saving_base in i:
-				date_and_name=i.replace(self.file_saving_base,"")[1:].split("/")
-				y=int(date_and_name[0])
-				m=int(date_and_name[1])
-				d=int(date_and_name[2])
+				try:
+					date_and_name=i.replace(self.file_saving_base,"")[1:].split("/")
+					y=int(date_and_name[0])
+					m=int(date_and_name[1])
+					d=int(date_and_name[2])
 
-				if y in range(1970,2170) and m in range(1,13) and d in range(1,32):
-					#如果filedata中已经存在，就只做链接操作
-					try:
-					
-						if "|" in i:
-							file_name=i[i.find(">"):]
-							file_icon=which_icon(file_name+".url")
-						else:
-							file_name=date_and_name[3]
-							file_icon=which_icon(file_name)
+					if y in range(1970,2170) and m in range(1,13) and d in range(1,32):
+						#如果filedata中已经存在，就只做链接操作
+						try:
 						
-						#file_data中是否存在该文件\link
-						self.file_data[y][m][d][file_name]
+							if "|" in i:
+								file_name=i[i.find(">"):]
+								file_icon=which_icon(file_name+".url")
+							else:
+								file_name=date_and_name[3]
+								file_icon=which_icon(file_name)
+							
+							#file_data中是否存在该文件\link
+							self.file_data[y][m][d][file_name]
 
-						#如果存在
-						adding_file.append(
-							{
-								"y":y,
-								"m":m,
-								"d":d,
-								"file_name":file_name,
-								"file_icon":file_icon
-							}
-						)
-					#如果不存在，那就说明熊孩子在乱搞，明明可以用file check来添加他非得手拖进来
-					except:
-						QMessageBox.warning(self,"Warning","禁止从内部路径导入文件（可以用File Chack功能添加abundant文件）")
+							#如果存在
+							adding_file.append(
+								{
+									"y":y,
+									"m":m,
+									"d":d,
+									"file_name":file_name,
+									"file_icon":file_icon
+								}
+							)
+						#如果不存在，那就说明熊孩子在乱搞，明明可以用file check来添加他非得手拖进来
+						except:
+							QMessageBox.warning(self,"Warning","禁止从内部路径导入文件（可以用File Chack功能添加abundant文件）")
+							self.progress.setValue(len(links))
+							self.progress.deleteLater()
+							return
+					else:
+						QMessageBox.warning(self,"Warning","请不要在file_base下乱建文件夹！")
+						self.progress.setValue(len(links))
+						self.progress.deleteLater()
 						return
-				else:
-					QMessageBox.warning(self,"Warning","请不要在file_base下乱建文件夹！")
+				except:
+					QMessageBox.warning(self,"Warning","请不要在file_base下乱放文件！")
+					self.progress.setValue(len(links))
+					self.progress.deleteLater()
 					return
 
 			#没有内部路径，说明是新来的，移动到当日的文件库
@@ -4079,7 +4096,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					}
 				)
 		
-		self.progress.setValue(value)
+		self.progress.setValue(len(links))
 		self.progress.deleteLater()
 
 		#链接concept与文件的信息
@@ -4393,43 +4410,53 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 			#拥有内部路径吗？
 			if self.file_saving_base in i:
-				date_and_name=i.replace(self.file_saving_base,"")[1:].split("/")
-				y=int(date_and_name[0])
-				m=int(date_and_name[1])
-				d=int(date_and_name[2])
+				try:
+					date_and_name=i.replace(self.file_saving_base,"")[1:].split("/")
+					y=int(date_and_name[0])
+					m=int(date_and_name[1])
+					d=int(date_and_name[2])
 
-				if y in range(1970,2170) and m in range(1,13) and d in range(1,32):
-					#如果filedata中已经存在，就只做链接操作
-					try:
-						
-						if "|" in i:
-							file_name=i[i.find(">"):]
-							file_icon=which_icon(file_name+".url")
-						else:
-							file_name=date_and_name[3]
-							file_icon=which_icon(file_name)
+					if y in range(1970,2170) and m in range(1,13) and d in range(1,32):
+						#如果filedata中已经存在，就只做链接操作
+						try:
 							
-						#file_data中是否存在该文件\link
-						self.file_data[y][m][d][file_name]
+							if "|" in i:
+								file_name=i[i.find(">"):]
+								file_icon=which_icon(file_name+".url")
+							else:
+								file_name=date_and_name[3]
+								file_icon=which_icon(file_name)
+								
+							#file_data中是否存在该文件\link
+							self.file_data[y][m][d][file_name]
 
-						#如果存在
-						adding_file.append(
-							{
-								"y":y,
-								"m":m,
-								"d":d,
-								"file_name":file_name,
-								"file_icon":file_icon
-							}
-						)
-						#如果不存在，那就说明熊孩子在乱搞，明明可以用file check来添加他非得手拖进来
-					except:
-						QMessageBox.warning(self,"Warning","禁止从内部路径导入文件（可以用File Chack功能添加abundant文件）")
+							#如果存在
+							adding_file.append(
+								{
+									"y":y,
+									"m":m,
+									"d":d,
+									"file_name":file_name,
+									"file_icon":file_icon
+								}
+							)
+							#如果不存在，那就说明熊孩子在乱搞，明明可以用file check来添加他非得手拖进来
+						except:
+							QMessageBox.warning(self,"Warning","禁止从内部路径导入文件（可以用File Chack功能添加abundant文件）")
+							self.progress.setValue(len(links))
+							self.progress.deleteLater()
+							return
+					else:
+						QMessageBox.warning(self,"Warning","请不要在file_base下乱建文件夹！")
+						self.progress.setValue(len(links))
+						self.progress.deleteLater()
 						return
-				else:
-					QMessageBox.warning(self,"Warning","请不要在file_base下乱建文件夹！")
+				except:
+					QMessageBox.warning(self,"Warning","请不要在file_base下乱放文件！")
+					self.progress.setValue(len(links))
+					self.progress.deleteLater()
 					return
-
+				
 			#没有内部路径，说明是新来的，移动到当日的文件库
 			else:
 				#如果是新来的link
@@ -4478,7 +4505,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					}
 				)
 		
-		self.progress.setValue(value)
+		self.progress.setValue(len(links))
 		self.progress.deleteLater()
 
 		already_have=self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"]

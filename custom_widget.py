@@ -246,7 +246,8 @@ class MyConceptLinkedFileList(QListWidget):
 				if i[:7]=="http://" or i[:8]=="https://":
 					links.append(i)
 				else:
-					QMessageBox.warning(self,"Warning","文本导入方式仅支持网页链接！")
+					continue
+					# QMessageBox.warning(self,"Warning","文本导入方式仅支持网页链接！")
 			self.dropped.emit(links)
 		
 		else:
