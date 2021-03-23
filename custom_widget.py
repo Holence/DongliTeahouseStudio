@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import os
+from urllib.parse import unquote
 
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
-
 
 import resource_rc
 
@@ -115,6 +114,7 @@ class MyTabFileLeafList(QListWidget):
 		self.setAcceptDrops(False)
 		# self.setDragDropMode(QAbstractItemView.InternalMove)
 		self.ctrl_pressed=False
+		self.alt_pressed=False
 	
 	def dropEvent(self, event):
 		#不让你在内部乱拖！
@@ -142,11 +142,15 @@ class MyTabFileLeafList(QListWidget):
 		super(MyTabFileLeafList, self).keyPressEvent( event )
 		if event.key()==Qt.Key_Control:
 			self.ctrl_pressed=True
+		if event.key()==Qt.Key_Alt:
+			self.alt_pressed=True
 	
 	def keyReleaseEvent(self,event):
 		super(MyTabFileLeafList, self).keyReleaseEvent( event )
 		if event.key()==Qt.Key_Control:
 			self.ctrl_pressed=False
+		if event.key()==Qt.Key_Alt:
+			self.alt_pressed=False
 
 
 
@@ -193,7 +197,7 @@ class MyConceptLinkedFileList(QListWidget):
 
 	def dragEnterEvent(self, event):
 
-		if event.mimeData().hasUrls():
+		if event.mimeData().hasUrls() or event.mimeData().hasText():
 			event.acceptProposedAction()
 		else:
 			super(MyConceptLinkedFileList,self).dragEnterEvent(event)
@@ -209,14 +213,42 @@ class MyConceptLinkedFileList(QListWidget):
 			links=[]
 			for url in event.mimeData().urls():
 				url_str=url.toString()
+				
+				#如果是内部link
+				#这里如果带有|和<，会被toLocalFile消除掉，所内部link的拖动还是单独判断好了
+				#另外注意这里的“|”被toString()解析出来成了%7C，得用urllib.parse的unquote解码
+				if "|" in url_str:
+					url_str=unquote(url_str,'utf-8')
+					links.append(url_str)
+				
 				#如果是本地文件url
-				if url_str[:4]=="file":
-					links.append(str(url.toLocalFile()))
-				#如果是网页url
+				elif url_str[:4]=="file":
+					url_str=unquote(url_str,'utf-8')
+					links.append(url_str.replace("file:///",""))
+					# links.append(str(url.toLocalFile()))
+				
+				#如果是外部link
+				#这里十分巧妙！
+				#url中的如果有那些特殊字符!|@#$%^&*，就保持%xx的形式，就不会与后面我加上去用来分隔Directory、title、url的特殊符号<和|冲突
 				elif url_str[:4]=="http" or url_str[:5]=="https":
 					links.append(url_str)
 			
 			self.dropped.emit(links)
+		
+		elif event.mimeData().hasText():
+			event.setDropAction(Qt.CopyAction)
+			event.accept()
+			text=event.mimeData().text().strip()
+			text=text.split("\n")
+			links=[]
+			#只接收网页链接
+			for i in text:
+				if i[:7]=="http://" or i[:8]=="https://":
+					links.append(i)
+				else:
+					QMessageBox.warning(self,"Warning","文本导入方式仅支持网页链接！")
+			self.dropped.emit(links)
+		
 		else:
 			super(MyConceptLinkedFileList,self).dropEvent(event)
 	

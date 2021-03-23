@@ -27,7 +27,8 @@ def getHTML(url,cookie=""):
 	if cookie!="":
 		head["cookie"]=cookie
 	
-	response=requests.get(url,headers=head)
+	response=requests.get(url,headers=head,timeout=10)#
+	response.encoding='utf-8'
 	return response.text
 
 def getTitle(url):

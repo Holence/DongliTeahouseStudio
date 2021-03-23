@@ -134,7 +134,6 @@ class RSS_Updator_Threador(QThread):
 	def rss_data_update(self):
 		
 		for rss_url in self.updating_url_list:
-			
 
 			self.parent.qlock.lock()
 
@@ -314,7 +313,6 @@ class RSS_Adding_Getor_Threador(QThread):
 			time.sleep(2)
 
 
-
 class MyTabWidget(QWidget,Ui_mytabwidget_form):
 
 	clicked=Signal(int)
@@ -350,7 +348,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 				如果没有，那就说明熊孩子在乱搞，明明可以用file check来添加他非得手拖进来，报出警告！
 		diary区只允许从内部拖入，只链接文件
 		"""
-
+		
 		if self.parent.file_saving_base=="":
 			QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
 			return
@@ -369,71 +367,79 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 
 		adding_file=[]
 
+		self.parent.progress=QProgressDialog("Adding File...","Cancel",0,len(links),self)
+		self.parent.progress.setWindowTitle("Adding File...")
+		self.parent.progress.setWindowModality(Qt.WindowModal)
+		# self.parent.progress.setMinimumDuration(0)
+		self.parent.progress.setValue(0)
+		value=0
+
 		#移动文件到当日路径
 		for i in links:
 			
+			self.parent.progress.setValue(value)
+			value+=1
+		
 			#拥有内部路径吗？
-			try:
-				date=list(map(lambda x:int(x),i.split("|")[0].split("/")[-4:-1]))
-				y=date[0]
-				m=date[1]
-				d=date[2]
-				#检查file
-				#如果拥有内部路径
-				if self.parent.file_saving_base in i:
-					if y in range(1970,2170) and m in range(1,13) and d in range(1,32):
-						
-						#如果filedata中已经存在，就只做链接操作
-						try:
-							#如果是link
-							if "|" in i:
-								file_name=">"+i.split(">")[-1]
-								file_icon=which_icon(file_name+".url")
-							else:
-								file_name=os.path.basename(i)
-								file_icon=which_icon(file_name)
+			if self.parent.file_saving_base in i:
+				date_and_name=i.replace(self.parent.file_saving_base,"")[1:].split("/")
+				y=int(date_and_name[0])
+				m=int(date_and_name[1])
+				d=int(date_and_name[2])
+
+				if y in range(1970,2170) and m in range(1,13) and d in range(1,32):
+					#如果filedata中已经存在，就只做链接操作
+					try:
+					
+						if "|" in i:
+							file_name=i[i.find(">"):]
+							file_icon=which_icon(file_name+".url")
+						else:
+							file_name=date_and_name[3]
+							file_icon=which_icon(file_name)
 							
-							#file_data中是否存在该文件\link
-							self.parent.file_data[y][m][d][file_name]
+						#file_data中是否存在该文件\link
+						self.parent.file_data[y][m][d][file_name]
 
-							#如果存在
-							adding_file.append(
-								{
-									"y":y,
-									"m":m,
-									"d":d,
-									"file_name":file_name,
-									"file_icon":file_icon
-								}
-							)
-						#如果不存在，那就说明熊孩子在乱搞，明明可以用file check来添加他非得手拖进来
-						except:
-							QMessageBox.warning(self,"Warning","禁止从内部路径导入文件（可以用File Chack功能添加abundant文件）")
-							return
-
+						#如果存在
+						adding_file.append(
+							{
+								"y":y,
+								"m":m,
+								"d":d,
+								"file_name":file_name,
+								"file_icon":file_icon
+							}
+						)
+					#如果不存在，那就说明熊孩子在乱搞，明明可以用file check来添加他非得手拖进来
+					except:
+						QMessageBox.warning(self,"Warning","禁止从内部路径导入文件（可以用File Chack功能添加abundant文件）")
+						return
+				else:
+					QMessageBox.warning(self,"Warning","请不要在file_base下乱建文件夹！")
+					return
+			
 			#没有内部路径，说明是新来的，移动到当日的文件库
-			except:
+			else:
 				#如果是新来的link
 				if i[:4]=="http" or i[:5]=="https":
 					i=i.strip().strip("/")
 
 					#link查重
-					for y in range(1970,2170):
-						for m in range(1,13):
-							for d in self.parent.file_data[y][m].keys():
-								for file_name in self.parent.file_data[y][m][d].keys():
-									if ">" in file_name:
-										link=file_name.split("|")[1]
-										if link==i:
-											QMessageBox.warning(self,"Warning","该链接已存在！\n%s"%i)
-											return
+					if not self.parent.link_check_unique(i):
+						continue
 					
 					result=getTitle(i)
 					if result[0]==True:
 						title=result[1]
 					else:
 						title="Unkown Page"
-						QMessageBox.critical(self,"Error","获取网页Title失败，请查看网络连接是否正常！")
+						tray=QSystemTrayIcon()
+						tray.setContextMenu(self.parent.qmenu)
+						tray.setIcon(QIcon(":/icon/holoico.ico"))
+						tray.hide()
+						tray.show()
+						tray.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
 					
 					file_name=">"+title+"|"+i
 					self.parent.file_data[self.parent.y][self.parent.m][self.parent.d][file_name]=[]
@@ -460,6 +466,9 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 					}
 				)
 		
+		self.parent.progress.setValue(value)
+		self.parent.progress.deleteLater()
+
 		#链接concept与文件的信息
 
 		ID=self.current_select_ID
