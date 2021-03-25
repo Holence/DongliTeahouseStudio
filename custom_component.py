@@ -109,7 +109,7 @@ class RSS_Updator_Threador(QThread):
 			self.new_article_list=[]
 			
 			#update_link_list中新文章在最前面，这里用append，new_article_list中依旧是新文章在最前面
-			#出去的时候再正序遍历new_article_list，insert到rss_data中的最前面
+			#出去的时候再倒序遍历new_article_list，insert到rss_data中的最前面
 			for article in update_link_list:
 				
 				if article["link"] not in alreay_have_list:

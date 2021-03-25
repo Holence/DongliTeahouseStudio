@@ -1276,8 +1276,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			
 			#如果有新文章，那就append，并且更新tree列表和文章列表
 			if updated==True:
-				#正序遍历，每个都放在第一个，所以最新的就在最前面了
-				for article in self.daily_update_thread.new_article_list:
+				#new_article_list中最新的在最前面，这里倒序遍历，每个都放在第一个，这样最新的就在最前面了
+				for article in self.daily_update_thread.new_article_list[::-1]:
 					
 					self.rss_data[rss_url]["article_list"].insert(0,article)
 					self.rss_data[rss_url]["unread"]+=1
@@ -1330,12 +1330,12 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			
 			self.qlock.lock()
 			
-			#正序遍历，每个都放在第一个，所以最新的就在最前面了
-			for article in self.manually_update_thread.new_article_list:
-				
+			#new_article_list中最新的在最前面，这里倒序遍历，每个都放在第一个，这样最新的就在最前面了
+			for article in self.manually_update_thread.new_article_list[::-1]:
+				print(article[0])
 				self.rss_data[rss_url]["article_list"].insert(0,article)
 				self.rss_data[rss_url]["unread"]+=1
-			
+				print(self.rss_data[rss_url]["article_list"])
 			self.qlock.unlock()
 			
 			self.rss_feed_show()
@@ -2439,7 +2439,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 	############################################################################
 
 	def about(self):
-		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 0.1.9.0\nAuthor: 鍵山狐\nContact: Holence08@gmail.com")
+		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 0.1.9.1\nAuthor: 鍵山狐\nContact: Holence08@gmail.com")
 
 
 
@@ -2797,9 +2797,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 		# for rss_url in self.rss_data.keys():
 		# 	try:
-		# 		self.rss_data[rss_url]["article_list"].pop()
-		# 		self.rss_data[rss_url]["article_list"].pop()
-		# 		self.rss_data[rss_url]["article_list"].pop()
+		# 		self.rss_data[rss_url]["article_list"].pop(0)
+		# 		self.rss_data[rss_url]["article_list"].pop(0)
+		# 		self.rss_data[rss_url]["article_list"].pop(0)
 		# 	except :
 		# 		pass
 		#
