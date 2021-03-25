@@ -353,22 +353,35 @@ class MyImageViewer(QMainWindow):
 				return
 		
 		
-	
+	def keyPressEvent(self,event):
+		super(MyImageViewer, self).keyPressEvent( event )
+		
+		#上一张
+		if event.key()==Qt.Key_Left or event.key()==Qt.Key_Up:
+			if self.index>0:
+				self.index-=1
+				self.set_pic(self.pic_list[self.index])
+		#下一张
+		elif event.key()==Qt.Key_Right or event.key()==Qt.Key_Down:
+			if self.index<self.maxlen-1:
+				self.index+=1
+				self.set_pic(self.pic_list[self.index])
+			
 	def wheelEvent(self,event):
 		super(MyImageViewer,self).wheelEvent(event)
 		
 		xscrolls = event.angleDelta().x()
 		yscrolls = event.angleDelta().y()
 
-		#下一张
-		if xscrolls<0 or yscrolls<0:
-			if self.index<self.maxlen-1:
-				self.index+=1
-				self.set_pic(self.pic_list[self.index])
 		#上一张
-		elif xscrolls>0 or yscrolls>0:
+		if xscrolls>0 or yscrolls>0:
 			if self.index>0:
 				self.index-=1
+				self.set_pic(self.pic_list[self.index])
+		#下一张
+		elif xscrolls<0 or yscrolls<0:
+			if self.index<self.maxlen-1:
+				self.index+=1
 				self.set_pic(self.pic_list[self.index])
 			
 

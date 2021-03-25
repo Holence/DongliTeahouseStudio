@@ -1088,6 +1088,7 @@ class RSS_Feed_Edit_Dialog(QDialog,Ui_rss_feed_edit_dialog):
 			for i in self.baked[rss_url]["frequency"]:
 				frefre+=str(i)+","
 			frefre=frefre[:-1]
+
 			self.lineEdit_frequency.setText(frefre)
 			self.lineEdit_name.setText(self.baked[rss_url]["feed_name"])
 			self.lineEdit_name.setReadOnly(0)
@@ -1097,10 +1098,14 @@ class RSS_Feed_Edit_Dialog(QDialog,Ui_rss_feed_edit_dialog):
 		#多条目模式
 		elif len(self.current_selection)>1:
 			name=""
+			url_text=""
 			for index in self.current_selection:
 				rss_url=self.rss_url_list[index][1]
 				name+=self.baked[rss_url]["feed_name"]+";"
+				url_text+=rss_url+";"
 			
+			self.lineEdit_url.setText(url_text)
+
 			self.lineEdit_frequency.setText("")
 			self.lineEdit_name.setText(name)
 			self.lineEdit_name.setReadOnly(1)

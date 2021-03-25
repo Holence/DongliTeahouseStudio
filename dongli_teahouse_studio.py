@@ -180,6 +180,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.actionExport_Diary_Data_to_Json.triggered.connect(lambda:self.center_export("Diary"))
 		self.actionExport_File_Data_to_Json.triggered.connect(lambda:self.center_export("File"))
 		self.actionExport_RSS_Data_to_Json.triggered.connect(lambda:self.center_export("RSS"))
+		self.actionExport_RSS_Tree_Data_to_Json.triggered.connect(lambda:self.center_export("RSS Tree"))
 
 		#Setting
 		self.actionSetting.triggered.connect(self.setting_menu)
@@ -342,7 +343,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 		#自动保存RSS data
 		encrypt_save(self.rss_data,"RSS_Data.dlcw")
-		self.user_settings.setValue("rss_tree_data",encrypt(self.rss_tree_data))
+		encrypt_save(self.rss_tree_data,"RSS_Tree_Data.dlcw")
+
 
 	# def mousePressEvent(self, event):
 	# 	if event.button() == Qt.LeftButton:
@@ -1253,6 +1255,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			save_to_json(self.file_data,"File_Data.json")
 		elif which=="RSS":
 			save_to_json(self.rss_data,"RSS_Data.json")
+		elif which=="RSS Tree":
+			save_to_json(self.rss_tree_data,"RSS_Tree_Data.json")
 
 
 
@@ -2715,8 +2719,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			try:
 				self.file_saving_base=decrypt(self.user_settings.value("file_saving_base"))
 			except:
-				QMessageBox.critical(self,"Error","file_saving_base出错，请联系相关开发人员！")
-				return 0
+				QMessageBox.critical(self,"Error","file_saving_base为空！")
+				self.file_saving_base=""
 		else:
 			data={}
 			for i in l:
@@ -2734,7 +2738,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			#不是第一次进来
 			try:
 				#检查rss_tree_data和rss_data中的url是否有出入
-				rss_tree_data=decrypt(self.user_settings.value("rss_tree_data"))
+				
+				rss_tree_data=decrypt_load("RSS_Tree_Data.dlcw")
 				l0=[]
 				for top_level in rss_tree_data:
 					#top_level放了folder
@@ -2767,8 +2772,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		else:
 			rss_tree_data=[]
 			rss_data={}
-			#因为是多线程，所以最好实时保存到外存
-			self.user_settings.setValue("rss_tree_data",encrypt(rss_tree_data))
+			
+			encrypt_save(rss_tree_data,"RSS_Tree_Data.dlcw")
 			encrypt_save(rss_data,"RSS_Data.dlcw")
 		
 		##########################################################################################################
@@ -2790,8 +2795,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.file_data=decrypt_load("File_Data.dlcw")
 
 		self.rss_data=decrypt_load("RSS_Data.dlcw")
-	
-		self.rss_tree_data=decrypt(self.user_settings.value("rss_tree_data"))
+		self.rss_tree_data=decrypt_load("RSS_Tree_Data.dlcw")
 		
 		# print(self.rss_tree_data)
 
