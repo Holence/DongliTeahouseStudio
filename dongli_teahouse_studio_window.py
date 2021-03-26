@@ -177,6 +177,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.verticalLayout_8.setObjectName(u"verticalLayout_8")
         self.tabWidget = QTabWidget(self.centralwidget)
         self.tabWidget.setObjectName(u"tabWidget")
+        self.tabWidget.setMinimumSize(QSize(200, 0))
         self.tabWidget.setTabShape(QTabWidget.Rounded)
         self.tabWidget.setIconSize(QSize(16, 16))
         self.tabWidget.setDocumentMode(False)
@@ -250,7 +251,6 @@ class Ui_dongli_teahouse_studio_window(object):
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.textEdit_viewer = QTextEdit(self.tabWidgetPage_text)
         self.textEdit_viewer.setObjectName(u"textEdit_viewer")
-        self.textEdit_viewer.setMinimumSize(QSize(400, 0))
         self.textEdit_viewer.setReadOnly(True)
 
         self.horizontalLayout_2.addWidget(self.textEdit_viewer)
@@ -325,7 +325,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.toolBox_text.setFrameShadow(QFrame.Plain)
         self.page_text_related_concept = QWidget()
         self.page_text_related_concept.setObjectName(u"page_text_related_concept")
-        self.page_text_related_concept.setGeometry(QRect(0, 0, 272, 114))
+        self.page_text_related_concept.setGeometry(QRect(0, 0, 272, 119))
         self.horizontalLayout_8 = QHBoxLayout(self.page_text_related_concept)
         self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
         self.listWidget_text_related_concept = QListWidget(self.page_text_related_concept)
@@ -350,7 +350,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.toolBox_text.addItem(self.page_text_related_concept, icon26, u"Text Related Concept")
         self.page_text_linked_file = QWidget()
         self.page_text_linked_file.setObjectName(u"page_text_linked_file")
-        self.page_text_linked_file.setGeometry(QRect(0, 0, 272, 114))
+        self.page_text_linked_file.setGeometry(QRect(0, 0, 272, 119))
         self.horizontalLayout_7 = QHBoxLayout(self.page_text_linked_file)
         self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
         self.listWidget_text_linked_file = MyConceptLinkedFileList(self.page_text_linked_file)
@@ -388,6 +388,8 @@ class Ui_dongli_teahouse_studio_window(object):
         dongli_teahouse_studio_window.addDockWidget(Qt.RightDockWidgetArea, self.dockWidget_diary)
         self.dockWidget_concept = QDockWidget(dongli_teahouse_studio_window)
         self.dockWidget_concept.setObjectName(u"dockWidget_concept")
+        sizePolicy.setHeightForWidth(self.dockWidget_concept.sizePolicy().hasHeightForWidth())
+        self.dockWidget_concept.setSizePolicy(sizePolicy)
         self.dockWidget_concept.setMinimumSize(QSize(290, 751))
         self.dockWidget_concept.setFeatures(QDockWidget.AllDockWidgetFeatures)
         self.dockWidgetContents_7 = QWidget()
@@ -552,7 +554,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.toolBox_concept.setObjectName(u"toolBox_concept")
         self.page_concept_related_text = QWidget()
         self.page_concept_related_text.setObjectName(u"page_concept_related_text")
-        self.page_concept_related_text.setGeometry(QRect(0, 0, 453, 88))
+        self.page_concept_related_text.setGeometry(QRect(0, 0, 258, 88))
         self.horizontalLayout_9 = QHBoxLayout(self.page_concept_related_text)
         self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
         self.listWidget_concept_related_text = QListWidget(self.page_concept_related_text)
@@ -570,7 +572,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.toolBox_concept.addItem(self.page_concept_related_text, icon28, u"Concept Related Text")
         self.page_concept_linked_file = QWidget()
         self.page_concept_linked_file.setObjectName(u"page_concept_linked_file")
-        self.page_concept_linked_file.setGeometry(QRect(0, 0, 453, 88))
+        self.page_concept_linked_file.setGeometry(QRect(0, 0, 258, 88))
         self.horizontalLayout_10 = QHBoxLayout(self.page_concept_linked_file)
         self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
         self.listWidget_concept_linked_file = MyConceptLinkedFileList(self.page_concept_linked_file)
@@ -663,7 +665,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.verticalLayout_6.addLayout(self.verticalLayout_5)
 
         self.dockWidget_library.setWidget(self.dockWidgetContents)
-        dongli_teahouse_studio_window.addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget_library)
+        dongli_teahouse_studio_window.addDockWidget(Qt.TopDockWidgetArea, self.dockWidget_library)
         self.menubar = QMenuBar(dongli_teahouse_studio_window)
         self.menubar.setObjectName(u"menubar")
         self.menubar.setGeometry(QRect(0, 0, 1219, 22))
@@ -709,7 +711,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.horizontalLayout.addWidget(self.plainTextEdit_sticker)
 
         self.dockWidget_sticker.setWidget(self.dockWidgetContents_2)
-        dongli_teahouse_studio_window.addDockWidget(Qt.RightDockWidgetArea, self.dockWidget_sticker)
+        dongli_teahouse_studio_window.addDockWidget(Qt.TopDockWidgetArea, self.dockWidget_sticker)
 
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())
@@ -759,10 +761,10 @@ class Ui_dongli_teahouse_studio_window(object):
 
         self.retranslateUi(dongli_teahouse_studio_window)
 
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         self.toolBox_text.setCurrentIndex(1)
         self.toolBox_text.layout().setSpacing(0)
-        self.toolBox_concept.setCurrentIndex(1)
+        self.toolBox_concept.setCurrentIndex(0)
         self.toolBox_concept.layout().setSpacing(0)
 
 

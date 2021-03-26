@@ -205,6 +205,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 	def initialize_window(self):
 		#恢复界面设置
 		try:
+			self.setWindowFlag(Qt.WindowStaysOnTopHint)
+			self.dockWidget_concept.setWindowFlag(Qt.WindowStaysOnTopHint)
+			self.dockWidget_diary.setWindowFlag(Qt.WindowStaysOnTopHint)
+			self.dockWidget_library.setWindowFlag(Qt.WindowStaysOnTopHint)
+			self.dockWidget_sticker.setWindowFlag(Qt.WindowStaysOnTopHint)
 			
 			self.restoreGeometry(self.user_settings.value("geometry"))
 			self.restoreState(self.user_settings.value("windowState"))
@@ -219,9 +224,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 			sticker_text=decrypt(self.user_settings.value("sticker"))
 			self.plainTextEdit_sticker.setPlainText(sticker_text)
-			
-			
-			
+					
 			
 			
 			# settings_list=self.user_settings.allKeys()
@@ -434,8 +437,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.tabWidget.setCurrentIndex(0)
 
 
-		# self.setWindowFlag(Qt.WindowStaysOnTopHint)
-		# self.dockWidget_concept.setWindowFlag(Qt.WindowStaysOnTopHint )
+		
 
 
 
@@ -843,6 +845,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					continue
 				
 				result=getTitle(i)
+				
 				if result[0]==True:
 					title=result[1]
 				else:

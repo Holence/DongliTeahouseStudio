@@ -26,9 +26,9 @@ def getHTML(url,cookie=""):
 	
 	if cookie!="":
 		head["cookie"]=cookie
-	
-	response=requests.get(url,headers=head,timeout=10)#
-	
+		
+	response=requests.get(url,headers=head,timeout=3)#
+
 	if response.encoding!="GB2312" and response.encoding!="GBK":
 		response.encoding='utf-8'
 	else:
