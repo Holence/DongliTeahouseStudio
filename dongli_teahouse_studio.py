@@ -202,14 +202,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 		self.actionLocate_File_in_File_Library.triggered.connect(self.center_locate_file_in_library)
 
+		self.actionStay_on_Top.triggered.connect(self.window_toggle_stay_on_top)
+
 	def initialize_window(self):
 		#恢复界面设置
 		try:
-			self.setWindowFlag(Qt.WindowStaysOnTopHint)
-			self.dockWidget_concept.setWindowFlag(Qt.WindowStaysOnTopHint)
-			self.dockWidget_diary.setWindowFlag(Qt.WindowStaysOnTopHint)
-			self.dockWidget_library.setWindowFlag(Qt.WindowStaysOnTopHint)
-			self.dockWidget_sticker.setWindowFlag(Qt.WindowStaysOnTopHint)
 			
 			self.restoreGeometry(self.user_settings.value("geometry"))
 			self.restoreState(self.user_settings.value("windowState"))
@@ -437,9 +434,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.tabWidget.setCurrentIndex(0)
 
 
-		
-
-
 
 	def diary_text_search(self):
 		dlg=DiarySearchDialog(self)
@@ -534,6 +528,9 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 							)
 		
 		file_checker=FileCheckDialog(self,missing,redundant)
+
+		file_checker.setWindowFlag(Qt.WindowStaysOnTopHint,True)
+
 		file_checker.exec_()
 
 		#保存所有相关的数据
@@ -1207,6 +1204,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 	def setting_menu(self):
 
+
 		try:
 			font=self.user_settings.value("font")
 			font_size=self.user_settings.value("font_size")
@@ -1221,10 +1219,21 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			pixiv_cookie=""
 			pass
 		
-		dlg=SettingDialog(self.file_saving_base,font,font_size,pixiv_cookie)
+		try:
+			instagram_cookie=decrypt(self.user_settings.value("instagram_cookie"))
+		except:
+			instagram_cookie=""
+			pass
 		
-
+		dlg=SettingDialog(self.file_saving_base,font,font_size,pixiv_cookie,instagram_cookie)
+		dlg.setWindowFlag(Qt.WindowStaysOnTopHint,True)
+		
 		if dlg.exec_():
+			
+			self.file_saving_base=dlg.lineEdit_file_saving_base.text()
+			self.user_settings.setValue("file_saving_base",encrypt(self.file_saving_base))
+			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.y)+"/"+str(self.m)+"/"+str(self.d)
+			self.file_library_list_update()
 
 			if dlg.font!=None:
 				font=dlg.font
@@ -1233,16 +1242,12 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				self.user_settings.setValue("font",font)
 				self.user_settings.setValue("font_size",font_size)
 				self.font_set(font,font_size)
-			
-			
-			self.file_saving_base=dlg.lineEdit_file_saving_base.text()
-			self.user_settings.setValue("file_saving_base",encrypt(self.file_saving_base))
-			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.y)+"/"+str(self.m)+"/"+str(self.d)
-			self.file_library_list_update()
-			
 
 			pixiv_cookie=dlg.lineEdit_pixiv_cookie.text()
 			self.user_settings.setValue("pixiv_cookie",encrypt(pixiv_cookie))
+			
+			instagram_cookie=dlg.lineEdit_instagram_cookie.text()
+			self.user_settings.setValue("instagram_cookie",encrypt(instagram_cookie))
 			
 		else:
 			pass
@@ -1339,10 +1344,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			
 			#new_article_list中最新的在最前面，这里倒序遍历，每个都放在第一个，这样最新的就在最前面了
 			for article in self.manually_update_thread.new_article_list[::-1]:
-				print(article[0])
+				
 				self.rss_data[rss_url]["article_list"].insert(0,article)
 				self.rss_data[rss_url]["unread"]+=1
-				print(self.rss_data[rss_url]["article_list"])
+				
 			self.qlock.unlock()
 			
 			self.rss_feed_show()
@@ -1461,6 +1466,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 已经内置Bandcamp RSS（在上方选择Bandcamp模式，添加https://BANDNAME.bandcamp.com）
 已经内置Pixiv Illustration RSS（在上方选择Pixiv Illustration模式，添加https://www.pixiv.net/users/ID）
 已经内置Pixiv Manga RSS（在上方选择Pixiv Manga模式，添加https://www.pixiv.net/users/ID）
+已经内置Instagram RSS（在上方选择Instagram模式，添加https://www.instagram.com/ID）
 
 其他自制RSS源站点：
 https://rsshub.app/
@@ -1484,6 +1490,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		combobox.addItem("Bandcamp")
 		combobox.addItem("Pixiv Illustration")
 		combobox.addItem("Pixiv Manga")
+		combobox.addItem("Instagram")
 		
 		QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
 		buttonBox = QDialogButtonBox(QBtn)
@@ -1758,6 +1765,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			
 			#传进去一个元素是[rss_name,rss_url]的rss列表
 			dlg = RSS_Feed_Edit_Dialog(self,rss_url_list)
+			dlg.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 
 			if dlg.exec_():
 				#这个保存的操作是通过改变选取触发的，如果最后没改变选取，那这里再保存一下
@@ -2620,6 +2628,37 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		else:
 			self.showFullScreen()
 
+	def window_toggle_stay_on_top(self):
+		
+		if bool(self.windowFlags() & Qt.WindowStaysOnTopHint)==True:
+			self.setWindowFlag(Qt.WindowStaysOnTopHint,False)
+			self.dockWidget_concept.setWindowFlag(Qt.WindowStaysOnTopHint,False)
+			self.dockWidget_diary.setWindowFlag(Qt.WindowStaysOnTopHint,False)
+			self.dockWidget_library.setWindowFlag(Qt.WindowStaysOnTopHint,False)
+			self.dockWidget_sticker.setWindowFlag(Qt.WindowStaysOnTopHint,False)
+
+		else:
+			self.setWindowFlag(Qt.WindowStaysOnTopHint,True)
+			self.dockWidget_concept.setWindowFlag(Qt.WindowStaysOnTopHint,True)
+			self.dockWidget_diary.setWindowFlag(Qt.WindowStaysOnTopHint,True)
+			self.dockWidget_library.setWindowFlag(Qt.WindowStaysOnTopHint,True)
+			self.dockWidget_sticker.setWindowFlag(Qt.WindowStaysOnTopHint,True)
+		
+		#很奇怪，取消了WindowStaysOnTopHint后，所有漂浮的窗口都会被最小化
+		#所以还得一个一个恢复显示状态
+		if self.isFullScreen():
+			self.showFullScreen()
+		else:
+			self.showNormal()
+		
+		if not self.dockWidget_diary.isHidden():
+			self.dockWidget_diary.showNormal()
+		if not self.dockWidget_concept.isHidden():
+			self.dockWidget_concept.showNormal()
+		if not self.dockWidget_library.isHidden():
+			self.dockWidget_library.showNormal()
+		if not self.dockWidget_sticker.isHidden():
+			self.dockWidget_sticker.showNormal()
 
 	def data_validity_check(self):
 		"检查diary concept file rss的data"

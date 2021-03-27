@@ -76,6 +76,13 @@ class RSS_Updator_Threador(QThread):
 				cookie=decrypt(cookie)
 			
 			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Manga(rss_url.split("||")[0],cookie)
+		
+		elif self.parent.rss_data[rss_url]["type"]=="Instagram":
+			cookie=self.parent.user_settings.value("instagram_cookie")
+			if cookie!="" and cookie!=None:
+				cookie=decrypt(cookie)
+			
+			(Status,feed_name,update_link_list)=self.rss_parser.updata_Instagram(rss_url.split("||")[0],cookie)
 
 
 		################################################################################
@@ -228,6 +235,14 @@ class RSS_Adding_Getor_Threador(QThread):
 			
 			(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_Manga(rss_url,cookie)
 			rss_url+="||Pixiv Manga"
+
+		elif self.update_type=="Instagram":
+			cookie=self.parent.user_settings.value("instagram_cookie")
+			if cookie!="" and cookie!=None:
+				cookie=decrypt(cookie)
+			
+			(Status,feed_name,update_link_list)=self.rss_parser.updata_Instagram(rss_url,cookie)
+			rss_url+="||Instagram"
 
 		################################################################################
 
@@ -865,7 +880,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 
 
 class SettingDialog(QDialog,Ui_setting_dialog):
-	def __init__(self,file_saving_base,font,font_size,pixiv_cookie):
+	def __init__(self,file_saving_base,font,font_size,pixiv_cookie,instagram_cookie):
 		super().__init__()
 		self.setupUi(self)
 		
@@ -884,6 +899,11 @@ class SettingDialog(QDialog,Ui_setting_dialog):
 
 		try:
 			self.lineEdit_pixiv_cookie.setText(pixiv_cookie)
+		except:
+			pass
+		
+		try:
+			self.lineEdit_instagram_cookie.setText(instagram_cookie)
 		except:
 			pass
 

@@ -20,15 +20,18 @@ def delete_to_recyclebin(filename):
 
 
 def getHTML(url,cookie=""):
+
 	head={}
 
-	head['User-Agent']='Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.152 YaBrowser/21.2.3.73 (beta) Yowser/2.5 Safari/537.36'
-	
 	if cookie!="":
 		head["cookie"]=cookie
-		
-	response=requests.get(url,headers=head,timeout=3)#
+	
+	head['User-Agent']='Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.152 YaBrowser/21.2.3.73 (beta) Yowser/2.5 Safari/537.36'
+	
 
+	# response=requests.get(url,headers=head,timeout=3)#
+	response=requests.get(url,headers=head)#
+	
 	if response.encoding!="GB2312" and response.encoding!="GBK":
 		response.encoding='utf-8'
 	else:
@@ -127,6 +130,9 @@ def load_from_json(file_path):
 		data=json.load(f)
 	return data
 
+
+
+
 def convert_to_az(c):#用unicode划分语言区
 	def hanzi_to_pinyin(last_name):
 		"""
@@ -164,6 +170,9 @@ def convert_to_az(c):#用unicode划分语言区
 		# if re.match(r"[\uAC00-\uD7FF]",c)#韩
 	# s+="$"#结尾标识符
 	return s
+
+
+
 
 def what_day_is_today():
 	"周一到周日返回1-7"
@@ -221,7 +230,60 @@ def which_file_type(file_name):
 		return "text"
 	else:
 		return "unknown"
+
+
+
+def find_dict_in_string(s,name):
+	"尝试在字符串中找出格式为 name:\{  \}的字典，返回一个字典，若找不到返回False"
+
+	index_head=s.find(name)
+
+	if index_head==-1:
+		return False
 	
+	index_tail=index_head-1
+	num_big=0
+	num_middle=0
+	in_quote=True
+	start=0
+	for i in s[index_head:]:
+		index_tail+=1
+
+		if num_big==0 and num_middle==0 and start==1:
+			break
+		
+		if i=="\"" and in_quote==False:
+			in_quote=True
+			
+		if i=="\"" and in_quote==True:
+			in_quote=False
+		
+		if in_quote==True:
+			continue
+		else:
+			if i=="{":
+				start=1
+				num_big+=1
+				continue
+			if i=="}":
+				num_big-=1
+				continue
+			if i=="[":
+				start=1
+				num_middle+=1
+				continue
+			if i=="]":
+				start=1
+				num_middle-=1
+				continue
+		
+	
+	if num_big!=0 or num_middle!=0:
+		return False
+
+	find="{\""+s[index_head:index_tail]+"}"
+	
+	return json.loads(find)
 
 
 class RSS_Parser():
@@ -270,10 +332,10 @@ class RSS_Parser():
 			
 			url_list=[]
 
-			response=getHTML("https://api.bilibili.com/x/space/acc/info?mid="+up_ID)
+			response=getHTML("https://api.bilibili.com/x/space/acc/info?mid="+up_ID,cookie)
 			up_name=json.loads(response)["data"]["name"]
 
-			response=getHTML("https://api.bilibili.com/x/space/arc/search?mid="+up_ID)
+			response=getHTML("https://api.bilibili.com/x/space/arc/search?mid="+up_ID,cookie)
 			video_list=json.loads(response)["data"]["list"]["vlist"]
 			for video in video_list:
 				url_list.append(
@@ -298,7 +360,7 @@ class RSS_Parser():
 				return ("Invalid",None,None)
 
 			url_list=[]
-			response=getHTML(rss_url+"/music")
+			response=getHTML(rss_url+"/music",cookie)
 			html=etree.HTML(response)
 			album_list=html.xpath('//*[@id="music-grid"]/li/a/@href')
 			title_list=list(map(lambda x:x.strip(),html.xpath('//*[@id="music-grid"]/li/a/p/text()')))
@@ -395,3 +457,41 @@ class RSS_Parser():
 		
 		except:
 			return ("Failed",None,None)
+	
+	def updata_Instagram(self,rss_url,cookie=""):
+		"Instagram导入格式：https://www.instagram.com/ID"
+		try:
+			#真是刷新我的三观了，他妈的最后不带反斜线就会被反爬，加了反斜线就没问题……
+			#整整两个半小时啊……
+			#rss_url+"/"
+
+			response=getHTML(rss_url+"/",cookie)
+			try:
+				html=etree.HTML(response)
+				rss_name=html.xpath("/html/head/title/text()")[0].strip()
+			except:
+				rss_name="Unkown Feed"
+			
+			#淦！自己造的轮子，修了半天还是不能保证不出错……没用了……
+			# find=find_dict_in_string(response,"edge_owner_to_timeline_media")
+			
+			#
+			find=re.findall("(?<=window\._sharedData = ).*?(?=</script>)",response)[0][:-1]
+			find=json.loads(find)["entry_data"]["ProfilePage"][0]["graphql"]["user"]["edge_owner_to_timeline_media"]["edges"]
+			
+			url_list=[]
+			for i in find:
+				ID=i["node"]["shortcode"]
+				url_list.append(
+					{
+						"title":ID,
+						"link":"https://www.instagram.com/p/%s"%ID
+					}
+				)
+			
+			return ("Done",rss_name,url_list)
+		
+		except Exception as e:
+			peint(e)
+			return ("Failed",None,None)
+		
