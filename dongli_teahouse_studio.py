@@ -661,7 +661,14 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					y=int(file[0])
 					m=int(file[1])
 					d=int(file[2])
-					file_name=file[3]
+					
+					#因为网页链接的命名是不受限制的，这里不管用什么作分隔符都可能会冲突
+					#所以用|的话只要解决好找名字就行了
+					#因为这里如果是网页链接的话，文件名本身就带有|，所以得这样处理
+					file_name=""
+					for i in file[3:]:
+						file_name+=i+"|"
+					file_name=file_name[:-1]
 
 					self.file_library_add_a_file_to_search_list(y,m,d,file_name)
 
@@ -3109,10 +3116,10 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			for month_index in range(1,13):
 				for day in self.file_data[year_index][month_index].keys():
 					for file in self.file_data[year_index][month_index][day].keys():
-						for item_old_id in self.file_data[year_index][month_index][day][file]:
-							if item_old_id in changed_id_dict_keys:
-								self.file_data[year_index][month_index][day][file].remove(item_old_id)
-								self.file_data[year_index][month_index][day][file].append(changed_id_dict[item_old_id])
+						for linked_item_index in range(len(self.file_data[year_index][month_index][day][file])):
+							old_id=self.file_data[year_index][month_index][day][file][linked_item_index]
+							if old_id in changed_id_dict_keys:
+								self.file_data[year_index][month_index][day][file][linked_item_index]=changed_id_dict[old_id]
 		
 
 		self.diary_line_concept_list_update()
@@ -3466,10 +3473,10 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					for month_index in range(1,13):
 						for day in self.file_data[year_index][month_index].keys():
 							for file in self.file_data[year_index][month_index][day].keys():
-								for item_old_id in self.file_data[year_index][month_index][day][file]:
-									if item_old_id in changed_id_dict_keys:
-										self.file_data[year_index][month_index][day][file].remove(item_old_id)
-										self.file_data[year_index][month_index][day][file].append(changed_id_dict[item_old_id])
+								for linked_item_index in range(len(self.file_data[year_index][month_index][day][file])):
+									old_id=self.file_data[year_index][month_index][day][file][linked_item_index]
+									if old_id in changed_id_dict_keys:
+										self.file_data[year_index][month_index][day][file][linked_item_index]=changed_id_dict[old_id]
 				
 
 				self.diary_line_concept_list_update()
