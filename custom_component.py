@@ -368,9 +368,12 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
 			return
 		
-		#当日路径在不在
+		#当日路径在不在，这里不作过多限制，如果硬盘拔掉了，创建不了路径也没关系，因为要允许添加网页链接
 		if not os.path.exists(self.parent.file_saving_today_dst):
-			os.makedirs(self.parent.file_saving_today_dst)
+			try:
+				os.makedirs(self.parent.file_saving_today_dst)
+			except:
+				pass
 		else:
 			pass
 		
@@ -430,19 +433,14 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 						#如果不存在，那就说明熊孩子在乱搞，明明可以用file check来添加他非得手拖进来
 						except:
 							QMessageBox.warning(self,"Warning","禁止从内部路径导入文件（可以用File Chack功能添加abundant文件）")
-							self.parent.progress.setValue(len(links))
-							self.parent.progress.deleteLater()
-							return
+							break
 					else:
 						QMessageBox.warning(self,"Warning","请不要在file_base下乱建文件夹！")
-						self.parent.progress.setValue(len(links))
-						self.parent.progress.deleteLater()
-						return
+						break
 				except:
 					QMessageBox.warning(self,"Warning","请不要在file_base下乱放文件！")
-					self.parent.progress.setValue(len(links))
-					self.parent.progress.deleteLater()
-					return
+					break
+			
 			#没有内部路径，说明是新来的，移动到当日的文件库
 			else:
 				#如果是新来的link
@@ -474,7 +472,14 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 				
 					file_name=os.path.basename(i)
 					file_dst=self.parent.file_saving_today_dst+"/"+file_name
-					shutil.move(i,file_dst)
+					
+					#文件添加，有可能硬盘被拔掉了
+					try:
+						shutil.move(i,file_dst)
+					except:
+						QMessageBox.warning(self,"Warning","路径访问出错！移动失败！")
+						break
+					
 					#文件链接concept置空
 					self.parent.file_data[self.parent.y][self.parent.m][self.parent.d][file_name]=[]
 
@@ -808,6 +813,8 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			clicked_index=pic_list.index(clicked_file_link)
 
 			self.parent.image_viewer=MyImageViewer(pic_list,clicked_index,self.parent.width(),self.parent.height())
+			if self.parent.window_is_stay_on_top()==True:
+				self.parent.image_viewer.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 			self.parent.image_viewer.show()
 			self.listWidget_file_root.ctrl_pressed=False
 		############################如果按下ctrl双击图片，启动内置的图片浏览器#########################
@@ -865,6 +872,8 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			clicked_index=pic_list.index(clicked_file_link)
 
 			self.parent.image_viewer=MyImageViewer(pic_list,clicked_index,self.parent.width(),self.parent.height())
+			if self.parent.window_is_stay_on_top()==True:
+				self.parent.image_viewer.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 			self.parent.image_viewer.show()
 			self.listWidget_file_leafs.ctrl_pressed=False
 		############################如果按下ctrl双击图片，启动内置的图片浏览器#########################

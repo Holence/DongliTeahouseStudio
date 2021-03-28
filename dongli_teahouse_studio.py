@@ -437,6 +437,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 	def diary_text_search(self):
 		dlg=DiarySearchDialog(self)
+		if self.window_is_stay_on_top()==True:
+			dlg.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 		dlg.exec_()
 
 	def file_check(self):
@@ -529,7 +531,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		
 		file_checker=FileCheckDialog(self,missing,redundant)
 
-		file_checker.setWindowFlag(Qt.WindowStaysOnTopHint,True)
+		if self.window_is_stay_on_top()==True:
+			file_checker.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 
 		file_checker.exec_()
 
@@ -807,9 +810,12 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
 			return
 		
-		#当日路径在不在
+		#当日路径在不在，这里不作过多限制，如果硬盘拔掉了，创建不了路径也没关系，因为要允许添加网页链接
 		if not os.path.exists(self.file_saving_today_dst):
-			os.makedirs(self.file_saving_today_dst)
+			try:
+				os.makedirs(self.file_saving_today_dst)
+			except:
+				pass
 		else:
 			pass
 		
@@ -835,9 +841,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			#内部的link不要拖到file区了！
 			if ">" in i:
 				QMessageBox.warning(self,"Warning","禁止内部拖动Link到File区！")
-				self.progress.setValue(len(links))
-				self.progress.deleteLater()
-				return
+				break
 			
 			#如果是网址的，不生成文件
 			#file_name拥有特殊标记>和|符号（这个符号是不能存在在文件名中的），>为link的开头，|前为网页title，|后为url
@@ -886,18 +890,21 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 						d=int(date_and_name[2])
 						if y in range(1970,2170) and m in range(1,13) and d in range(1,32):
 							QMessageBox.warning(self,"Warning","禁止内部拖动文件到File区！同时禁止从内部路径导入文件（可以用File Chack功能添加abundant文件）")
-							self.progress.setValue(len(links))
-							self.progress.deleteLater()
-							return
+							break
 				except:
 					QMessageBox.warning(self,"Warning","请不要在file_base下乱放文件！")
-					self.progress.setValue(len(links))
-					self.progress.deleteLater()
-					return
+					break
 				
 				file_name=os.path.basename(i)
 				file_dst=self.file_saving_today_dst+"/"+file_name
-				shutil.move(i,file_dst)
+				
+				#文件添加，有可能硬盘被拔掉了
+				try:
+					shutil.move(i,file_dst)
+				except:
+					QMessageBox.warning(self,"Warning","路径访问出错！移动失败！")
+					break
+					
 				#文件链接concept置空
 				self.file_data[self.y][self.m][self.d][file_name]=[]
 			
@@ -952,6 +959,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			clicked_index=pic_list.index(clicked_file_link)
 
 			self.image_viewer=MyImageViewer(pic_list,clicked_index,self.width(),self.height())
+			if self.window_is_stay_on_top()==True:
+				self.image_viewer.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 			self.image_viewer.show()
 			self.listWidget_search_file.ctrl_pressed=False
 		############################如果按下ctrl双击图片，启动内置的图片浏览器#########################
@@ -1233,7 +1242,9 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			pass
 		
 		dlg=SettingDialog(self.file_saving_base,font,font_size,pixiv_cookie,instagram_cookie)
-		dlg.setWindowFlag(Qt.WindowStaysOnTopHint,True)
+	
+		if self.window_is_stay_on_top()==True:
+			dlg.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 		
 		if dlg.exec_():
 			
@@ -1772,7 +1783,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			
 			#传进去一个元素是[rss_name,rss_url]的rss列表
 			dlg = RSS_Feed_Edit_Dialog(self,rss_url_list)
-			dlg.setWindowFlag(Qt.WindowStaysOnTopHint,True)
+
+			if self.window_is_stay_on_top()==True:
+				dlg.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 
 			if dlg.exec_():
 				#这个保存的操作是通过改变选取触发的，如果最后没改变选取，那这里再保存一下
@@ -2635,15 +2648,21 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		else:
 			self.showFullScreen()
 
+	def window_is_stay_on_top(self):
+		"Mainwindow是否正在置顶"
+		return bool(self.windowFlags() & Qt.WindowStaysOnTopHint)
+
 	def window_toggle_stay_on_top(self):
 		
-		if bool(self.windowFlags() & Qt.WindowStaysOnTopHint)==True:
+		#正在置顶，取消置顶
+		if self.window_is_stay_on_top()==True:
 			self.setWindowFlag(Qt.WindowStaysOnTopHint,False)
 			self.dockWidget_concept.setWindowFlag(Qt.WindowStaysOnTopHint,False)
 			self.dockWidget_diary.setWindowFlag(Qt.WindowStaysOnTopHint,False)
 			self.dockWidget_library.setWindowFlag(Qt.WindowStaysOnTopHint,False)
 			self.dockWidget_sticker.setWindowFlag(Qt.WindowStaysOnTopHint,False)
 
+		#没有置顶，设置置顶
 		else:
 			self.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 			self.dockWidget_concept.setWindowFlag(Qt.WindowStaysOnTopHint,True)
@@ -2651,7 +2670,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			self.dockWidget_library.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 			self.dockWidget_sticker.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 		
-		#很奇怪，取消了WindowStaysOnTopHint后，所有漂浮的窗口都会被最小化
+		#很奇怪，设置WindowStaysOnTopHint后，所有漂浮的窗口都会被最小化
 		#所以还得一个一个恢复显示状态
 		if self.isFullScreen():
 			self.showFullScreen()
@@ -4026,9 +4045,12 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
 			return
 		
-		#当日路径在不在
+		#当日路径在不在，这里不作过多限制，如果硬盘拔掉了，创建不了路径也没关系，因为要允许添加网页链接
 		if not os.path.exists(self.file_saving_today_dst):
-			os.makedirs(self.file_saving_today_dst)
+			try:
+				os.makedirs(self.file_saving_today_dst)
+			except:
+				pass
 		else:
 			pass
 		
@@ -4088,19 +4110,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						#如果不存在，那就说明熊孩子在乱搞，明明可以用file check来添加他非得手拖进来
 						except:
 							QMessageBox.warning(self,"Warning","禁止从内部路径导入文件（可以用File Chack功能添加abundant文件）")
-							self.progress.setValue(len(links))
-							self.progress.deleteLater()
-							return
+							break
 					else:
 						QMessageBox.warning(self,"Warning","请不要在file_base下乱建文件夹！")
-						self.progress.setValue(len(links))
-						self.progress.deleteLater()
-						return
+						break
 				except:
 					QMessageBox.warning(self,"Warning","请不要在file_base下乱放文件！")
-					self.progress.setValue(len(links))
-					self.progress.deleteLater()
-					return
+					break
 
 			#没有内部路径，说明是新来的，移动到当日的文件库
 			else:
@@ -4133,7 +4149,14 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				
 					file_name=os.path.basename(i)
 					file_dst=self.file_saving_today_dst+"/"+file_name
-					shutil.move(i,file_dst)
+					
+					#文件添加，有可能硬盘被拔掉了
+					try:
+						shutil.move(i,file_dst)
+					except:
+						QMessageBox.warning(self,"Warning","路径访问出错！移动失败！")
+						break
+
 					#文件链接concept置空
 					self.file_data[self.y][self.m][self.d][file_name]=[]
 
@@ -4223,6 +4246,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			clicked_index=pic_list.index(clicked_file_link)
 
 			self.image_viewer=MyImageViewer(pic_list,clicked_index,self.width(),self.height())
+			if self.window_is_stay_on_top()==True:
+				self.image_viewer.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 			self.image_viewer.show()
 			self.listWidget_concept_linked_file.ctrl_pressed=False
 		############################如果按下ctrl双击图片，启动内置的图片浏览器#########################
@@ -4434,9 +4459,12 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
 			return
 		
-		#当日路径在不在
+		#当日路径在不在，这里不作过多限制，如果硬盘拔掉了，创建不了路径也没关系，因为要允许添加网页链接
 		if not os.path.exists(self.file_saving_today_dst):
-			os.makedirs(self.file_saving_today_dst)
+			try:
+				os.makedirs(self.file_saving_today_dst)
+			except:
+				pass
 		else:
 			pass
 		
@@ -4496,19 +4524,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 							#如果不存在，那就说明熊孩子在乱搞，明明可以用file check来添加他非得手拖进来
 						except:
 							QMessageBox.warning(self,"Warning","禁止从内部路径导入文件（可以用File Chack功能添加abundant文件）")
-							self.progress.setValue(len(links))
-							self.progress.deleteLater()
-							return
+							break
 					else:
 						QMessageBox.warning(self,"Warning","请不要在file_base下乱建文件夹！")
-						self.progress.setValue(len(links))
-						self.progress.deleteLater()
-						return
+						break
 				except:
 					QMessageBox.warning(self,"Warning","请不要在file_base下乱放文件！")
-					self.progress.setValue(len(links))
-					self.progress.deleteLater()
-					return
+					break
 				
 			#没有内部路径，说明是新来的，移动到当日的文件库
 			else:
@@ -4542,7 +4564,14 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				
 					file_name=os.path.basename(i)
 					file_dst=self.file_saving_today_dst+"/"+file_name
-					shutil.move(i,file_dst)
+					
+					#文件添加，有可能硬盘被拔掉了
+					try:
+						shutil.move(i,file_dst)
+					except:
+						QMessageBox.warning(self,"Warning","路径访问出错！移动失败！")
+						break
+					
 					#文件链接concept置空
 					self.file_data[self.y][self.m][self.d][file_name]=[]
 
@@ -4658,6 +4687,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			clicked_index=pic_list.index(clicked_file_link)
 
 			self.image_viewer=MyImageViewer(pic_list,clicked_index,self.width(),self.height())
+			if self.window_is_stay_on_top()==True:
+				self.image_viewer.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 			self.image_viewer.show()
 			self.listWidget_text_linked_file.ctrl_pressed=False
 		############################如果按下ctrl双击图片，启动内置的图片浏览器#########################
