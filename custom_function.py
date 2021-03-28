@@ -491,7 +491,6 @@ class RSS_Parser():
 			
 			return ("Done",rss_name,url_list)
 		
-		except Exception as e:
-			peint(e)
+		except:
 			return ("Failed",None,None)
 		
