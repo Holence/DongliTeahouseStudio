@@ -12,6 +12,12 @@ Features:
 
 ---
 
+Example
+
+![Example1](./Manual/Example1.jpg)
+
+---
+
 Inspired By:
 
 - Typora
