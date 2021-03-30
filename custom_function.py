@@ -5,6 +5,7 @@ import pickle
 import base64
 import os,shutil
 import requests
+from urllib.parse import unquote
 import feedparser
 import json
 import time
@@ -40,16 +41,18 @@ def getHTML(url,cookie=""):
 	return response.text
 
 def getTitle(url):
-	"成功的话返回(True,title)，失败的话返回(False,Exception)"
+	"成功的话返回(True,title)，失败的话返回(False,Exception)，其中如果Title中包含url编码（比如|对应的是%7C），自动解析成utf-8编码"
 	try:
 		html=etree.HTML(getHTML(url))
 		title=html.xpath("/html/head/title/text()")
-		return (True,title[0])
+		title=unquote(title[0],'utf-8')
+		return (True,title)
 	except:
 		try:
 			#YouTube的channel页面的标题竟然在body里面……
 			title=html.xpath("/html/body/title/text()")
-			return (True,title[0])
+			title=unquote(title[0],'utf-8')
+			return (True,title)
 		except Exception as e:
 			return (False,e)
 

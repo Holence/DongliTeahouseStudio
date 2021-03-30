@@ -864,7 +864,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					tray.hide()
 					tray.show()
 					tray.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
-				
 				file_name=">"+title+"|"+i
 				self.file_data[self.y][self.m][self.d][file_name]=[]
 
@@ -4086,7 +4085,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					if y in range(1970,2170) and m in range(1,13) and d in range(1,32):
 						#如果filedata中已经存在，就只做链接操作
 						try:
-						
 							if "|" in i:
 								file_name=i[i.find(">"):]
 								file_icon=which_icon(file_name+".url")

@@ -213,19 +213,30 @@ class MyConceptLinkedFileList(QListWidget):
 			links=[]
 			for url in event.mimeData().urls():
 				url_str=url.toString()
-				
-				#如果是内部link
-				#这里如果带有|和<，会被toLocalFile消除掉，所内部link的拖动还是单独判断好了
-				#另外注意这里的“|”被toString()解析出来成了%7C，得用urllib.parse的unquote解码
-				if "|" in url_str:
-					url_str=unquote(url_str,'utf-8')
-					links.append(url_str)
+				#注意这里的“|”被toString()解析出来成了%7C，如果是名字、文件路径的话，得用urllib.parse的unquote解码
 				
 				#如果是本地文件url
-				elif url_str[:4]=="file":
-					url_str=unquote(url_str,'utf-8')
-					links.append(url_str.replace("file:///",""))
-					# links.append(str(url.toLocalFile()))
+				if url_str[:4]=="file":
+					url_str=url_str.replace("file:///","")
+					
+					#如果是内部已有link
+					#只有名字中的%7C之类的要解码（导入进来的时候Title中的url编码是被转成utf-8了的），url部分的保持不变
+					if "|" in unquote(url_str,'utf-8'):
+
+						#最后一个|前的就是名字
+						name=url_str[:url_str.rfind("%7C")]
+						name=unquote(name,'utf-8')
+						
+						url=url_str[url_str.rfind("%7C")+3:]
+
+						url_str=name+"|"+url
+						
+						links.append(url_str)
+					
+					#如果是文件url的话全部解码就行了
+					else:
+						url_str=unquote(url_str,'utf-8')
+						links.append(url_str)
 				
 				#如果是外部link
 				#这里十分巧妙！
@@ -243,6 +254,7 @@ class MyConceptLinkedFileList(QListWidget):
 			links=[]
 			#只接收网页链接
 			for i in text:
+				i=i.strip()
 				if i[:7]=="http://" or i[:8]=="https://":
 					links.append(i)
 				else:
