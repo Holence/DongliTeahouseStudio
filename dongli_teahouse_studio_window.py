@@ -216,14 +216,23 @@ class Ui_dongli_teahouse_studio_window(object):
         self.tabWidget.addTab(self.tabWidgetPage_home, icon25, "")
         self.tabWidgetPage_rss = QWidget()
         self.tabWidgetPage_rss.setObjectName(u"tabWidgetPage_rss")
-        self.verticalLayout = QVBoxLayout(self.tabWidgetPage_rss)
-        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.horizontalLayout_3 = QHBoxLayout(self.tabWidgetPage_rss)
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.splitter_rss = QSplitter(self.tabWidgetPage_rss)
         self.splitter_rss.setObjectName(u"splitter_rss")
         self.splitter_rss.setOrientation(Qt.Horizontal)
         self.splitter_rss.setHandleWidth(10)
-        self.splitter_rss.setChildrenCollapsible(False)
-        self.treeWidget_rss = MyTreeWidget(self.splitter_rss)
+        self.widget = QWidget(self.splitter_rss)
+        self.widget.setObjectName(u"widget")
+        self.verticalLayout = QVBoxLayout(self.widget)
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.lineEdit_rss_search = QLineEdit(self.widget)
+        self.lineEdit_rss_search.setObjectName(u"lineEdit_rss_search")
+
+        self.verticalLayout.addWidget(self.lineEdit_rss_search)
+
+        self.treeWidget_rss = MyTreeWidget(self.widget)
         self.treeWidget_rss.setObjectName(u"treeWidget_rss")
         self.treeWidget_rss.setTabKeyNavigation(True)
         self.treeWidget_rss.setDragEnabled(True)
@@ -238,8 +247,11 @@ class Ui_dongli_teahouse_studio_window(object):
         self.treeWidget_rss.setSortingEnabled(False)
         self.treeWidget_rss.setAnimated(True)
         self.treeWidget_rss.setAllColumnsShowFocus(False)
-        self.splitter_rss.addWidget(self.treeWidget_rss)
         self.treeWidget_rss.header().setVisible(False)
+
+        self.verticalLayout.addWidget(self.treeWidget_rss)
+
+        self.splitter_rss.addWidget(self.widget)
         self.listWidget_rss = QListWidget(self.splitter_rss)
         self.listWidget_rss.setObjectName(u"listWidget_rss")
         self.listWidget_rss.setProperty("isWrapping", False)
@@ -247,7 +259,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.listWidget_rss.setWordWrap(True)
         self.splitter_rss.addWidget(self.listWidget_rss)
 
-        self.verticalLayout.addWidget(self.splitter_rss)
+        self.horizontalLayout_3.addWidget(self.splitter_rss)
 
         self.tabWidget.addTab(self.tabWidgetPage_rss, icon16, "")
         self.tabWidgetPage_text = QWidget()
@@ -760,7 +772,7 @@ class Ui_dongli_teahouse_studio_window(object):
 
         self.retranslateUi(dongli_teahouse_studio_window)
 
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         self.toolBox_text.setCurrentIndex(0)
         self.toolBox_text.layout().setSpacing(0)
         self.toolBox_concept.setCurrentIndex(0)
@@ -893,6 +905,9 @@ class Ui_dongli_teahouse_studio_window(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage_home), QCoreApplication.translate("dongli_teahouse_studio_window", u"Home", None))
         ___qtreewidgetitem = self.treeWidget_rss.headerItem()
         ___qtreewidgetitem.setText(0, QCoreApplication.translate("dongli_teahouse_studio_window", u"1", None));
+#if QT_CONFIG(statustip)
+        self.treeWidget_rss.setStatusTip("")
+#endif // QT_CONFIG(statustip)
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage_rss), QCoreApplication.translate("dongli_teahouse_studio_window", u"RSS", None))
         self.textEdit_viewer.setHtml(QCoreApplication.translate("dongli_teahouse_studio_window", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"

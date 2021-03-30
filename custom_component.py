@@ -21,6 +21,7 @@ class RSS_Updator_Threador(QThread):
 	"""
 
 	progress = Signal(str,bool)
+	started=Signal(str)
 	def setdata(self,parent,updating_url_list):
 		#这里传进来的rss_data竟然是指针……因为它是列表……
 		self.parent=parent
@@ -139,8 +140,10 @@ class RSS_Updator_Threador(QThread):
 
 
 	def rss_data_update(self):
-		
+
 		for rss_url in self.updating_url_list:
+			#让外面更新windowTitle
+			self.started.emit(rss_url)
 
 			self.parent.qlock.lock()
 

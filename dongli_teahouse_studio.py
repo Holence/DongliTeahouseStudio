@@ -169,7 +169,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.actionOpen_WebPage_In_Browser.triggered.connect(self.rss_open_webpage)
 		
 		#点击treeitem，show文章列表
-		self.treeWidget_rss.itemClicked.connect(self.rss_feed_show)
+		self.treeWidget_rss.itemClicked.connect(self.rss_feed_article_list_show)
 		#每次拖动排阶级后，就检查，RSS不能作为folder
 		self.treeWidget_rss.dropped.connect(self.rss_tree_drop_update)
 		#点击文章
@@ -200,9 +200,13 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#ctrl+q搜索文件
 		self.actionSearch_File_Library.triggered.connect(self.file_library_search_focus)
 
+		#在Library中定位选中的文件
 		self.actionLocate_File_in_File_Library.triggered.connect(self.center_locate_file_in_library)
 
+		#置顶Action
 		self.actionStay_on_Top.triggered.connect(self.window_toggle_stay_on_top)
+
+		self.lineEdit_rss_search.returnPressed.connect(self.rss_tree_build)
 
 	def initialize_window(self):
 		#恢复界面设置
@@ -1295,8 +1299,15 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#为了不卡界面还是得用QT的QThread……
 		#然后尝试QThread的class又不允许用__init__传参……
 		#咋就没想到传参函数呢？
+		def update_window_title(rss_url):
+			"实时显示正在更新的RSS名称"
+			window_title=self.windowTitle()
+			if ">" in window_title:
+				window_title=window_title.split(">")[0][:-1]
+			self.setWindowTitle(window_title+" > Updating RSS Feed: "+self.rss_data[rss_url]["feed_name"])
+
 		def partial_work_done(rss_url,updated):
-		
+
 			self.qlock.lock()
 			
 			#标记最新更新日期
@@ -1311,7 +1322,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					self.rss_data[rss_url]["article_list"].insert(0,article)
 					self.rss_data[rss_url]["unread"]+=1
 			
-				self.rss_feed_show()
+				self.rss_feed_article_list_show()
 				self.rss_tree_build()
 			
 			self.qlock.unlock()
@@ -1320,6 +1331,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		def fuckyou():
 			self.treeWidget_rss.setDragEnabled(1)
 			self.treeWidget_rss.setDragDropMode(QAbstractItemView.InternalMove)
+			
+			window_title=self.windowTitle()
+			if ">" in window_title:
+				window_title=window_title.split(">")[0][:-1]
+			self.setWindowTitle(window_title)
 			
 
 		# 在每日更新的时候有qlock请求，
@@ -1350,30 +1366,49 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 		self.daily_update_thread.progress.connect(partial_work_done)
 		self.daily_update_thread.finished.connect(fuckyou)
+		self.daily_update_thread.started.connect(update_window_title)
 		self.daily_update_thread.start()
 
 
 	def rss_feed_manually_update(self):
 		
-		def partial_work_done(rss_url):
+		def update_window_title(rss_url):
+			"实时显示正在更新的RSS名称"
+			window_title=self.windowTitle()
+			if ">" in window_title:
+				window_title=window_title.split(">")[0][:-1]
+			self.setWindowTitle(window_title+" > Updating RSS Feed: "+self.rss_data[rss_url]["feed_name"])
+		
+		def partial_work_done(rss_url,updated):
 			
 			self.qlock.lock()
+
+			#标记最新更新日期
+			last_update=str(self.y)+str(self.m)+str(self.d)
+			self.rss_data[rss_url]["last_update"]=last_update
 			
-			#new_article_list中最新的在最前面，这里倒序遍历，每个都放在第一个，这样最新的就在最前面了
-			for article in self.manually_update_thread.new_article_list[::-1]:
-				
-				self.rss_data[rss_url]["article_list"].insert(0,article)
-				self.rss_data[rss_url]["unread"]+=1
+			#如果有新文章，那就append，并且更新tree列表和文章列表
+			if updated==True:
+				#new_article_list中最新的在最前面，这里倒序遍历，每个都放在第一个，这样最新的就在最前面了
+				for article in self.manually_update_thread.new_article_list[::-1]:
+					
+					self.rss_data[rss_url]["article_list"].insert(0,article)
+					self.rss_data[rss_url]["unread"]+=1
 				
 			self.qlock.unlock()
 			
-			self.rss_feed_show()
+			self.rss_feed_article_list_show()
 			self.rss_tree_build()
 		
 		def fuckyou():
 			self.treeWidget_rss.setDragEnabled(1)
 			self.treeWidget_rss.setDragDropMode(QAbstractItemView.InternalMove)
 			self.manually_updateing=False
+
+			window_title=self.windowTitle()
+			if ">" in window_title:
+				window_title=window_title.split(">")[0][:-1]
+			self.setWindowTitle(window_title)
 		
 		# 只允许一个手动更新存在
 		if self.manually_updateing==True:
@@ -1402,6 +1437,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 			self.manually_update_thread.progress.connect(partial_work_done)
 			self.manually_update_thread.finished.connect(fuckyou)
+			self.manually_update_thread.started.connect(update_window_title)
 
 			self.manually_updateing=True
 			self.manually_update_thread.start()
@@ -1420,7 +1456,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 				updating_url_list=[]
 
-				folder_name=re.findall("(?<=\d\]\|).*",folder.text(0))[0]
+				folder_name=re.findall("(?<=\]\|).*",folder.text(0))[0]
 				#找文件夹中所有的RSS
 				for item in self.rss_tree_data:
 					if type(item)==dict and item["folder_name"]==folder_name:
@@ -1434,6 +1470,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 				self.manually_update_thread.progress.connect(partial_work_done)
 				self.manually_update_thread.finished.connect(fuckyou)
+				self.manually_update_thread.started.connect(update_window_title)
 
 				self.manually_updateing=True
 				self.manually_update_thread.start()
@@ -1475,6 +1512,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		def fuckyou(i):
 			self.progress.setValue(i)
 			
+
+		if self.rss_searching!="":
+			QMessageBox.warning(self,"Warning","请清空RSS搜索条件！")
+			return
 
 		dlg = QDialog(self)
 		dlg.setWindowTitle("Add New RSS Feed")
@@ -1585,6 +1626,10 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 
 	def rss_feed_folder_create(self):
+		if self.rss_searching!="":
+			QMessageBox.warning(self,"Warning","请清空RSS搜索条件！")
+			return
+		
 		dlg = QDialog(self)
 		dlg.setWindowTitle("Create New RSS Folder")
 
@@ -1616,7 +1661,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				#哈哈哈哈，隐藏了header后，它只显示第一个column，这样就可以在后面添加附属信息了！
 				#这样就可以不用每时每刻记录RSS data，每时每刻修改RSS data
 				#只用在最后遍历整棵树，存储RSS树就行了！
-				temp=QTreeWidgetItem(["[0]|"+folder_name,"Folder",""])
+				temp=QTreeWidgetItem(["[🗸]|"+folder_name,"Folder",""])
 				temp.setIcon(0,QIcon(":/icon/folder.svg"))
 
 				self.treeWidget_rss.addTopLevelItem(temp)
@@ -1630,34 +1675,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 
 	def rss_feed_delete(self):
-		def deepin_del_feed_in_tree(root,pointer,delete_feed_url):
-			for index in range(root.childCount()):
-				
-				#如果是RSS
-				if root.child(index).text(2)!="":
-					#找到了！
-					if root.child(index).text(2)==delete_feed_url:
-						ii=0
-						for i in pointer:
-							try:
-								if i[2]==delete_feed_url:
-									break
-							except:
-								pass
-							ii+=1
-						#删除这个feed
-						pointer.pop(ii)
-						return
-
-					#没找到
-					else:
-						continue
-				
-				#如果是Folder
-				else:
-					
-					#传入这个folder中的rss列表的pointer
-					deepin_del_feed_in_tree(root.child(index),pointer[index]["RSS"],delete_feed_url)
 		
 		delete_list=[item for item in self.treeWidget_rss.selectedItems()]
 
@@ -1689,14 +1706,29 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				#如果是Feed
 				if item.text(2)!="":
 
-					#去rss_tree_data中删除那个元组
-					root=self.treeWidget_rss.invisibleRootItem()
-					deepin_del_feed_in_tree(root,self.rss_tree_data,item.text(2))
-
-
 					self.qlock.lock()
 
-					del self.rss_data[item.text(2)]
+					# # 根本没必要递归嘛
+					# # root=self.treeWidget_rss.invisibleRootItem()
+					# # deepin_del_feed_in_tree(root,self.rss_tree_data,item.text(2))
+
+					rss_url=item.text(2)
+
+					#去rss_tree_data中删除那个元组
+					for i in range(len(self.rss_tree_data)):
+						#folder
+						if type(self.rss_tree_data[i])==dict:
+							for j in range(len(self.rss_tree_data[i]["RSS"])):
+								if self.rss_tree_data[i]["RSS"][j][2]==rss_url:
+									self.rss_tree_data[i]["RSS"].pop(j)
+									break
+						#顶层的RSS
+						if type(self.rss_tree_data[i])==tuple:
+							if self.rss_tree_data[i][2]==rss_url:
+								self.rss_tree_data.pop(i)
+								break
+
+					del self.rss_data[rss_url]
 					
 					self.qlock.unlock()
 			
@@ -1704,13 +1736,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			for item in delete_list:
 				#如果是Folder
 				if item.text(2)=="":
-					folder_name=re.findall("(?<=\d\]\|).*",item.text(0))[0]
+					folder_name=re.findall("(?<=\]\|).*",item.text(0))[0]
 
 					self.qlock.lock()
 
 					for i in range(len(self.rss_tree_data)):
+						#folder
 						if type(self.rss_tree_data[i])==dict:
-							
 							if self.rss_tree_data[i]["folder_name"]==folder_name:
 								
 								for j in self.rss_tree_data[i]["RSS"]:
@@ -1725,6 +1757,37 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 			self.rss_tree_build()
 			self.listWidget_rss.clear()
+	
+		####
+			# 根本没必要递归嘛
+			# def deepin_del_feed_in_tree(root,pointer,delete_feed_url):
+			# 	for index in range(root.childCount()):
+					
+			# 		#如果是RSS
+			# 		if root.child(index).text(2)!="":
+			# 			#找到了！
+			# 			if root.child(index).text(2)==delete_feed_url:
+			# 				ii=0
+			# 				for i in pointer:
+			# 					try:
+			# 						if i[2]==delete_feed_url:
+			# 							break
+			# 					except:
+			# 						pass
+			# 					ii+=1
+			# 				#删除这个feed
+			# 				pointer.pop(ii)
+			# 				return
+
+			# 			#没找到
+			# 			else:
+			# 				continue
+					
+			# 		#如果是Folder
+			# 		else:
+						
+			# 			#传入这个folder中的rss列表的pointer
+			# 			deepin_del_feed_in_tree(root.child(index),pointer[index]["RSS"],delete_feed_url)
 
 
 	def rss_edit(self):
@@ -1750,7 +1813,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 			self.qlock.unlock()
 
-			self.rss_feed_show()
+			self.rss_feed_article_list_show()
 			self.rss_tree_build()
 			QMessageBox.information(self,"Information","Folder内的文章全部标记已读！")
 
@@ -1776,7 +1839,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			rss_url_list=[]
 			for item in selected_item:
 				#每个元素是[rss_name,rss_url]
-				rss_name=re.findall("(?<=\d\]\|).*",item.text(0))[0]
+				rss_name=re.findall("(?<=\]\|).*",item.text(0))[0]
 				rss_url=item.text(2)
 				rss_url_list.append([rss_name,rss_url])
 			
@@ -1835,7 +1898,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 				self.qlock.unlock()
 
-				self.rss_feed_show()
+				self.rss_feed_article_list_show()
 				self.rss_tree_build()
 
 			else:
@@ -1860,7 +1923,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				label=QLabel("Folder Name")
 				enter=QLineEdit()
 				
-				old_folder_name=re.findall("(?<=\d\]\|).*",folder.text(0))[0]
+				old_folder_name=re.findall("(?<=\]\|).*",folder.text(0))[0]
 				btn.clicked.connect(lambda:mark_all_article_in_folder(old_folder_name))
 				enter.setText(old_folder_name)
 
@@ -1887,7 +1950,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					
 					self.qlock.unlock()
 					
-					self.rss_feed_show()
+					self.rss_feed_article_list_show()
 					self.rss_tree_build()
 				else:
 					pass
@@ -1897,40 +1960,38 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				QMessageBox.warning(self,"Warning","要编辑RSS Feed信息就好好选！")
 
 	def rss_tree_drop_update(self):
+		# 每次拖动排阶级后，就检查，RSS不能作为folder
 		
-			
-			# 每次拖动排阶级后，就检查，RSS不能作为folder
-			
-			root=self.treeWidget_rss.invisibleRootItem()
-			for index in range(root.childCount()):
-				top_level=root.child(index)
+		root=self.treeWidget_rss.invisibleRootItem()
+		for index in range(root.childCount()):
+			top_level=root.child(index)
 
-				#如果是根级的rss，那么它的下面不能有东西
-				if top_level.text(2)!="":
-					if top_level.childCount()!=0:
-						QMessageBox.warning(self,"Warning","RSS源不能作为Folder！")
+			#如果是根级的rss，那么它的下面不能有东西
+			if top_level.text(2)!="":
+				if top_level.childCount()!=0:
+					QMessageBox.warning(self,"Warning","RSS源不能作为Folder！")
+					self.rss_tree_build()
+					return
+			
+			#如果是根级的folder，那么它的下面不能有folder，只能有rss，且rss底下不能有东西
+			else:
+				for index2 in range(top_level.childCount()):
+					second_level=top_level.child(index2)
+
+					#是folder
+					if second_level.text(2)=="":
+						QMessageBox.warning(self,"Warning","Folder只能有一层！")
 						self.rss_tree_build()
 						return
-				
-				#如果是根级的folder，那么它的下面不能有folder，只能有rss，且rss底下不能有东西
-				else:
-					for index2 in range(top_level.childCount()):
-						second_level=top_level.child(index2)
-
-						#是folder
-						if second_level.text(2)=="":
-							QMessageBox.warning(self,"Warning","Folder只能有一层！")
+					#是rss
+					else:
+						if second_level.childCount()!=0:
+							QMessageBox.warning(self,"Warning","RSS源不能作为Folder！")
 							self.rss_tree_build()
 							return
-						#是rss
-						else:
-							if second_level.childCount()!=0:
-								QMessageBox.warning(self,"Warning","RSS源不能作为Folder！")
-								self.rss_tree_build()
-								return
-			
-			self.rss_tree_data_update()
-			self.rss_tree_build()
+		
+		self.rss_tree_data_update()
+		self.rss_tree_build()
 		
 
 
@@ -1942,7 +2003,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				#如果是RSS
 				if root.child(index).text(2)!="":
 					if root.child(index).text(1)=="RSS":
-						rss_name=re.findall("(?<=\d\]\|).*",root.child(index).text(0))[0]
+						rss_name=re.findall("(?<=\]\|).*",root.child(index).text(0))[0]
 						rss_url=root.child(index).text(2)
 						
 						#树的信息中不区分RSS是Standard还是Custom，只区分Folder和RSS！这东西只是用于建树以及判断rss树的合法性的
@@ -1951,7 +2012,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				
 				#如果是Folder
 				else:
-					folder_name=re.findall("(?<=\d\]\|).*",root.child(index).text(0))[0]
+					folder_name=re.findall("(?<=\]\|).*",root.child(index).text(0))[0]
 					folder={
 						"folder_name":folder_name,
 						"RSS":[]
@@ -1961,6 +2022,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					#传入这个folder中的rss列表的pointer
 					deepin(root.child(index),folder["RSS"])
 		
+
+		#这里更新rss_tree_data用的是遍历树侦测结构的方法，所以如果在搜索模式中，要先清除搜索，还原树
+		self.rss_searching=self.lineEdit_rss_search.text()
+		if self.rss_searching!="":
+			self.lineEdit_rss_search.setText("")
+			self.rss_tree_build()
+
 		self.qlock.lock()
 
 		self.rss_tree_data=[]
@@ -1968,6 +2036,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		deepin(root,self.rss_tree_data)
 
 		self.qlock.unlock()
+
+		if self.rss_searching!="":
+			self.lineEdit_rss_search.setText(self.rss_searching)
 
 
 	def rss_tree_build(self):
@@ -1977,55 +2048,252 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		for index in range(root.childCount()):
 			#如果是folder，就记录一下expand属性
 			if root.child(index).text(2)=="":
-				folder_name=re.findall("(?<=\d\]\|).*",root.child(index).text(0))[0]
+				folder_name=re.findall("(?<=\]\|).*",root.child(index).text(0))[0]
 				tree_expand[folder_name]=root.child(index).isExpanded()
 		
-
 		self.treeWidget_rss.clear()
-		for top_level in self.rss_tree_data:
-			#top_level放了folder
-			if type(top_level)==dict:
-				folder_name=top_level["folder_name"]
-				folder_unread=0
-				
-				#这里folder_name先这样写，下面还会计算未读数量，重新写folder_name的
-				temp_root=QTreeWidgetItem([folder_name,"Folder",""])
-				temp_root.setIcon(0,QIcon(":/icon/folder.svg"))
-				self.treeWidget_rss.addTopLevelItem(temp_root)
+		
+		self.rss_searching=self.lineEdit_rss_search.text()
 
-				for rss in top_level["RSS"]:
+		#默认搜Feed name
+		if self.rss_searching!="":
+			
+			#反正在搜索模式下拖动排序也是没用的
+			#（因为搜索模式下的rss_tree_data_update要先清空搜索，再rss_tree_build出完整的tree，侦测tree中的从属关系，最后在恢复原有搜索）
+			#所以这里干脆禁止拖动
+			self.treeWidget_rss.setDragEnabled(0)
+			self.treeWidget_rss.setDragDropMode(QAbstractItemView.NoDragDrop)
+
+			#搜文件夹
+			if self.rss_searching[:3]=="f: " or self.rss_searching[:3]=="F: ":
+				search_name=self.rss_searching[3:].lower()
+				for top_level in self.rss_tree_data:
+					if type(top_level)==dict and ( search_name in top_level["folder_name"] or search_name in convert_to_az(top_level["folder_name"]) ):
+						
+						folder_name=top_level["folder_name"]
+						folder_unread=0
+
+						#这里folder_name先这样写，下面还会计算未读数量，重新写folder_name的
+						temp_root=QTreeWidgetItem([folder_name,"Folder",""])
+						temp_root.setIcon(0,QIcon(":/icon/folder.svg"))
+						self.treeWidget_rss.addTopLevelItem(temp_root)
+
+						for rss in top_level["RSS"]:
+							
+							rss_name=rss[0]
+							rss_url=rss[2]
+							feed_unread=self.rss_data[rss_url]["unread"]
+							folder_unread+=feed_unread
+
+							if feed_unread==0:
+								temp=QTreeWidgetItem(temp_root,["[🗸]|"+rss_name,"RSS",rss_url])
+							else:
+								temp=QTreeWidgetItem(temp_root,["[%s]|"%feed_unread+rss_name,"RSS",rss_url])
+							
+							temp.setIcon(0,QIcon(":/icon/rss.svg"))
+						
+						#重新写folder_name
+						if folder_unread==0:
+							temp_root.setText(0,"[🗸]|"+folder_name)
+						else:
+							temp_root.setText(0,"[%s]|"%folder_unread+folder_name)
+
+						try:
+							temp_root.setExpanded(tree_expand[folder_name])
+						except:
+							pass
+
+			#搜Feed url
+			elif self.rss_searching[:3]=="u: " or self.rss_searching[:3]=="U: ":
+				search_name=self.rss_searching[3:]
+				for top_level in self.rss_tree_data:
+					#top_level放了folder
+					if type(top_level)==dict:
+						
+						folder_name=top_level["folder_name"]
+						folder_unread=0
+
+						#这里folder_name先这样写，下面还会计算未读数量，重新写folder_name的
+						temp_root=QTreeWidgetItem([folder_name,"Folder",""])
+						temp_root.setIcon(0,QIcon(":/icon/folder.svg"))
+
+						has=False
+						
+						for rss in top_level["RSS"]:
+							rss_name=rss[0]
+							rss_url=rss[2]
+							feed_unread=self.rss_data[rss_url]["unread"]
+							folder_unread+=feed_unread
+
+							if search_name in rss_url or search_name in convert_to_az(rss_url):
+								has=True
+								
+								if feed_unread==0:
+									temp=QTreeWidgetItem(temp_root,["[🗸]|"+rss_name,"RSS",rss_url])
+								else:
+									temp=QTreeWidgetItem(temp_root,["[%s]|"%feed_unread+rss_name,"RSS",rss_url])
+
+								temp.setIcon(0,QIcon(":/icon/rss.svg"))
+						
+						if has==True:
+							self.treeWidget_rss.addTopLevelItem(temp_root)
+							
+							#重新写folder_name
+							if folder_unread==0:
+								temp_root.setText(0,"[🗸]|"+folder_name)
+							else:
+								temp_root.setText(0,"[%s]|"%folder_unread+folder_name)
+
+							try:
+								temp_root.setExpanded(tree_expand[folder_name])
+							except:
+								pass
+					
+					#top_level放了rss
+					elif type(top_level)==tuple:
+						rss=top_level
+						
+						rss_name=rss[0]
+						rss_url=rss[2]
+
+						if search_name in rss_url or search_name in convert_to_az(rss_url):
+							feed_unread=self.rss_data[rss_url]["unread"]
+
+							if feed_unread==0:
+								temp=QTreeWidgetItem(["[🗸]|"+rss_name,"RSS",rss_url])
+							else:
+								temp=QTreeWidgetItem(["[%s]|"%feed_unread+rss_name,"RSS",rss_url])
+							
+							temp.setIcon(0,QIcon(":/icon/rss.svg"))
+
+							self.treeWidget_rss.addTopLevelItem(temp)
+
+			#默认搜feed name
+			else:
+				search_name=self.rss_searching.lower()
+				for top_level in self.rss_tree_data:
+					#top_level放了folder
+					if type(top_level)==dict:
+						
+						folder_name=top_level["folder_name"]
+						folder_unread=0
+
+						#这里folder_name先这样写，下面还会计算未读数量，重新写folder_name的
+						temp_root=QTreeWidgetItem([folder_name,"Folder",""])
+						temp_root.setIcon(0,QIcon(":/icon/folder.svg"))
+
+						has=False
+						
+						for rss in top_level["RSS"]:
+							rss_name=rss[0]
+							rss_url=rss[2]
+							feed_unread=self.rss_data[rss_url]["unread"]
+							folder_unread+=feed_unread
+
+							if search_name in rss_name or search_name in convert_to_az(rss_name):
+								has=True
+								
+								if feed_unread==0:
+									temp=QTreeWidgetItem(temp_root,["[🗸]|"+rss_name,"RSS",rss_url])
+								else:
+									temp=QTreeWidgetItem(temp_root,["[%s]|"%feed_unread+rss_name,"RSS",rss_url])
+
+								temp.setIcon(0,QIcon(":/icon/rss.svg"))
+						
+						if has==True:
+							self.treeWidget_rss.addTopLevelItem(temp_root)
+							
+							#重新写folder_name
+							if folder_unread==0:
+								temp_root.setText(0,"[🗸]|"+folder_name)
+							else:
+								temp_root.setText(0,"[%s]|"%folder_unread+folder_name)
+
+							try:
+								temp_root.setExpanded(tree_expand[folder_name])
+							except:
+								pass
+					
+					#top_level放了rss
+					elif type(top_level)==tuple:
+						rss=top_level
+						
+						rss_name=rss[0]
+						rss_url=rss[2]
+
+						if search_name in rss_name or search_name in convert_to_az(rss_name):
+							feed_unread=self.rss_data[rss_url]["unread"]
+
+							if feed_unread==0:
+								temp=QTreeWidgetItem(["[🗸]|"+rss_name,"RSS",rss_url])
+							else:
+								temp=QTreeWidgetItem(["[%s]|"%feed_unread+rss_name,"RSS",rss_url])
+							
+							temp.setIcon(0,QIcon(":/icon/rss.svg"))
+
+							self.treeWidget_rss.addTopLevelItem(temp)
+		
+		#搜索为空，展示全部
+		else:
+
+			self.treeWidget_rss.setDragEnabled(1)
+			self.treeWidget_rss.setDragDropMode(QAbstractItemView.InternalMove)
+
+			for top_level in self.rss_tree_data:
+				#top_level放了folder
+				if type(top_level)==dict:
+					folder_name=top_level["folder_name"]
+					folder_unread=0
+					
+					#这里folder_name先这样写，下面还会计算未读数量，重新写folder_name的
+					temp_root=QTreeWidgetItem([folder_name,"Folder",""])
+					temp_root.setIcon(0,QIcon(":/icon/folder.svg"))
+					self.treeWidget_rss.addTopLevelItem(temp_root)
+
+					for rss in top_level["RSS"]:
+						
+						rss_name=rss[0]
+						rss_url=rss[2]
+						feed_unread=self.rss_data[rss_url]["unread"]
+						folder_unread+=feed_unread
+
+						if feed_unread==0:
+							temp=QTreeWidgetItem(temp_root,["[🗸]|"+rss_name,"RSS",rss_url])
+						else:
+							temp=QTreeWidgetItem(temp_root,["[%s]|"%feed_unread+rss_name,"RSS",rss_url])
+						
+						temp.setIcon(0,QIcon(":/icon/rss.svg"))
+					
+					#重新写folder_name
+					if folder_unread==0:
+						temp_root.setText(0,"[🗸]|"+folder_name)
+					else:
+						temp_root.setText(0,"[%s]|"%folder_unread+folder_name)
+
+					try:
+						temp_root.setExpanded(tree_expand[folder_name])
+					except:
+						pass
+				
+				#top_level放了rss
+				elif type(top_level)==tuple:
+					rss=top_level
 					
 					rss_name=rss[0]
 					rss_url=rss[2]
 					feed_unread=self.rss_data[rss_url]["unread"]
-					folder_unread+=feed_unread
 
-					temp=QTreeWidgetItem(temp_root,["[%s]|"%feed_unread+rss_name,"RSS",rss_url])
+					if feed_unread==0:
+						temp=QTreeWidgetItem(["[🗸]|"+rss_name,"RSS",rss_url])
+					else:
+						temp=QTreeWidgetItem(["[%s]|"%feed_unread+rss_name,"RSS",rss_url])
+					
 					temp.setIcon(0,QIcon(":/icon/rss.svg"))
-				
-				#重新写folder_name
-				temp_root.setText(0,"[%s]|"%folder_unread+folder_name)
 
-				try:
-					temp_root.setExpanded(tree_expand[folder_name])
-				except:
-					pass
-			
-			#top_level放了rss
-			elif type(top_level)==tuple:
-				rss=top_level
-				
-				rss_name=rss[0]
-				rss_url=rss[2]
-				feed_unread=self.rss_data[rss_url]["unread"]
-
-				temp=QTreeWidgetItem(["[%s]|"%feed_unread+rss_name,"RSS",rss_url])
-				temp.setIcon(0,QIcon(":/icon/rss.svg"))
-
-				self.treeWidget_rss.addTopLevelItem(temp)
+					self.treeWidget_rss.addTopLevelItem(temp)
 
 
-	def rss_feed_show(self):
+	def rss_feed_article_list_show(self):
 		"""
 		因为自动更新rss时会同时刷新tree和刷新文章列表，所以会捕获不到treeWidget_rss.currentItem()，
 		这样就分了四种情况。这里还“巧妙”地用了戳不到屁股的列表死角嘿嘿嘿
@@ -2045,20 +2313,20 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					#这里可以直接按顺序列出，因为放入的时候我已经把新的放在最前面了
 					article_name=article[0]
 					if article[2]==False:
-						self.listWidget_rss.addItem("[NEW]|"+article_name)
+						self.listWidget_rss.addItem("✨|"+article_name)
 					else:
-						self.listWidget_rss.addItem("[√]|"+article_name)
+						self.listWidget_rss.addItem("🗸|"+article_name)
 			
 			#点的是folder，展示下层的所有文章
 			elif rss_url=="":
-				folder_name=re.findall("(?<=\d\]\|).*",self.treeWidget_rss.currentItem().text(0))[0]
+				folder_name=re.findall("(?<=\]\|).*",self.treeWidget_rss.currentItem().text(0))[0]
 
 				#先列出文件夹中所有的feed
 				feed_list=[]
 				for item in self.rss_tree_data:
 					if type(item)==dict and item["folder_name"]==folder_name:
 						for rss_url in [feed[2] for feed in item["RSS"]]:
-							feed_list.append(rss_url)					
+							feed_list.append(rss_url)
 						break
 
 				# self.current_rss_showing存所有文章结构体的列表，
@@ -2083,9 +2351,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				for i in self.current_rss_showing:
 					article_name=i[0]
 					if i[2]==False:
-						self.listWidget_rss.addItem("[NEW]|"+article_name)
+						self.listWidget_rss.addItem("✨|"+article_name)
 					else:
-						self.listWidget_rss.addItem("[√]|"+article_name)
+						self.listWidget_rss.addItem("🗸|"+article_name)
 				
 				"把正在看的folder的name藏在最后，重新进这个函数的时候有用（就是下面的那种情况），反正那边点击文章的也不会戳到屁股上的"
 				self.current_rss_showing.append(folder_name)
@@ -2102,9 +2370,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					#这里可以直接按顺序列出，因为放入的时候我已经把新的放在最前面了
 					article_name=article[0]
 					if article[2]==False:
-						self.listWidget_rss.addItem("[NEW]|"+article_name)
+						self.listWidget_rss.addItem("✨|"+article_name)
 					else:
-						self.listWidget_rss.addItem("[√]|"+article_name)
+						self.listWidget_rss.addItem("🗸|"+article_name)
 			
 			#点的是folder，展示下层的所有文章
 			elif type(self.current_rss_showing)==list:
@@ -2141,9 +2409,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				for i in self.current_rss_showing:
 					article_name=i[0]
 					if i[2]==False:
-						self.listWidget_rss.addItem("[NEW]|"+article_name)
+						self.listWidget_rss.addItem("✨|"+article_name)
 					else:
-						self.listWidget_rss.addItem("[√]|"+article_name)
+						self.listWidget_rss.addItem("🗸|"+article_name)
 				
 				"把正在看的folder的name藏在最后，重新进这个函数的时候有用（就是现在这种情况），反正那边点击文章的也不会戳到屁股上的"
 				self.current_rss_showing.append(folder_name)
@@ -2177,7 +2445,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				self.qlock.unlock()
 
 				#更新文章列表的前缀
-				self.listWidget_rss.item(index).setText("[√]|"+article_name)
+				self.listWidget_rss.item(index).setText("🗸|"+article_name)
 				#更新tree列表中的前缀
 				self.rss_tree_build()
 			
@@ -2201,7 +2469,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				self.qlock.unlock()
 
 				#更新文章列表的前缀
-				self.listWidget_rss.item(index).setText("[√]|"+article_name)
+				self.listWidget_rss.item(index).setText("🗸|"+article_name)
 				#更新tree列表中的前缀
 				self.rss_tree_build()
 		
