@@ -3292,7 +3292,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				search_name=search[4:]
 				for i in self.concept_data:
 					if i["parent"]==[]:
-						if search_name==str(i["id"]) or search_name in i["name"] or search_name in i["az"] or search_name in i["detail"]:
+						if search_name==str(i["id"]) or search_name in i["name"] or search_name in i["az"] or search_name in i["detail"] or search_name in convert_to_az(i["detail"]):
 							self.listWidget_search_concept.addItem(str(i["id"])+"|"+i["name"])
 				self.dockWidget_concept.setWindowTitle("Concept Searching: No Parent %s"%search_name)
 
@@ -3309,7 +3309,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				search_name=search[4:]
 				for i in self.concept_data:
 					if i["child"]==[]:
-						if search_name==str(i["id"]) or search_name in i["name"] or search_name in i["az"] or search_name in i["detail"]:
+						if search_name==str(i["id"]) or search_name in i["name"] or search_name in i["az"] or search_name in i["detail"] or search_name in convert_to_az(i["detail"]):
 							self.listWidget_search_concept.addItem(str(i["id"])+"|"+i["name"])
 				self.dockWidget_concept.setWindowTitle("Concept Searching: No Child %s"%search_name)
 
@@ -3326,7 +3326,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				search_name=search[8:]
 				for i in self.concept_data:
 					if i["parent"]==[] and i["child"]==[]:
-						if search_name==str(i["id"]) or search_name in i["name"] or search_name in i["az"] or search_name in i["detail"]:
+						if search_name==str(i["id"]) or search_name in i["name"] or search_name in i["az"] or search_name in i["detail"] or search_name in convert_to_az(i["detail"]):
 							self.listWidget_search_concept.addItem(str(i["id"])+"|"+i["name"])
 				self.dockWidget_concept.setWindowTitle("Concept Searching: No Parent & No Child %s"%search_name)
 
@@ -3334,7 +3334,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		else:
 			for i in self.concept_data:
 				#搜索id或name或az name或detail
-				if search==str(i["id"]) or search in i["name"] or search in i["az"] or search in i["detail"]:
+				if search==str(i["id"]) or search in i["name"] or search in i["az"] or search in i["detail"] or search in convert_to_az(i["detail"]):
 					self.listWidget_search_concept.addItem(str(i["id"])+"|"+i["name"])
 			self.dockWidget_concept.setWindowTitle("Concept Searching: %s"%search)
 
