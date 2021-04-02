@@ -20,14 +20,13 @@ from PySide2.QtWebEngineWidgets import *
 from dongli_teahouse_studio_window import Ui_dongli_teahouse_studio_window
 
 
-
 class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 	def initialize_signal(self):
 		#所有的删除由当时focus的控件决定操作
 		self.actionDelete.triggered.connect(self.center_delete)
 		#文本块增加关联concept或文件ctrl+e
-		self.actionLine_Link_Concept.triggered.connect(self.diary_line_concept_link)
+		self.actionLink_Concept_to_Line.triggered.connect(self.diary_line_concept_link)
 
 
 		#搜索框中输入
@@ -54,8 +53,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#新建事物ctrl+n
 		self.actionCreate_Concept.triggered.connect(self.concept_creat)
 		
-		#保存到外存ctrl+s
-		self.actionSave_Diary_Data.triggered.connect(self.diary_data_save_out)
+		#保存所有数据到外存ctrl+s
+		self.actionSave_Data.triggered.connect(self.data_save)
 
 		#关联列表操作ctrl+123
 		self.actionAdd_Concept_To_Parent.triggered.connect(lambda:self.concept_relationship_add("parent"))
@@ -67,7 +66,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 
 		#
-		self.calendarWidget.clicked.connect(lambda :self.diary_show(self.QDate_transform(self.calendarWidget.selectedDate())))
+		self.calendarWidget.clicked.connect(lambda :self.diary_show(QDate_transform(self.calendarWidget.selectedDate())))
 		
 		#点击关联事物列表
 		self.listWidget_text_related_concept.itemDoubleClicked.connect(lambda:self.concept_show(self.listWidget_text_related_concept.currentItem().text().split("|")[0]))
@@ -206,7 +205,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#置顶Action
 		self.actionStay_on_Top.triggered.connect(self.window_toggle_stay_on_top)
 
+		#rss搜索
 		self.lineEdit_rss_search.returnPressed.connect(self.rss_tree_build)
+
+		#Diary分析
+		self.actionAnalyze_Diary_with_Concept.triggered.connect(self.diary_analyze)
 
 	def initialize_window(self):
 		#恢复界面设置
@@ -283,7 +286,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 	def closeEvent(self,event):
 		super(DongliTeahouseStudio,self).closeEvent(event)
-
 		
 		#Kill RSS的线程
 		try:
@@ -308,60 +310,41 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		except:
 			pass
 		
-		#保存未保存的内容
-		if self.windowTitle()=="Dongli Teahouse Studio *Unsaved Change*":
-			dlg = QMessageBox(self)
-			dlg.setWindowTitle("Unsaved Change")
-			dlg.setText("Diary的内容未保存，需要保存吗？")
-			dlg.setStandardButtons(QMessageBox.Yes | QMessageBox.No |QMessageBox.Cancel)
-			dlg.setIcon(QMessageBox.Warning)
-			button = dlg.exec_()
+		self.data_save()
 
-			if button == QMessageBox.Yes:
-				event.accept()
-				self.diary_data_save_out()
-			elif button == QMessageBox.Cancel:
-				event.ignore()
-			elif button == QMessageBox.No:
-				event.accept()
+		####
+			#全部自动保存
+			#保存未保存的内容
+			# if self.windowTitle()=="Dongli Teahouse Studio *Unsaved Change*":
+			# 	dlg = QMessageBox(self)
+			# 	dlg.setWindowTitle("Unsaved Change")
+			# 	dlg.setText("Diary的内容未保存，需要保存吗？")
+			# 	dlg.setStandardButtons(QMessageBox.Yes | QMessageBox.No |QMessageBox.Cancel)
+			# 	dlg.setIcon(QMessageBox.Warning)
+			# 	button = dlg.exec_()
 
-		#
-		self.user_settings.setValue("geometry",self.saveGeometry())
-		self.user_settings.setValue("windowState",self.saveState())
-		self.user_settings.setValue("size",self.size())
-		self.user_settings.setValue("pos",self.pos())
+			# 	if button == QMessageBox.Yes:
+			# 		event.accept()
+			# 		self.diary_data_save_out()
+			# 	elif button == QMessageBox.Cancel:
+			# 		event.ignore()
+			# 	elif button == QMessageBox.No:
+			# 		event.accept()
 
-		self.user_settings.setValue("splitter_rss",self.splitter_rss.saveState())
+	####
+		#Mainwindow无边框的移动方法
+		# def mousePressEvent(self, event):
+		# 	if event.button() == Qt.LeftButton:
+		# 		self.__press_pos = event.pos()  
 
-		#自动保存tab data
-		self.user_settings.setValue("custom_tab_data",encrypt(self.custom_tab_data))
+		# def mouseReleaseEvent(self, event):
+		# 	if event.button() == Qt.LeftButton:
+		# 		self.__press_pos = QPoint()
 
-		sticker_text=self.plainTextEdit_sticker.toPlainText()
-		self.user_settings.setValue("sticker",encrypt(sticker_text))
-
-		#自动保存concept data
-		encrypt_save(self.concept_data,"Concept_Data.dlcw")
-
-		#自动保存file data
-		encrypt_save(self.file_data,"File_Data.dlcw")
-
-		#自动保存RSS data
-		encrypt_save(self.rss_data,"RSS_Data.dlcw")
-		encrypt_save(self.rss_tree_data,"RSS_Tree_Data.dlcw")
-
-
-	# def mousePressEvent(self, event):
-	# 	if event.button() == Qt.LeftButton:
-	# 		self.__press_pos = event.pos()  
-
-	# def mouseReleaseEvent(self, event):
-	# 	if event.button() == Qt.LeftButton:
-	# 		self.__press_pos = QPoint()
-
-	# def mouseMoveEvent(self, event):
-	# 	if not self.__press_pos.isNull():  
-	# 		self.move(self.pos() + (event.pos() - self.__press_pos))
-		
+		# def mouseMoveEvent(self, event):
+		# 	if not self.__press_pos.isNull():  
+		# 		self.move(self.pos() + (event.pos() - self.__press_pos))
+	
 	def __init__(self):
 		super().__init__()
 		self.setupUi(self)
@@ -403,7 +386,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 			self.concept_search_list_update()
 
-			self.diary_show(self.QDate_transform(self.calendarWidget.selectedDate()))
+			self.diary_show(QDate_transform(self.calendarWidget.selectedDate()))
 
 			ymd=time.localtime(time.time())
 			self.y=ymd[0]
@@ -437,10 +420,20 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.initialize_custom_tab()
 		self.tabWidget.setCurrentIndex(0)
 
+		self.diary_analyze()
+		exit()
+
 
 
 	def diary_text_search(self):
 		dlg=DiarySearchDialog(self)
+		if self.window_is_stay_on_top()==True:
+			dlg.setWindowFlag(Qt.WindowStaysOnTopHint,True)
+		dlg.exec_()
+
+
+	def diary_analyze(self):
+		dlg=DiaryAnalyzeDialog(self)
 		if self.window_is_stay_on_top()==True:
 			dlg.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 		dlg.exec_()
@@ -554,7 +547,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.concept_show(ID)
 		except:
 			pass
-		self.diary_show(self.QDate_transform(self.calendarWidget.selectedDate()))
+		self.diary_show(QDate_transform(self.calendarWidget.selectedDate()))
 		self.file_library_list_update()
 
 	def file_library_search_focus(self):
@@ -689,12 +682,17 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				self.dockWidget_library.setWindowTitle("Library : Searching: Concept Name: ")
 		
 		def list_file_in_filename(search):
+			"搜索文件名只有“与”模式，关键词用空格分隔，列出文件名同时包含所有关键词的文件"
+			search=search.split()
 			for y in range(1970,2170):
 				for m in range(1,13):
 					for d in self.file_data[y][m].keys():
 						
 						for file_name in sorted(self.file_data[y][m][d].keys()):
-							if search in file_name or search in convert_to_az(file_name):
+							for i in search:
+								if i not in file_name and i not in convert_to_az(file_name):
+									break
+							else:
 								self.file_library_add_a_file_to_search_list(y,m,d,file_name)
 			
 			self.dockWidget_library.setWindowTitle("Library : Searching: File Name: %s"%search)
@@ -3165,6 +3163,44 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			# self.completer.activated.connect(self.concept_search_list_update)#点击搜索提示
 			######################################################################
 
+	def data_save(self):
+		
+		#Save Diary_Data
+		self.diary_data_save_out()
+
+		#自动保存concept data
+		encrypt_save(self.concept_data,"Concept_Data.dlcw")
+
+		#自动保存file data
+		encrypt_save(self.file_data,"File_Data.dlcw")
+
+		#自动保存RSS data
+		encrypt_save(self.rss_data,"RSS_Data.dlcw")
+		encrypt_save(self.rss_tree_data,"RSS_Tree_Data.dlcw")
+		
+
+		#保存界面设置
+		self.user_settings.setValue("geometry",self.saveGeometry())
+		self.user_settings.setValue("windowState",self.saveState())
+		self.user_settings.setValue("size",self.size())
+		self.user_settings.setValue("pos",self.pos())
+
+		self.user_settings.setValue("splitter_rss",self.splitter_rss.saveState())
+
+		#自动保存tab data
+		self.user_settings.setValue("custom_tab_data",encrypt(self.custom_tab_data))
+
+		#保存sticker
+		sticker_text=self.plainTextEdit_sticker.toPlainText()
+		self.user_settings.setValue("sticker",encrypt(sticker_text))
+
+	def diary_data_save_out(self):
+		#保存到外存
+		encrypt_save(self.diary_data,"Diary_Data.dlcw")
+		self.origin_diary_data=decrypt_load("Diary_Data.dlcw")
+
+		self.window_title_update()
+
 	def concept_info_edited_and_save(self):
 		try:
 			ID=int(self.lineEdit_id.text())
@@ -3235,14 +3271,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		except:
 			pass
 
-	def diary_data_save_out(self):
-		#保存到外存
-		encrypt_save(self.diary_data,"Diary_Data.dlcw")
-		self.origin_diary_data=decrypt_load("Diary_Data.dlcw")
 
-		self.window_title_update()
-
-	
 	def window_title_update(self):
 		
 		if self.origin_diary_data!=self.diary_data:
@@ -3491,22 +3520,27 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			self.listWidget_concept_linked_file.addItem(temp)
 		
 
+		week_dict=["星期一","星期二","星期三","星期四","星期五","星期六","星期日"]
 		#找一找Concept related text
 		self.listWidget_concept_related_text.clear()
 		text_list=[]
 		for year_index in range(1970-1970,2170-1970):
 			for month_index in range(0,12):
 				for day_index in range(len(self.diary_data[year_index]["date"][month_index])):
-					for line_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"])):
-						for linked_item_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_concept"])):
-							item_id=self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_concept"][linked_item_index]
-							if item_id==item["id"]:
-								text_list.append({
-									#老传统用点号分隔
-									"date":str(year_index+1970)+"."+str(month_index+1)+"."+str(self.diary_data[year_index]["date"][month_index][day_index]["day"]),
-									"text":self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["line_text"]
-								})
-
+					for line in self.diary_data[year_index]["date"][month_index][day_index]["text"]:
+						if item["id"] in line["linked_concept"]:
+							y=year_index+1970
+							m=month_index+1
+							d=self.diary_data[year_index]["date"][month_index][day_index]["day"]
+							weeknum=QDate(y,m,d).dayOfWeek()-1
+							
+							text_list.append({
+								#老传统用点号和空格分隔
+								"date":"%s.%s.%s %s"%(y,m,d,week_dict[weeknum]),
+								"text":line["line_text"]
+							})
+							
+	
 		#如果有的话就列出来
 		if text_list!=[]:
 			#一日算作一个文本块
@@ -3930,10 +3964,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		except:
 			pass
 
-
-	def QDate_transform(self,Date):
-		return (QDate.year(Date),QDate.month(Date),QDate.day(Date))
-		
 
 	def diary_show(self,date):
 		y=int(date[0])
@@ -4628,8 +4658,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 	def concept_related_text_review(self):
 		ID=int(self.lineEdit_id.text())
-		review=self.listWidget_concept_related_text.currentItem().text().split()
-		review_date=review[0].split(".")
+		review=self.listWidget_concept_related_text.currentItem().text().split("\n\n")
+		#2021.4.2 星期几，空格之前的是date
+		review_date=review[0].split()[0].split(".")
 		y=int(review_date[0])
 		m=int(review_date[1])
 		d=int(review_date[2])
@@ -4642,16 +4673,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		review_text_id=0
 		for i in self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"]:
 			if review_text in i["line_text"]:
+				
 				review_linked_concept_id=i["linked_concept"].index(ID)
 				break
 			review_text_id+=1
-		
+
 		self.listWidget_lines.scrollToItem(self.listWidget_lines.item(review_text_id))
 		self.listWidget_lines.item(review_text_id).setSelected(1)
-
-
-		self.listWidget_text_related_concept.scrollToItem(self.listWidget_text_related_concept.item(review_linked_concept_id))
-		self.listWidget_text_related_concept.item(review_linked_concept_id).setSelected(1)
 
 	def diary_line_file_show(self):
 		self.listWidget_text_linked_file.clear()

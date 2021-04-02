@@ -4,6 +4,7 @@ import re
 import pickle
 import base64
 import os,shutil
+from random import randint
 import requests
 from urllib.parse import unquote
 import feedparser
@@ -12,7 +13,7 @@ import time
 from win32com.shell import shell,shellcon
 from lxml import etree
 import chardet
-
+from PySide2.QtCore import QDate
 
 def delete_to_recyclebin(filename):
 	"删除成功返回True"
@@ -133,7 +134,8 @@ def load_from_json(file_path):
 		data=json.load(f)
 	return data
 
-
+def QDate_transform(Date):
+	return (QDate.year(Date),QDate.month(Date),QDate.day(Date))
 
 
 def convert_to_az(c):#用unicode划分语言区

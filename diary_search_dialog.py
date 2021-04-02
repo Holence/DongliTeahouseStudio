@@ -18,12 +18,12 @@ class Ui_diary_search_dialog(object):
     def setupUi(self, diary_search_dialog):
         if not diary_search_dialog.objectName():
             diary_search_dialog.setObjectName(u"diary_search_dialog")
-        diary_search_dialog.resize(664, 485)
+        diary_search_dialog.resize(778, 589)
         icon = QIcon()
         icon.addFile(u":/icon/holoico.ico", QSize(), QIcon.Normal, QIcon.Off)
         diary_search_dialog.setWindowIcon(icon)
-        self.horizontalLayout = QHBoxLayout(diary_search_dialog)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.verticalLayout_3 = QVBoxLayout(diary_search_dialog)
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
         self.verticalLayout = QVBoxLayout()
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.lineEdit = QLineEdit(diary_search_dialog)
@@ -34,33 +34,33 @@ class Ui_diary_search_dialog(object):
         self.splitter = QSplitter(diary_search_dialog)
         self.splitter.setObjectName(u"splitter")
         self.splitter.setOrientation(Qt.Horizontal)
-        self.splitter.setHandleWidth(10)
-        self.splitter.setChildrenCollapsible(False)
         self.listWidget = QListWidget(self.splitter)
         self.listWidget.setObjectName(u"listWidget")
-        self.listWidget.setResizeMode(QListView.Adjust)
+        self.listWidget.setMinimumSize(QSize(220, 0))
+        self.listWidget.setDragDropMode(QAbstractItemView.InternalMove)
+        self.listWidget.setDefaultDropAction(Qt.MoveAction)
         self.listWidget.setSpacing(10)
         self.listWidget.setWordWrap(True)
         self.splitter.addWidget(self.listWidget)
-        self.verticalLayoutWidget = QWidget(self.splitter)
-        self.verticalLayoutWidget.setObjectName(u"verticalLayoutWidget")
-        self.verticalLayout_2 = QVBoxLayout(self.verticalLayoutWidget)
+        self.widget = QWidget(self.splitter)
+        self.widget.setObjectName(u"widget")
+        self.verticalLayout_2 = QVBoxLayout(self.widget)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.lineEdit_date = QLineEdit(self.verticalLayoutWidget)
+        self.lineEdit_date = QLineEdit(self.widget)
         self.lineEdit_date.setObjectName(u"lineEdit_date")
         self.lineEdit_date.setEnabled(False)
 
         self.verticalLayout_2.addWidget(self.lineEdit_date)
 
-        self.listWidget_concept = QListWidget(self.verticalLayoutWidget)
+        self.listWidget_concept = QListWidget(self.widget)
         self.listWidget_concept.setObjectName(u"listWidget_concept")
-        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.listWidget_concept.sizePolicy().hasHeightForWidth())
         self.listWidget_concept.setSizePolicy(sizePolicy)
-        self.listWidget_concept.setMaximumSize(QSize(16777215, 50))
+        self.listWidget_concept.setMaximumSize(QSize(16777215, 40))
         self.listWidget_concept.setDragEnabled(False)
         self.listWidget_concept.setDragDropOverwriteMode(False)
         self.listWidget_concept.setDragDropMode(QAbstractItemView.InternalMove)
@@ -76,7 +76,7 @@ class Ui_diary_search_dialog(object):
 
         self.verticalLayout_2.addWidget(self.listWidget_concept)
 
-        self.textEdit = QTextEdit(self.verticalLayoutWidget)
+        self.textEdit = QTextEdit(self.widget)
         self.textEdit.setObjectName(u"textEdit")
         sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
         sizePolicy1.setHorizontalStretch(0)
@@ -87,12 +87,12 @@ class Ui_diary_search_dialog(object):
 
         self.verticalLayout_2.addWidget(self.textEdit)
 
-        self.splitter.addWidget(self.verticalLayoutWidget)
+        self.splitter.addWidget(self.widget)
 
         self.verticalLayout.addWidget(self.splitter)
 
 
-        self.horizontalLayout.addLayout(self.verticalLayout)
+        self.verticalLayout_3.addLayout(self.verticalLayout)
 
 
         self.retranslateUi(diary_search_dialog)

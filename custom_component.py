@@ -4,13 +4,14 @@ from custom_widget import *
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
+from PySide2.QtCharts import QtCharts
 
 from mytabwidget_form import Ui_mytabwidget_form
 from setting_dialog import Ui_setting_dialog
 from file_check_dialog import Ui_file_check_dialog
 from rss_feed_edit_dialog import Ui_rss_feed_edit_dialog
 from diary_search_dialog import Ui_diary_search_dialog
-
+from diary_analyze_dialog import Ui_diary_analyze_dialog
 
 class RSS_Updator_Threador(QThread):
 	"""
@@ -1453,6 +1454,7 @@ class FileCheckDialog(QDialog,Ui_file_check_dialog):
 
 
 class DiarySearchDialog(QDialog,Ui_diary_search_dialog):
+	
 	def __init__(self,parent):
 		super().__init__()
 		self.setupUi(self)
@@ -1463,13 +1465,14 @@ class DiarySearchDialog(QDialog,Ui_diary_search_dialog):
 			font_size=int(self.parent.user_settings.value("font_size"))
 		
 			self.textEdit.setFont(font)
-			font.setPointSize(font_size)
+			
+			font.setPointSize(int(font_size*0.8))
 			self.listWidget.setFont(font)
 			self.listWidget_concept.setFont(font)
 			self.lineEdit.setFont(font)
 		except:
 			pass
-
+		
 		self.lineEdit.returnPressed.connect(self.list_update)
 		self.listWidget.itemClicked.connect(self.show_clicked_item)
 
@@ -1505,6 +1508,7 @@ class DiarySearchDialog(QDialog,Ui_diary_search_dialog):
 		self.textEdit.setTextCursor(cursor)
 
 	def list_update(self):
+		
 		# 精确搜索待做 格式："ASD" \c="asd" \c="qwe" \d="2021.3.1"
 		self.listWidget.clear()
 		self.listWidget.scrollToTop()
@@ -1556,39 +1560,6 @@ class DiarySearchDialog(QDialog,Ui_diary_search_dialog):
 							if min(weight_list)==0:
 								continue
 							weight=sum(weight_list)
-							####
-								#先统计每个关键词在句子中出现的频度
-								# count_list=[]
-
-								# for ss in search:
-								# 	ss=ss.lower()
-								# 	count_list.append(ll.count(ss))
-								
-								# #惩罚，如果有关键词不存在，就使劲扣分，用最大的数量去除
-								# n=len(count_list)
-								# MAX=max(count_list)
-								# if MAX!=0:
-								# 	for index in range(n):
-								# 		if count_list[index]==0:
-								# 			for ii in range(n):
-								# 				count_list[ii]/=MAX
-								# 				count_list[ii]-=1
-								# 	weight+=sum(count_list)
-								
-								# #在句子中关键词全部都没有出现过，考虑到可能另外手动打标了，在concept中有
-								# #给他一点机会，只抠掉关键词个数的分数
-								# if MAX==0:
-								# 	weight-=n
-								
-								# #如果和concept对应上了，大大地奖赏（这里的1.5分就是很大的分数了，因为上面句子中匹配到一个才加一分）
-								# for ID in concept_id_list:
-								# 	concept=self.parent.concept_data[ID]
-								# 	for ss in search:
-								# 		if ss==concept["name"] or ss==concept["az"]:
-								# 			weight+=1.5
-								# 			#这里如果是2的话就太多了哈哈哈
-								# 		elif ss in concept["detail"]:
-								# 			weight+=0.2
 							
 							if weight>0:
 								temp={
@@ -1610,3 +1581,220 @@ class DiarySearchDialog(QDialog,Ui_diary_search_dialog):
 		for i in self.listing_result[:30]:
 			self.listWidget.addItem(str(i["weight"])+"|"+i["text"])
 			# self.listWidget.addItem(i["text"])
+
+
+class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
+	def __init__(self,parent):
+		super().__init__()
+		self.setupUi(self)
+		self.parent=parent
+
+		self.begin_date=None#当前分析的开始日期，是QDate类型
+		self.end_date=None#当前分析的结束日期，是QDate类型
+		self.total_concept_list=[]#记录时间段内所有的concept次数，顺序从大到小，每个元素为(concept_id,times)
+
+		try:
+			font=self.parent.user_settings.value("font")
+			font_size=int(self.parent.user_settings.value("font_size"))
+		
+			self.textEdit_viewer.setFont(font)
+			
+			font.setPointSize(int(font_size*0.8))
+			self.listWidget_all_concept.setFont(font)
+		except:
+			pass
+		
+		
+		
+		self.pushButton_analyze.clicked.connect(self.start_analyze)
+		self.dateEdit_begin.setDate(self.parent.calendarWidget.selectedDate())
+		self.dateEdit_end.setDate(self.parent.calendarWidget.selectedDate())
+		self.listWidget_all_concept.itemClicked.connect(self.show_concept_related_text)
+	
+	def show_concept_related_text(self):
+		concept_id=self.total_concept_list[self.listWidget_all_concept.currentRow()][0]
+		
+		week_dict=["星期一","星期二","星期三","星期四","星期五","星期六","星期日"]
+		text_list=[]
+		
+		#QDate操作真方便！
+		nowaday=self.begin_date
+		while nowaday<=self.end_date:
+			
+			#这里出来的是正常的ymd,2021,4,2
+			(year_index,month_index,day_index)=QDate_transform(nowaday)
+			
+			year_index-=1970
+			month_index-=1
+			#找该month列表中实际的day_index
+			for i in range(len(self.parent.diary_data[year_index]["date"][month_index])):
+				if self.parent.diary_data[year_index]["date"][month_index][i]["day"]==day_index:
+					day_index=i
+					break
+
+			try:
+				for line in self.parent.diary_data[year_index]["date"][month_index][day_index]["text"]:
+					if concept_id in line["linked_concept"]:
+						y=year_index+1970
+						m=month_index+1
+						d=self.parent.diary_data[year_index]["date"][month_index][day_index]["day"]
+						weeknum=QDate(y,m,d).dayOfWeek()-1
+						
+						text_list.append({
+							#老传统用点号和空格分隔
+							"date":"%s.%s.%s %s"%(y,m,d,week_dict[weeknum]),
+							"text":line["line_text"]
+						})
+			except:
+				#可能某一天没有日记，就找不到day_index，索引失败
+				pass
+			
+			nowaday=nowaday.addDays(1)
+		
+
+		#如果有的话就列出来
+		if text_list!=[]:
+			#一日算作一个文本块
+			fore_date=text_list[0]["date"]
+			construct_text_list=[]
+			one_day_text=fore_date+"\n\n"
+			for i in text_list:
+				if i["date"]==fore_date:
+					one_day_text+=i["text"]+"\n\n"
+				else:
+					construct_text_list.append(one_day_text.strip())
+					fore_date=i["date"]
+					one_day_text=fore_date+"\n\n"+i["text"]+"\n\n"
+			
+			construct_text_list.append(one_day_text.strip())
+			
+			construct_text=""
+			for i in construct_text_list:
+				construct_text+=i+"\n\n"
+			
+			self.textEdit_viewer.setMarkdown(construct_text)
+
+	def start_analyze(self):
+		
+		#清空图标区
+		index=0
+		while True:
+			item=self.horizontalLayout_chart.takeAt(index)
+			index+=1
+			if item==None:
+				break
+		
+		#清空concept区
+		self.listWidget_all_concept.clear()
+		#清空
+		self.textEdit_viewer.clear()
+
+
+		self.begin_date=self.dateEdit_begin.date()
+		self.end_date=self.dateEdit_end.date()
+		
+		if self.begin_date>self.end_date:
+			QMessageBox.warning(self,"Warning","日期设置错误！")
+			return
+		
+
+
+
+		total_concept_dict={}
+		chart = QtCharts.QChart()
+		chart.setTitle("Spline chart")
+		name = "Series "
+		series_dict={}#记录已经纳入图中的id以及它对应的series的指针
+
+		#QDate操作真方便！
+		nowaday=self.begin_date
+		days=0#总共的天数，绘图的X坐标
+		MaxY=0#最大的y坐标（一天内最多的concept的数量的最大值
+		
+		while nowaday<=self.end_date:
+			days+=1
+
+			#这里出来的是正常的ymd,2021,4,2
+			(year_index,month_index,day_index)=QDate_transform(nowaday)
+			
+			year_index-=1970
+			month_index-=1
+			#找该month列表中实际的day_index
+			for i in range(len(self.parent.diary_data[year_index]["date"][month_index])):
+				if self.parent.diary_data[year_index]["date"][month_index][i]["day"]==day_index:
+					day_index=i
+					break
+			
+
+			try:
+				day_concept_dict={}
+				
+				for line in self.parent.diary_data[year_index]["date"][month_index][day_index]["text"]:
+					for concept_id in line["linked_concept"]:
+						
+						if total_concept_dict.get(concept_id)==None:
+							total_concept_dict[concept_id]=1
+							
+							series=QtCharts.QSplineSeries(chart)
+							series.setName(self.parent.concept_data[concept_id]["name"])
+							series.setColor(QColor(randint(0,256),randint(0,256),randint(0,256)))
+							series.setUseOpenGL(1)
+							series_dict[concept_id]=series
+							chart.addSeries(series)
+						else:
+							total_concept_dict[concept_id]+=1
+						
+						if day_concept_dict.get(concept_id)==None:
+							day_concept_dict[concept_id]=1
+						else:
+							day_concept_dict[concept_id]+=1
+				
+				for concept_id in day_concept_dict.keys():
+					series=series_dict[concept_id]
+					x=float(days)
+					y=float(day_concept_dict[concept_id])
+					if y>MaxY:
+						MaxY=y
+					series.append(x,y)
+					
+			except:
+				# 可能某一天没有日记，就找不到day_index，索引失败
+				pass
+			
+
+			
+			nowaday=nowaday.addDays(1)
+		
+		if chart.series()!=[]:
+			chart.createDefaultAxes()
+			chart.axisX().setRange(0, days)
+			chart.axisY().setRange(0, MaxY+1)
+			# Add space to label to add space between labels and axis
+			# chart.axisY().setLabelFormat("%.1f  ")
+
+			chart.legend().setAlignment(Qt.AlignLeft)
+			chart.setTheme(QtCharts.QChart.ChartThemeDark)
+
+			chartView=QtCharts.QChartView(chart);
+			self.horizontalLayout_chart.addWidget(chartView);
+
+
+
+		self.total_concept_list=sorted(total_concept_dict.items(),key=lambda x:x[1],reverse=True)
+		for concept in self.total_concept_list:
+			concept_name=self.parent.concept_data[concept[0]]["name"]
+			concept_times=str(concept[1])
+			self.listWidget_all_concept.addItem(concept_times+"|"+concept_name)
+		
+		
+		# chart = QtCharts.QChart();
+		# chart.setTitle("Pie chart");
+
+		# series = QtCharts.QPieSeries(chart);
+		# for j in range(5):
+		# 	series.append("asd", j*10);
+		
+		# chart.addSeries(series);
+
+		# chartView=QtCharts.QChartView(chart);
+		# self.horizontalLayout_chart.addWidget(chartView);
