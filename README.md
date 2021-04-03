@@ -33,8 +33,8 @@ TODO List:
 - [ ] More export options
 - [ ] ~~More RSS Parse Modes~~
 - [ ] File right click context menu
-- [ ] Diary text linked concept Time-Frequency Analytics
 - [ ] A short manual
+- [x] Diary text linked concept Time-Frequency Analytics
 
 ---
 
