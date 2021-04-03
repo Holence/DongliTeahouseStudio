@@ -420,8 +420,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.initialize_custom_tab()
 		self.tabWidget.setCurrentIndex(0)
 
-		self.diary_analyze()
-		exit()
+		# self.diary_analyze()
+		# exit()
 
 
 

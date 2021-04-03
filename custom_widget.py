@@ -1,12 +1,160 @@
 # -*- coding: utf-8 -*-
-
-from urllib.parse import unquote
+from custom_function import *
 
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
-
+from PySide2.QtCharts import QtCharts
 import resource_rc
+
+class MyChartView(QtCharts.QChartView):
+	def __init__(self):
+		super(MyChartView, self).__init__()
+		self.setRenderHint(QPainter.Antialiasing)
+		self.__press_pos = QPoint()
+		self.__ctrl_pressed=False#crtl滚轮水平缩放
+		self.__shift_pressed=False#shift滚轮左右移动
+		self.__alt_pressed=False#alt拖动图像不移动，这是为了拖动legend列表
+		self.xmax_TickCount=15
+		self.ymax_TickCount=6
+		self.scroll_step=50
+
+
+	def wheelEvent(self,event):
+		"shift滚轮左右移动，crtl滚轮水平缩放，啥都不按正常缩放"
+		super(MyChartView,self).wheelEvent(event)
+
+		if event.delta()<0:
+			mFactor=0.8
+			right=-1
+		else:
+			mFactor=1.25
+			right=1
+		
+		#crtl滚轮水平缩放
+		if self.__ctrl_pressed==True:
+			rect = self.chart().plotArea();
+			c = self.chart().plotArea().center();
+			rect.setWidth(1/mFactor*rect.width());
+			rect.moveCenter(c);
+			self.chart().zoomIn(rect);
+
+			# 淦！zoom不会自动缩放QDateTimeAxis的TickCount
+			# TickCount得自己手动设置
+			# 所以放大之后依旧有很多轴，还以为QDateTimeAxis都没有变化呢
+			#轴得有个上限，不然缩小了卡死你
+
+			begin=self.chart().axisX().min()
+			end=self.chart().axisX().max()
+			n=begin.daysTo(end)
+			if n>self.xmax_TickCount:
+				n=self.xmax_TickCount
+			else:
+				n+=1
+			self.chart().axisX().setTickCount(n)
+			return
+		
+		#shift滚轮左右移动
+		elif self.__shift_pressed==True:
+			self.chart().scroll(right*self.scroll_step, 0)
+			return
+		
+		#普通缩放模式
+		else:
+			self.chart().zoom(mFactor)
+			
+			# 淦！zoom不会自动缩放QDateTimeAxis的TickCount
+			# TickCount得自己手动设置
+			# 所以放大之后依旧有很多轴，还以为QDateTimeAxis都没有变化呢
+			#轴得有个上限，不然缩小了卡死你
+			
+			n=int(self.chart().axisY().max())-int(self.chart().axisY().min())
+			if n>self.ymax_TickCount:
+				n=self.ymax_TickCount
+			else:
+				n+=1
+			self.chart().axisY().setTickCount(n)
+
+			begin=self.chart().axisX().min()
+			end=self.chart().axisX().max()
+			n=begin.daysTo(end)
+			if n>self.xmax_TickCount:
+				n=self.xmax_TickCount
+			else:
+				n+=1
+			self.chart().axisX().setTickCount(n)
+			return
+	
+
+	def keyPressEvent(self,event):
+		"上下左右移动，加减号缩放"
+		super(MyChartView,self).keyPressEvent(event)
+
+		TYPE=event.key()
+		if TYPE==Qt.Key_Control:
+			self.__ctrl_pressed=True
+		elif TYPE==Qt.Key_Shift:
+			self.__shift_pressed=True
+		elif TYPE==Qt.Key_Alt:
+			self.__alt_pressed=True
+		else:
+			if TYPE==Qt.Key_Plus:
+				self.chart().zoomIn()
+				
+			elif TYPE==Qt.Key_Minus:
+				self.chart().zoomOut()
+		
+			elif TYPE==Qt.Key_Left:
+				self.chart().scroll(-self.scroll_step, 0)
+				
+			elif TYPE==Qt.Key_Right:
+				self.chart().scroll(self.scroll_step, 0)
+				
+			elif TYPE==Qt.Key_Up:
+				self.chart().scroll(0, self.scroll_step)
+				
+			elif TYPE==Qt.Key_Down:
+				self.chart().scroll(0, -self.scroll_step)
+	
+	def keyReleaseEvent(self,event):
+		super(MyChartView,self).keyReleaseEvent(event)
+		TYPE=event.key()
+		if TYPE==Qt.Key_Control:
+			self.__ctrl_pressed=False
+		elif TYPE==Qt.Key_Shift:
+			self.__shift_pressed=False
+		elif TYPE==Qt.Key_Alt:
+			self.__alt_pressed=False
+	
+	def mousePressEvent(self, event):
+		"鼠标拖动"
+		super(MyChartView,self).mousePressEvent(event)
+		
+		#alt拖动图像不移动，这是为了拖动legend列表
+		if event.button() == Qt.LeftButton and self.__alt_pressed==False:
+			self.__press_pos = event.pos()
+
+	def mouseReleaseEvent(self, event):
+		"鼠标拖动"
+		super(MyChartView,self).mouseReleaseEvent(event)
+		
+		#alt拖动图像不移动，这是为了拖动legend列表
+		if event.button() == Qt.LeftButton and self.__alt_pressed==False:
+			self.__press_pos = QPoint()
+
+	def mouseMoveEvent(self, event):
+		"鼠标拖动"
+		super(MyChartView,self).mouseMoveEvent(event)
+		
+		#alt拖动图像不移动，这是为了拖动legend列表
+		if not self.__press_pos.isNull() and self.__alt_pressed==False:
+			delta=event.pos() - self.__press_pos
+			dx=delta.x()
+			dy=delta.y()
+			self.chart().scroll(-dx, dy)
+			self.__press_pos = event.pos()
+
+
 
 class MyTreeWidget(QTreeWidget):
 	dropped=Signal()

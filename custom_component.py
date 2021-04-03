@@ -1587,11 +1587,19 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 	def __init__(self,parent):
 		super().__init__()
 		self.setupUi(self)
+		self.setWindowIcon(QIcon(":/icon/holoico.ico"))
+		
 		self.parent=parent
+		self.begin_date=self.parent.calendarWidget.selectedDate()#当前分析的开始日期，是QDate类型
+		self.end_date=self.parent.calendarWidget.selectedDate()#当前分析的结束日期，是QDate类型
 
-		self.begin_date=None#当前分析的开始日期，是QDate类型
-		self.end_date=None#当前分析的结束日期，是QDate类型
-		self.total_concept_list=[]#记录时间段内所有的concept次数，顺序从大到小，每个元素为(concept_id,times)
+		self.MaxY=0#最大的y坐标（一天内最多的concept的数量的最大值
+		self.threshold=self.spinBox.value()#过滤的底线
+
+		self.pie_series=None#记录pie series，里面是许多pie slice
+		self.all_concept_to_spline_series_dict={}#记录已经纳入图中的id以及它对应的series的指针
+		self.all_conceptID_to_times_list=[]#记录这段时期内所有的concept_id，是从大到小排列的
+		self.all_conceptID_to_color_dict={}#记录每一个concept的颜色，两边的颜色要保持统一
 
 		try:
 			font=self.parent.user_settings.value("font")
@@ -1604,53 +1612,345 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 		except:
 			pass
 		
+		self.splitter_chart=QSplitter(self)
+		self.splitter_chart.setOrientation(Qt.Horizontal)
+		self.splitter_chart.setHandleWidth(10)
+		self.verticalLayout.addWidget(self.splitter_chart)
 		
+		self.chartView_spline=MyChartView()
+		self.chartView_pie=QtCharts.QChartView()
+		
+		self.clear_view()
+
+		self.splitter_chart.addWidget(self.chartView_spline)
+		self.splitter_chart.addWidget(self.chartView_pie)
+		
+		self.splitter_chart.setStretchFactor(0,1)
+		self.splitter_chart.setStretchFactor(1,1)
+
+		self.splitter_whole.setStretchFactor(0,1)
+		self.splitter_whole.setStretchFactor(1,2)
+		self.splitter_whole.setStretchFactor(2,1)
+		
+		self.splitter_bottom.setStretchFactor(0,1)
+		self.splitter_bottom.setStretchFactor(1,5)
+
 		
 		self.pushButton_analyze.clicked.connect(self.start_analyze)
-		self.dateEdit_begin.setDate(self.parent.calendarWidget.selectedDate())
-		self.dateEdit_end.setDate(self.parent.calendarWidget.selectedDate())
-		self.listWidget_all_concept.itemClicked.connect(self.show_concept_related_text)
+		self.pushButton_restore.clicked.connect(self.restore_view)
+		self.pushButton_clear.clicked.connect(self.clear_view)
+		
+		self.dateEdit_begin.setDate(self.begin_date)
+		self.dateEdit_end.setDate(self.end_date)
+
+		self.listWidget_all_concept.itemDoubleClicked.connect(self.listitem_cliced)
 	
-	def show_concept_related_text(self):
-		concept_id=self.total_concept_list[self.listWidget_all_concept.currentRow()][0]
+	def clear_view(self):
+		"清空图表"
+		self.pushButton_restore.setEnabled(0)
+
+		self.begin_date=QDate().currentDate()#当前分析的开始日期，是QDate类型
+		self.end_date=QDate().currentDate()#当前分析的结束日期，是QDate类型
+		self.MaxY=0#最大的y坐标（一天内最多的concept的数量的最大值
+		self.threshold=self.spinBox.value()#过滤的底线
+
+		self.chartView_spline.setChart(self.create_spline_chart()[0])
+		self.chartView_pie.setChart(self.create_pie_chart())
+
+	def restore_view(self):
+		
+		(chart,xaxis,yaxis)=self.create_spline_chart()
+
+		for concept_id in self.all_conceptID_to_times_list:
+			
+			series=self.all_concept_to_spline_series_dict[concept_id]
+			series.setPointsVisible(True)
+			chart.addSeries(series)
+
+			series.attachAxis(xaxis)
+			series.attachAxis(yaxis)
+		
+		self.chartView_spline.setChart(chart)
+		
+		######################################################################
+
+		chart=self.create_pie_chart()
+
+		for pie_slice in self.pie_series.slices():
+			pie_slice.setExploded(False)
+		
+		chart.addSeries(self.pie_series)
+
+		self.chartView_pie.setChart(chart)
+	
+	def create_spline_chart(self):
+		
+		#初始化chart
+		chart = QtCharts.QChart()
+		# chart.setTitle("Spline chart")
+		chart.legend().setAlignment(Qt.AlignLeft)
+		chart.setTheme(QtCharts.QChart.ChartThemeDark)
+		chart.layout().setContentsMargins(0, 0, 0, 0);
+		chart.setBackgroundRoundness(0);
+		
+		# 动画虽然很modern，但拖动的时候有延迟，那就算了吧
+		# chart.setAnimationOptions(QtCharts.QChart.SeriesAnimations)
+		# chart.setAnimationDuration(100)
+
+		# self.chartView.setRubberBand(MyChartView.HorizontalRubberBand)
+
+		#QDateTimeAxis类型的横坐标
+		xaxis=QtCharts.QDateTimeAxis()
+		xaxis.setRange(QDateTime(self.begin_date).addDays(-1),QDateTime(self.end_date).addDays(1))
+		xaxis.setFormat("yyyy.MM.dd")
+		xaxis.setLabelsAngle(60)
+		try:
+			#轴得有个上限，不然缩小了卡死你
+			n=self.begin_date.daysTo(self.end_date)
+			if n>self.chartView_spline.xmax_TickCount:
+				n=self.chartView_spline.xmax_TickCount
+			else:
+				n+=1
+			xaxis.setTickCount(n)
+		except:
+			pass
+		
+		
+		#QValueAxis类型的纵坐标
+		yaxis=QtCharts.QValueAxis()
+		yaxis.setRange(0,self.MaxY+0.5)
+		yaxis.setLabelFormat("%i")
+		try:
+			#轴得有个上限，不然缩小了卡死你
+			n=int(yaxis.max())-int(yaxis.min())
+			if n>self.chartView_spline.ymax_TickCount:
+				n=self.chartView_spline.ymax_TickCount
+			else:
+				n+=1
+			yaxis.setTickCount(n)
+		except:
+			pass
+
+		#放入坐标轴
+		chart.addAxis(xaxis,Qt.AlignBottom)
+		chart.addAxis(yaxis,Qt.AlignLeft)
+
+		return (chart,xaxis,yaxis)
+
+	def create_pie_chart(self):
+		
+		chart = QtCharts.QChart()
+		# chart.setTitle("Pie chart")
+		chart.legend().setAlignment(Qt.AlignLeft)
+		chart.setTheme(QtCharts.QChart.ChartThemeDark)
+		chart.layout().setContentsMargins(0, 0, 0, 0);
+		chart.setBackgroundRoundness(0);
+		
+		chart.setAnimationOptions(QtCharts.QChart.SeriesAnimations)
+		chart.setAnimationDuration(300)
+
+		return chart
+
+
+	def spline_hovered(self,*arg):
+		"""
+		这里传进来参数有：自定义参数concept_id，和信号参数hover_point(QPoint)、hover_on_line(True False)
+		如果在线上，展示食指
+		如果在点上，展示向上的箭头
+		否则，展示普通箭头
+
+		有个不完美的地方，这个hovered信号的触发仅限于进入和离开，如果一直在线上移动，是不会触发hovered信号的
+		所以如果一直沿着线移动，即使到了点上，也不会展示向上的箭头
+		但有谁会无聊到沿着线移鼠标啊？
+		
+		抖叽~
+		"""
+
+		concept_id=arg[0]
+		hover_point=arg[1]
+		hover_x=hover_point.x()
+		hover_on_line=arg[2]
+		
+		series=self.all_concept_to_spline_series_dict[concept_id]
+
+		if hover_on_line==True:
+			# print("in")
+
+			#计算点的位置的附近，是否在存在concept的日期
+			for point in series.pointsVector():
+				x=point.x()
+				if abs(hover_x-x)<3600000*18:
+					# print("found")
+
+					#如果点到了有concept的日期，显示向上的箭头
+					self.setCursor(QCursor(Qt.UpArrowCursor))
+					break
+			else:
+				# print("not found")
+
+				#只是在线上的某一点，显示食指
+				self.setCursor(QCursor(Qt.PointingHandCursor))
+
+		else:
+			# print("out")
+
+			#显示普通箭头
+			self.setCursor(QCursor(Qt.ArrowCursor))
+	
+	
+	def spline_clicked(self,*arg):
+		"""
+		这里传进来的参数有：自定义参数concept_id，和信号参数hover_point(QPoint)
+		
+		点击线，展示对应concept的diary text，并且piechart中的那一部分explode
+		如果点到了有concept的日期，那只显示那一天的diary text，
+		如果点到不存在concept的日期上，展示该concept所有的diary text
+		"""
+		
+		concept_id=arg[0]
+		clicked_point=arg[1]
+		clicked_x=clicked_point.x()
+
+		#展示对应concept的diary text
+		index=self.all_conceptID_to_times_list.index(concept_id)
+		self.listWidget_all_concept.setCurrentRow(index)
+
+		###################################################################################################
+		
+		#piechart中的那一部分explode
+		pie_slice_list=self.pie_series.slices()
+		for i in range(len(pie_slice_list)):
+			pie_slice=pie_slice_list[i]
+			if i==index:
+				pie_slice.setExploded(True)
+				pie_slice.setExplodeDistanceFactor(0.25)
+			else:
+				pie_slice.setExploded(False)
+		
+		###################################################################################################
+		
+		#展示对应concept的diary text
+
+		#计算点的位置的附近，是否在存在concept的日期
+		series=self.all_concept_to_spline_series_dict[concept_id]
+		for point in series.pointsVector():
+			x=point.x()
+			if abs(clicked_x-x)<3600000*18:
+				datetime=QDateTime().fromMSecsSinceEpoch(int(x))
+				date=datetime.date()
+				y=date.year()
+				m=date.month()
+				d=date.day()
+				
+				#如果点到了有concept的日期，那只显示那一天的diary text，
+				self.show_concept_related_text(concept_id,y,m,d)
+				break
+		else:
+			#如果点到不存在concept的日期上，展示该concept所有的diary text
+			self.show_concept_related_text(concept_id)
+	
+	
+	def listitem_cliced(self):
+		"点击列表中的concept，展示对应concept的diary text，并特写展示对应的线，并且piechart中的那一部分explode"
+		index=self.listWidget_all_concept.currentRow()
+
+		#展示对应concept的diary text
+		concept_id=self.all_conceptID_to_times_list[index]
+		self.show_concept_related_text(concept_id)
+
+		###################################################################################################
+		
+		#piechart中的那一部分explode
+		pie_slice_list=self.pie_series.slices()
+		for i in range(len(pie_slice_list)):
+			pie_slice=pie_slice_list[i]
+			if i==index:
+				pie_slice.setExploded(True)
+				pie_slice.setExplodeDistanceFactor(0.25)
+			else:
+				pie_slice.setExploded(False)
+		
+
+		###################################################################################################
+		
+		#特写展示对应的线，这里要建立一个新的chart（貌似不可能实现一个chart包含多个series，但只呈现出一个series）
+		(chart,xaxis,yaxis)=self.create_spline_chart()
+
+		series=self.all_concept_to_spline_series_dict[concept_id]
+		series.setPointsVisible(True)
+		
+		chart.addSeries(series)
+
+		series.attachAxis(xaxis)
+		series.attachAxis(yaxis)
+		
+		self.chartView_spline.setChart(chart)
+
+
+	def show_concept_related_text(self,concept_id,y=0,m=0,d=0):
 		
 		week_dict=["星期一","星期二","星期三","星期四","星期五","星期六","星期日"]
 		text_list=[]
 		
-		#QDate操作真方便！
-		nowaday=self.begin_date
-		while nowaday<=self.end_date:
-			
-			#这里出来的是正常的ymd,2021,4,2
-			(year_index,month_index,day_index)=QDate_transform(nowaday)
-			
-			year_index-=1970
-			month_index-=1
+		#如果点到不存在concept的日期上，展示该concept所有的diary text
+		if y==0 and m==0 and d==0:
+			#QDate操作真方便！
+			nowaday=self.begin_date
+			while nowaday<=self.end_date:
+				
+				#这里出来的是正常的ymd,2021,4,2
+				(year_index,month_index,day_index)=QDate_transform(nowaday)
+				
+				year_index-=1970
+				month_index-=1
+				#找该month列表中实际的day_index
+				for i in range(len(self.parent.diary_data[year_index]["date"][month_index])):
+					if self.parent.diary_data[year_index]["date"][month_index][i]["day"]==day_index:
+						day_index=i
+						break
+
+				try:
+					for line in self.parent.diary_data[year_index]["date"][month_index][day_index]["text"]:
+						if concept_id in line["linked_concept"]:
+							y=year_index+1970
+							m=month_index+1
+							d=self.parent.diary_data[year_index]["date"][month_index][day_index]["day"]
+							day_in_week=QDate(y,m,d).dayOfWeek()-1
+							
+							text_list.append({
+								#老传统用点号和空格分隔
+								"date":"%s.%s.%s %s"%(y,m,d,week_dict[day_in_week]),
+								"text":line["line_text"]
+							})
+				except:
+					#可能某一天没有日记，就找不到day_index，索引失败
+					pass
+				
+				nowaday=nowaday.addDays(1)
+		
+		#如果点到了有concept的日期，那只显示那一天的diary text，
+		else:
+			year_index=y-1970
+			month_index=m-1
+			day_index=d
 			#找该month列表中实际的day_index
 			for i in range(len(self.parent.diary_data[year_index]["date"][month_index])):
 				if self.parent.diary_data[year_index]["date"][month_index][i]["day"]==day_index:
 					day_index=i
 					break
 
-			try:
-				for line in self.parent.diary_data[year_index]["date"][month_index][day_index]["text"]:
-					if concept_id in line["linked_concept"]:
-						y=year_index+1970
-						m=month_index+1
-						d=self.parent.diary_data[year_index]["date"][month_index][day_index]["day"]
-						weeknum=QDate(y,m,d).dayOfWeek()-1
-						
-						text_list.append({
-							#老传统用点号和空格分隔
-							"date":"%s.%s.%s %s"%(y,m,d,week_dict[weeknum]),
-							"text":line["line_text"]
-						})
-			except:
-				#可能某一天没有日记，就找不到day_index，索引失败
-				pass
-			
-			nowaday=nowaday.addDays(1)
-		
+			for line in self.parent.diary_data[year_index]["date"][month_index][day_index]["text"]:
+				if concept_id in line["linked_concept"]:
+					y=year_index+1970
+					m=month_index+1
+					d=self.parent.diary_data[year_index]["date"][month_index][day_index]["day"]
+					day_in_week=QDate(y,m,d).dayOfWeek()-1
+					
+					text_list.append({
+						#老传统用点号和空格分隔
+						"date":"%s.%s.%s %s"%(y,m,d,week_dict[day_in_week]),
+						"text":line["line_text"]
+					})
 
 		#如果有的话就列出来
 		if text_list!=[]:
@@ -1674,127 +1974,222 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 			
 			self.textEdit_viewer.setMarkdown(construct_text)
 
+
 	def start_analyze(self):
 		
-		#清空图标区
-		index=0
-		while True:
-			item=self.horizontalLayout_chart.takeAt(index)
-			index+=1
-			if item==None:
-				break
+		def run_statistics(all_conceptID_to_times_dict,all_conceptID_to_days_dict):
+
+			nowaday=self.begin_date
+			#QDate操作真方便！
+			while nowaday<=self.end_date:
+
+				#这里出来的是正常的ymd,2021,4,2
+				(year_index,month_index,day_index)=QDate_transform(nowaday)
+				
+				#当日的x坐标
+				x=QDateTime()
+				x.setDate(nowaday)
+				
+				year_index-=1970
+				month_index-=1
+				#找该month列表中实际的day_index
+				for i in range(len(self.parent.diary_data[year_index]["date"][month_index])):
+					if self.parent.diary_data[year_index]["date"][month_index][i]["day"]==day_index:
+						day_index=i
+						break
+
+				try:
+					day_conceptID_to_times_dict={}#临时记录每日的concept对应的次数，用于绘图
+					
+					for line in self.parent.diary_data[year_index]["date"][month_index][day_index]["text"]:
+						
+						#concept对应文本的字数作为权重
+						weight=len(line["line_text"])
+
+						for concept_id in line["linked_concept"]:
+							
+							if all_conceptID_to_times_dict.get(concept_id)==None:
+								
+								all_conceptID_to_times_dict[concept_id]=weight
+								
+
+								#新建QLineSeries，并放入字典中
+								series=QtCharts.QLineSeries()
+								# series.setUseOpenGL(1)
+								series.setName(self.parent.concept_data[concept_id]["name"])
+								
+								color=generate_color()
+								series.setColor(color)
+								self.all_conceptID_to_color_dict[concept_id]=color
+								
+								#改线的宽度还得这样改……
+								pen = series.pen()
+								pen.setWidth(2)
+								series.setPen(pen)
+								
+								# 链接点击线的函数
+								# 这里用lambda不知道为什么就是不行，指针都指向了最后一个，换了partial就行了……
+								series.hovered.connect(partial(self.spline_hovered,concept_id))
+								series.clicked.connect(partial(self.spline_clicked,concept_id))
+
+
+								#最后放到series字典中
+								self.all_concept_to_spline_series_dict[concept_id]=series
+								
+							else:
+								all_conceptID_to_times_dict[concept_id]+=weight
+							
+							if day_conceptID_to_times_dict.get(concept_id)==None:
+								day_conceptID_to_times_dict[concept_id]=weight
+							else:
+								day_conceptID_to_times_dict[concept_id]+=weight
+					
+					for concept_id in day_conceptID_to_times_dict.keys():
+						series=self.all_concept_to_spline_series_dict[concept_id]
+
+						#每个concept对应的y坐标
+						y=float(day_conceptID_to_times_dict[concept_id])
+						if y>self.MaxY:
+							self.MaxY=y
+						series.append(float(x.toMSecsSinceEpoch()),y)
+
+						if all_conceptID_to_days_dict.get(concept_id)==None:
+							all_conceptID_to_days_dict[concept_id]=1
+						else:
+							all_conceptID_to_days_dict[concept_id]+=1
+							
+						
+				except:
+					# 可能某一天没有日记，就找不到day_index，索引失败
+					pass
+				
+				nowaday=nowaday.addDays(1)
+
+			return (all_conceptID_to_times_dict,all_conceptID_to_days_dict)
 		
+		def draw_spline_chart():
+
+			#按照all_conceptID_to_times_dict中每个concept_id对应的times，从大到小排序，将concept_id组合成列表
+			self.all_conceptID_to_times_list=list(map(lambda x:x[0],sorted(all_conceptID_to_times_dict.items(),key=lambda x:x[1],reverse=True)))
+			
+			(chart,xaxis,yaxis)=self.create_spline_chart()
+			
+			#把series放入chart，并关联上坐标轴
+			for concept_id in self.all_conceptID_to_times_list:
+				
+				#过滤掉低于self.threshold的concept
+				if all_conceptID_to_days_dict[concept_id]<=self.threshold:
+					self.all_concept_to_spline_series_dict.pop(concept_id)
+					all_conceptID_to_times_dict.pop(concept_id)
+				
+				else:
+					#只在一天出现过的无法连成线，重置为QScatterSeries点状图类型
+					if all_conceptID_to_days_dict[concept_id]==1:
+						
+						point=self.all_concept_to_spline_series_dict[concept_id].at(0)
+						x=point.x()
+						y=point.y()
+
+						#新建QLineSeries，并放入字典中
+						series=QtCharts.QScatterSeries()
+						# series.setUseOpenGL(1)
+						series.setName(self.parent.concept_data[concept_id]["name"])
+						
+						color=self.all_conceptID_to_color_dict[concept_id]
+						series.setColor(color)
+						
+						series.setMarkerSize(10.0)#小点点的大小
+						series.setBorderColor(QColor(255,255,255))#小点点的边框颜色
+
+						series.append(x,y)
+
+						# 链接点击线的函数
+						# 这里用lambda不知道为什么就是不行，指针都指向了最后一个，换了partial就行了……
+						series.hovered.connect(partial(self.spline_hovered,concept_id))
+						series.clicked.connect(partial(self.spline_clicked,concept_id))
+
+						#最后放到series字典中
+						self.all_concept_to_spline_series_dict[concept_id]=series
+					else:
+						series=self.all_concept_to_spline_series_dict[concept_id]
+					
+					series.setPointsVisible(True)
+
+					chart.addSeries(series)
+					
+					series.attachAxis(xaxis)
+					series.attachAxis(yaxis)
+
+					# concept列表中添加list item
+					concept_name=self.parent.concept_data[concept_id]["name"]
+					self.listWidget_all_concept.addItem(str(concept_id)+"|"+concept_name)
+			
+
+			#pop过滤掉了一些数据，这里重新排序self.all_conceptID_to_times_list
+			#按照all_conceptID_to_times_dict中每个concept_id对应的times，从大到小排序，将concept_id组合成列表
+			self.all_conceptID_to_times_list=list(map(lambda x:x[0],sorted(all_conceptID_to_times_dict.items(),key=lambda x:x[1],reverse=True)))
+
+			#关联完毕，链接到self.chartView_spline
+			self.chartView_spline.setChart(chart)
+		
+		def draw_pie_chart():
+			chart=self.create_pie_chart()
+
+			self.pie_series = QtCharts.QPieSeries(chart)
+			
+			for concept_id in self.all_conceptID_to_times_list:
+				
+				#过滤掉低于self.threshold的concept
+				if all_conceptID_to_days_dict[concept_id]>self.threshold:
+					concept_name=self.parent.concept_data[concept_id]["name"]
+					concept_times=all_conceptID_to_times_dict[concept_id]
+
+					pie_slice=self.pie_series.append(concept_name,concept_times)
+					
+					color=self.all_conceptID_to_color_dict[concept_id]
+					pie_slice.setColor(color)
+					pie_slice.setBorderColor(QColor(1,1,1))#真的奇怪，即使是Qt.black或者QColor(0,0,0)它都会显示白色……
+					
+
+					pie_slice.setLabelPosition(QtCharts.QPieSlice.LabelOutside)
+					pie_slice.setLabelVisible(True)
+			
+			chart.addSeries(self.pie_series)
+
+			self.chartView_pie.setChart(chart)
+
 		#清空concept区
 		self.listWidget_all_concept.clear()
 		#清空
 		self.textEdit_viewer.clear()
 
+		self.pushButton_restore.setEnabled(1)
 
 		self.begin_date=self.dateEdit_begin.date()
 		self.end_date=self.dateEdit_end.date()
-		
+		self.threshold=self.spinBox.value()
+
 		if self.begin_date>self.end_date:
 			QMessageBox.warning(self,"Warning","日期设置错误！")
 			return
 		
+		####################################################################################
+		# 开始分析
+		# 初始化容器
+		self.all_concept_to_spline_series_dict={}
+		all_conceptID_to_times_dict={}#临时记录每个concept对应的次数，用于最后排序成concept列表，以及绘画PieChart
+		all_conceptID_to_days_dict={}#临时记录每个concept对应的出现的天数，用于最后筛选那些只出现过一次，无法连成线，需要转换为点状图的东西
 
-
-
-		total_concept_dict={}
-		chart = QtCharts.QChart()
-		chart.setTitle("Spline chart")
-		name = "Series "
-		series_dict={}#记录已经纳入图中的id以及它对应的series的指针
-
-		#QDate操作真方便！
-		nowaday=self.begin_date
-		days=0#总共的天数，绘图的X坐标
-		MaxY=0#最大的y坐标（一天内最多的concept的数量的最大值
 		
-		while nowaday<=self.end_date:
-			days+=1
-
-			#这里出来的是正常的ymd,2021,4,2
-			(year_index,month_index,day_index)=QDate_transform(nowaday)
+		self.MaxY=0#最大的y坐标（一天内最多的concept的数量的最大值
+		
+		#开始统计每日的concept
+		(all_conceptID_to_times_dict,all_conceptID_to_days_dict)=run_statistics(all_conceptID_to_times_dict,all_conceptID_to_days_dict)
+		
+		#统计完毕
+		#开始绘图
+		if all_conceptID_to_times_dict!=[]:
 			
-			year_index-=1970
-			month_index-=1
-			#找该month列表中实际的day_index
-			for i in range(len(self.parent.diary_data[year_index]["date"][month_index])):
-				if self.parent.diary_data[year_index]["date"][month_index][i]["day"]==day_index:
-					day_index=i
-					break
-			
+			draw_spline_chart()
+			draw_pie_chart()
 
-			try:
-				day_concept_dict={}
-				
-				for line in self.parent.diary_data[year_index]["date"][month_index][day_index]["text"]:
-					for concept_id in line["linked_concept"]:
-						
-						if total_concept_dict.get(concept_id)==None:
-							total_concept_dict[concept_id]=1
-							
-							series=QtCharts.QSplineSeries(chart)
-							series.setName(self.parent.concept_data[concept_id]["name"])
-							series.setColor(QColor(randint(0,256),randint(0,256),randint(0,256)))
-							series.setUseOpenGL(1)
-							series_dict[concept_id]=series
-							chart.addSeries(series)
-						else:
-							total_concept_dict[concept_id]+=1
-						
-						if day_concept_dict.get(concept_id)==None:
-							day_concept_dict[concept_id]=1
-						else:
-							day_concept_dict[concept_id]+=1
-				
-				for concept_id in day_concept_dict.keys():
-					series=series_dict[concept_id]
-					x=float(days)
-					y=float(day_concept_dict[concept_id])
-					if y>MaxY:
-						MaxY=y
-					series.append(x,y)
-					
-			except:
-				# 可能某一天没有日记，就找不到day_index，索引失败
-				pass
-			
-
-			
-			nowaday=nowaday.addDays(1)
-		
-		if chart.series()!=[]:
-			chart.createDefaultAxes()
-			chart.axisX().setRange(0, days)
-			chart.axisY().setRange(0, MaxY+1)
-			# Add space to label to add space between labels and axis
-			# chart.axisY().setLabelFormat("%.1f  ")
-
-			chart.legend().setAlignment(Qt.AlignLeft)
-			chart.setTheme(QtCharts.QChart.ChartThemeDark)
-
-			chartView=QtCharts.QChartView(chart);
-			self.horizontalLayout_chart.addWidget(chartView);
-
-
-
-		self.total_concept_list=sorted(total_concept_dict.items(),key=lambda x:x[1],reverse=True)
-		for concept in self.total_concept_list:
-			concept_name=self.parent.concept_data[concept[0]]["name"]
-			concept_times=str(concept[1])
-			self.listWidget_all_concept.addItem(concept_times+"|"+concept_name)
-		
-		
-		# chart = QtCharts.QChart();
-		# chart.setTitle("Pie chart");
-
-		# series = QtCharts.QPieSeries(chart);
-		# for j in range(5):
-		# 	series.append("asd", j*10);
-		
-		# chart.addSeries(series);
-
-		# chartView=QtCharts.QChartView(chart);
-		# self.horizontalLayout_chart.addWidget(chartView);

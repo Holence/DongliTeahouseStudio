@@ -1,9 +1,12 @@
 from custom_filetype import *
+
 import pypinyin
 import re
 import pickle
 import base64
 import os,shutil
+
+from functools import partial
 from random import randint
 import requests
 from urllib.parse import unquote
@@ -13,7 +16,13 @@ import time
 from win32com.shell import shell,shellcon
 from lxml import etree
 import chardet
+
 from PySide2.QtCore import QDate
+from PySide2.QtGui import QColor
+
+def generate_color():
+	return QColor(randint(50,256),randint(50,256),randint(50,256))
+
 
 def delete_to_recyclebin(filename):
 	"删除成功返回True"
