@@ -17,7 +17,7 @@ class Ui_diary_analyze_dialog(object):
     def setupUi(self, diary_analyze_dialog):
         if not diary_analyze_dialog.objectName():
             diary_analyze_dialog.setObjectName(u"diary_analyze_dialog")
-        diary_analyze_dialog.resize(696, 521)
+        diary_analyze_dialog.resize(1172, 948)
         self.verticalLayout_2 = QVBoxLayout(diary_analyze_dialog)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.splitter_whole = QSplitter(diary_analyze_dialog)

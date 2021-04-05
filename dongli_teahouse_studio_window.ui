@@ -1,0 +1,1639 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>dongli_teahouse_studio_window</class>
+ <widget class="QMainWindow" name="dongli_teahouse_studio_window">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1219</width>
+    <height>943</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dongli Teahouse Studio</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="resource.qrc">
+    <normaloff>:/icon/holoico.ico</normaloff>:/icon/holoico.ico</iconset>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_8">
+    <item>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="minimumSize">
+       <size>
+        <width>200</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="tabShape">
+       <enum>QTabWidget::Rounded</enum>
+      </property>
+      <property name="currentIndex">
+       <number>2</number>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>16</width>
+        <height>16</height>
+       </size>
+      </property>
+      <property name="documentMode">
+       <bool>false</bool>
+      </property>
+      <property name="tabsClosable">
+       <bool>false</bool>
+      </property>
+      <property name="movable">
+       <bool>false</bool>
+      </property>
+      <property name="tabBarAutoHide">
+       <bool>false</bool>
+      </property>
+      <widget class="QWidget" name="tabWidgetPage_home">
+       <attribute name="icon">
+        <iconset resource="resource.qrc">
+         <normaloff>:/icon/home.svg</normaloff>:/icon/home.svg</iconset>
+       </attribute>
+       <attribute name="title">
+        <string>Home</string>
+       </attribute>
+       <widget class="QLabel" name="label">
+        <property name="geometry">
+         <rect>
+          <x>220</x>
+          <y>370</y>
+          <width>91</width>
+          <height>61</height>
+         </rect>
+        </property>
+        <property name="font">
+         <font>
+          <family>1529 Champ Fleury Pro</family>
+          <pointsize>15</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Welcome</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_home">
+        <property name="geometry">
+         <rect>
+          <x>220</x>
+          <y>290</y>
+          <width>121</width>
+          <height>71</height>
+         </rect>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>1529 Champ Fleury Pro</family>
+          <pointsize>26</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Home</string>
+        </property>
+       </widget>
+      </widget>
+      <widget class="QWidget" name="tabWidgetPage_rss">
+       <attribute name="icon">
+        <iconset resource="resource.qrc">
+         <normaloff>:/icon/rss.svg</normaloff>:/icon/rss.svg</iconset>
+       </attribute>
+       <attribute name="title">
+        <string>RSS</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QSplitter" name="splitter_rss">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="handleWidth">
+           <number>10</number>
+          </property>
+          <widget class="QWidget" name="layoutWidget">
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+             <widget class="QLineEdit" name="lineEdit_rss_search"/>
+            </item>
+            <item>
+             <widget class="MyTreeWidget" name="treeWidget_rss">
+              <property name="statusTip">
+               <string/>
+              </property>
+              <property name="tabKeyNavigation">
+               <bool>true</bool>
+              </property>
+              <property name="dragEnabled">
+               <bool>true</bool>
+              </property>
+              <property name="dragDropMode">
+               <enum>QAbstractItemView::InternalMove</enum>
+              </property>
+              <property name="alternatingRowColors">
+               <bool>false</bool>
+              </property>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::ExtendedSelection</enum>
+              </property>
+              <property name="autoExpandDelay">
+               <number>750</number>
+              </property>
+              <property name="indentation">
+               <number>20</number>
+              </property>
+              <property name="rootIsDecorated">
+               <bool>true</bool>
+              </property>
+              <property name="uniformRowHeights">
+               <bool>false</bool>
+              </property>
+              <property name="itemsExpandable">
+               <bool>true</bool>
+              </property>
+              <property name="sortingEnabled">
+               <bool>false</bool>
+              </property>
+              <property name="animated">
+               <bool>true</bool>
+              </property>
+              <property name="allColumnsShowFocus">
+               <bool>false</bool>
+              </property>
+              <attribute name="headerVisible">
+               <bool>false</bool>
+              </attribute>
+              <column>
+               <property name="text">
+                <string>1</string>
+               </property>
+              </column>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QListWidget" name="listWidget_rss">
+           <property name="isWrapping" stdset="0">
+            <bool>false</bool>
+           </property>
+           <property name="spacing">
+            <number>10</number>
+           </property>
+           <property name="wordWrap">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tabWidgetPage_text">
+       <attribute name="icon">
+        <iconset resource="resource.qrc">
+         <normaloff>:/icon/book-open.svg</normaloff>:/icon/book-open.svg</iconset>
+       </attribute>
+       <attribute name="title">
+        <string>Text</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QTextEdit" name="textEdit_viewer">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+          <property name="html">
+           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'SimSun'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:18pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget_diary">
+   <property name="minimumSize">
+    <size>
+     <width>292</width>
+     <height>593</height>
+    </size>
+   </property>
+   <property name="features">
+    <set>QDockWidget::AllDockWidgetFeatures</set>
+   </property>
+   <property name="windowTitle">
+    <string>Diary</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_6">
+    <layout class="QVBoxLayout" name="verticalLayout_3">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_1">
+       <item>
+        <widget class="QSplitter" name="splitter_text">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="handleWidth">
+          <number>10</number>
+         </property>
+         <widget class="QCalendarWidget" name="calendarWidget">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>270</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>270</height>
+           </size>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="minimumDate">
+           <date>
+            <year>1970</year>
+            <month>1</month>
+            <day>1</day>
+           </date>
+          </property>
+          <property name="maximumDate">
+           <date>
+            <year>2169</year>
+            <month>12</month>
+            <day>31</day>
+           </date>
+          </property>
+          <property name="gridVisible">
+           <bool>true</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QCalendarWidget::SingleSelection</enum>
+          </property>
+          <property name="horizontalHeaderFormat">
+           <enum>QCalendarWidget::ShortDayNames</enum>
+          </property>
+          <property name="verticalHeaderFormat">
+           <enum>QCalendarWidget::ISOWeekNumbers</enum>
+          </property>
+          <property name="navigationBarVisible">
+           <bool>true</bool>
+          </property>
+          <property name="dateEditEnabled">
+           <bool>true</bool>
+          </property>
+         </widget>
+         <widget class="MyPlainTextEdit" name="plainTextEdit_single_line">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>270</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
+         <widget class="MyLineEditList" name="listWidget_lines">
+          <property name="minimumSize">
+           <size>
+            <width>270</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="dragEnabled">
+           <bool>true</bool>
+          </property>
+          <property name="dragDropMode">
+           <enum>QAbstractItemView::InternalMove</enum>
+          </property>
+          <property name="defaultDropAction">
+           <enum>Qt::MoveAction</enum>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::ExtendedSelection</enum>
+          </property>
+          <property name="spacing">
+           <number>10</number>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="selectionRectVisible">
+           <bool>true</bool>
+          </property>
+         </widget>
+         <widget class="QToolBox" name="toolBox_text">
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Plain</enum>
+          </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <property name="tabSpacing">
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="page_text_related_concept">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>274</width>
+             <height>158</height>
+            </rect>
+           </property>
+           <attribute name="icon">
+            <iconset resource="resource.qrc">
+             <normaloff>:/icon/bookmark.svg</normaloff>:/icon/bookmark.svg</iconset>
+           </attribute>
+           <attribute name="label">
+            <string>Text Related Concept</string>
+           </attribute>
+           <layout class="QHBoxLayout" name="horizontalLayout_8">
+            <item>
+             <widget class="QListWidget" name="listWidget_text_related_concept">
+              <property name="dragEnabled">
+               <bool>false</bool>
+              </property>
+              <property name="dragDropOverwriteMode">
+               <bool>false</bool>
+              </property>
+              <property name="dragDropMode">
+               <enum>QAbstractItemView::InternalMove</enum>
+              </property>
+              <property name="defaultDropAction">
+               <enum>Qt::MoveAction</enum>
+              </property>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::ExtendedSelection</enum>
+              </property>
+              <property name="movement">
+               <enum>QListView::Free</enum>
+              </property>
+              <property name="flow">
+               <enum>QListView::LeftToRight</enum>
+              </property>
+              <property name="resizeMode">
+               <enum>QListView::Adjust</enum>
+              </property>
+              <property name="spacing">
+               <number>5</number>
+              </property>
+              <property name="viewMode">
+               <enum>QListView::IconMode</enum>
+              </property>
+              <property name="wordWrap">
+               <bool>false</bool>
+              </property>
+              <property name="selectionRectVisible">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="page_text_linked_file">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>274</width>
+             <height>158</height>
+            </rect>
+           </property>
+           <attribute name="icon">
+            <iconset resource="resource.qrc">
+             <normaloff>:/icon/file.svg</normaloff>:/icon/file.svg</iconset>
+           </attribute>
+           <attribute name="label">
+            <string>Text Linked File</string>
+           </attribute>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="MyConceptLinkedFileList" name="listWidget_text_linked_file">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="showDropIndicator" stdset="0">
+               <bool>false</bool>
+              </property>
+              <property name="dragEnabled">
+               <bool>true</bool>
+              </property>
+              <property name="dragDropMode">
+               <enum>QAbstractItemView::InternalMove</enum>
+              </property>
+              <property name="defaultDropAction">
+               <enum>Qt::CopyAction</enum>
+              </property>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::ExtendedSelection</enum>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>48</width>
+                <height>48</height>
+               </size>
+              </property>
+              <property name="movement">
+               <enum>QListView::Free</enum>
+              </property>
+              <property name="flow">
+               <enum>QListView::LeftToRight</enum>
+              </property>
+              <property name="resizeMode">
+               <enum>QListView::Adjust</enum>
+              </property>
+              <property name="layoutMode">
+               <enum>QListView::SinglePass</enum>
+              </property>
+              <property name="spacing">
+               <number>16</number>
+              </property>
+              <property name="gridSize">
+               <size>
+                <width>96</width>
+                <height>128</height>
+               </size>
+              </property>
+              <property name="viewMode">
+               <enum>QListView::IconMode</enum>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+              <property name="selectionRectVisible">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget_concept">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>290</width>
+     <height>751</height>
+    </size>
+   </property>
+   <property name="features">
+    <set>QDockWidget::AllDockWidgetFeatures</set>
+   </property>
+   <property name="windowTitle">
+    <string>Concept</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_7">
+    <layout class="QVBoxLayout" name="verticalLayout_4">
+     <item>
+      <widget class="QSplitter" name="splitter_concept">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="handleWidth">
+        <number>10</number>
+       </property>
+       <widget class="QWidget" name="layoutWidget3">
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="QLineEdit" name="lineEdit_search_concept">
+           <property name="minimumSize">
+            <size>
+             <width>270</width>
+             <height>0</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QListWidget" name="listWidget_search_concept">
+           <property name="minimumSize">
+            <size>
+             <width>270</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="dragEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="dragDropOverwriteMode">
+            <bool>false</bool>
+           </property>
+           <property name="dragDropMode">
+            <enum>QAbstractItemView::InternalMove</enum>
+           </property>
+           <property name="defaultDropAction">
+            <enum>Qt::MoveAction</enum>
+           </property>
+           <property name="spacing">
+            <number>5</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="layoutWidget1">
+        <layout class="QFormLayout" name="formLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_id">
+           <property name="text">
+            <string>ID</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="lineEdit_id">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_name">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Name</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="lineEdit_name">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="dragEnabled">
+            <bool>false</bool>
+           </property>
+           <property name="readOnly">
+            <bool>false</bool>
+           </property>
+           <property name="clearButtonEnabled">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_detail">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Detail</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="MyPlainTextEdit" name="plainTextEdit_detail">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="readOnly">
+            <bool>false</bool>
+           </property>
+           <property name="plainText">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_parent">
+           <property name="text">
+            <string>Parent</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QListWidget" name="listWidget_parent">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="showDropIndicator" stdset="0">
+            <bool>false</bool>
+           </property>
+           <property name="dragDropMode">
+            <enum>QAbstractItemView::NoDragDrop</enum>
+           </property>
+           <property name="defaultDropAction">
+            <enum>Qt::IgnoreAction</enum>
+           </property>
+           <property name="movement">
+            <enum>QListView::Static</enum>
+           </property>
+           <property name="flow">
+            <enum>QListView::LeftToRight</enum>
+           </property>
+           <property name="resizeMode">
+            <enum>QListView::Adjust</enum>
+           </property>
+           <property name="spacing">
+            <number>5</number>
+           </property>
+           <property name="viewMode">
+            <enum>QListView::IconMode</enum>
+           </property>
+           <property name="selectionRectVisible">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_child">
+           <property name="text">
+            <string>Child</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QListWidget" name="listWidget_child">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="showDropIndicator" stdset="0">
+            <bool>false</bool>
+           </property>
+           <property name="dragDropMode">
+            <enum>QAbstractItemView::NoDragDrop</enum>
+           </property>
+           <property name="defaultDropAction">
+            <enum>Qt::IgnoreAction</enum>
+           </property>
+           <property name="movement">
+            <enum>QListView::Static</enum>
+           </property>
+           <property name="resizeMode">
+            <enum>QListView::Adjust</enum>
+           </property>
+           <property name="spacing">
+            <number>5</number>
+           </property>
+           <property name="viewMode">
+            <enum>QListView::IconMode</enum>
+           </property>
+           <property name="selectionRectVisible">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_relative">
+           <property name="text">
+            <string>Relative</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QListWidget" name="listWidget_relative">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="showDropIndicator" stdset="0">
+            <bool>false</bool>
+           </property>
+           <property name="dragDropMode">
+            <enum>QAbstractItemView::NoDragDrop</enum>
+           </property>
+           <property name="defaultDropAction">
+            <enum>Qt::IgnoreAction</enum>
+           </property>
+           <property name="selectionMode">
+            <enum>QAbstractItemView::SingleSelection</enum>
+           </property>
+           <property name="movement">
+            <enum>QListView::Static</enum>
+           </property>
+           <property name="flow">
+            <enum>QListView::LeftToRight</enum>
+           </property>
+           <property name="resizeMode">
+            <enum>QListView::Adjust</enum>
+           </property>
+           <property name="layoutMode">
+            <enum>QListView::SinglePass</enum>
+           </property>
+           <property name="spacing">
+            <number>5</number>
+           </property>
+           <property name="viewMode">
+            <enum>QListView::IconMode</enum>
+           </property>
+           <property name="wordWrap">
+            <bool>false</bool>
+           </property>
+           <property name="selectionRectVisible">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QToolBox" name="toolBox_concept">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <property name="tabSpacing">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="page_concept_related_text">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>298</width>
+           <height>88</height>
+          </rect>
+         </property>
+         <attribute name="icon">
+          <iconset resource="resource.qrc">
+           <normaloff>:/icon/file-text.svg</normaloff>:/icon/file-text.svg</iconset>
+         </attribute>
+         <attribute name="label">
+          <string>Concept Related Text</string>
+         </attribute>
+         <layout class="QHBoxLayout" name="horizontalLayout_9">
+          <item>
+           <widget class="QListWidget" name="listWidget_concept_related_text">
+            <property name="minimumSize">
+             <size>
+              <width>220</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="dragDropMode">
+             <enum>QAbstractItemView::InternalMove</enum>
+            </property>
+            <property name="defaultDropAction">
+             <enum>Qt::MoveAction</enum>
+            </property>
+            <property name="spacing">
+             <number>10</number>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="page_concept_linked_file">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>298</width>
+           <height>88</height>
+          </rect>
+         </property>
+         <attribute name="icon">
+          <iconset resource="resource.qrc">
+           <normaloff>:/icon/file.svg</normaloff>:/icon/file.svg</iconset>
+         </attribute>
+         <attribute name="label">
+          <string>Concept Linked File</string>
+         </attribute>
+         <layout class="QHBoxLayout" name="horizontalLayout_10">
+          <item>
+           <widget class="MyConceptLinkedFileList" name="listWidget_concept_linked_file">
+            <property name="dragEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="dragDropMode">
+             <enum>QAbstractItemView::InternalMove</enum>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::ExtendedSelection</enum>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>48</width>
+              <height>48</height>
+             </size>
+            </property>
+            <property name="resizeMode">
+             <enum>QListView::Adjust</enum>
+            </property>
+            <property name="spacing">
+             <number>16</number>
+            </property>
+            <property name="gridSize">
+             <size>
+              <width>96</width>
+              <height>128</height>
+             </size>
+            </property>
+            <property name="viewMode">
+             <enum>QListView::IconMode</enum>
+            </property>
+            <property name="wordWrap">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget_library">
+   <property name="floating">
+    <bool>false</bool>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::AllDockWidgetAreas</set>
+   </property>
+   <property name="windowTitle">
+    <string>Library</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>4</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QVBoxLayout" name="verticalLayout_6">
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <item>
+        <widget class="QLineEdit" name="lineEdit_search_file">
+         <property name="minimumSize">
+          <size>
+           <width>270</width>
+           <height>0</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QSplitter" name="splitter_file_manager">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="handleWidth">
+          <number>10</number>
+         </property>
+         <property name="childrenCollapsible">
+          <bool>false</bool>
+         </property>
+         <widget class="MyConceptLinkedFileList" name="listWidget_search_file">
+          <property name="dragEnabled">
+           <bool>true</bool>
+          </property>
+          <property name="dragDropOverwriteMode">
+           <bool>false</bool>
+          </property>
+          <property name="dragDropMode">
+           <enum>QAbstractItemView::InternalMove</enum>
+          </property>
+          <property name="defaultDropAction">
+           <enum>Qt::CopyAction</enum>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::ExtendedSelection</enum>
+          </property>
+          <property name="spacing">
+           <number>5</number>
+          </property>
+          <property name="selectionRectVisible">
+           <bool>true</bool>
+          </property>
+         </widget>
+         <widget class="QWidget" name="layoutWidget2">
+          <layout class="QVBoxLayout" name="verticalLayout_7">
+           <item>
+            <widget class="QLineEdit" name="lineEdit_date">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="readOnly">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QListWidget" name="listWidget_file_related_concept">
+             <property name="dragEnabled">
+              <bool>false</bool>
+             </property>
+             <property name="dragDropOverwriteMode">
+              <bool>false</bool>
+             </property>
+             <property name="dragDropMode">
+              <enum>QAbstractItemView::NoDragDrop</enum>
+             </property>
+             <property name="defaultDropAction">
+              <enum>Qt::IgnoreAction</enum>
+             </property>
+             <property name="selectionMode">
+              <enum>QAbstractItemView::ExtendedSelection</enum>
+             </property>
+             <property name="movement">
+              <enum>QListView::Static</enum>
+             </property>
+             <property name="flow">
+              <enum>QListView::LeftToRight</enum>
+             </property>
+             <property name="resizeMode">
+              <enum>QListView::Adjust</enum>
+             </property>
+             <property name="spacing">
+              <number>5</number>
+             </property>
+             <property name="viewMode">
+              <enum>QListView::IconMode</enum>
+             </property>
+             <property name="wordWrap">
+              <bool>false</bool>
+             </property>
+             <property name="selectionRectVisible">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1219</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionToggle_Fullscreen"/>
+    <addaction name="actionStay_on_Top"/>
+   </widget>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <widget class="QMenu" name="menuExport_2">
+     <property name="title">
+      <string>Export to Json</string>
+     </property>
+     <property name="icon">
+      <iconset resource="resource.qrc">
+       <normaloff>:/icon/upload.svg</normaloff>:/icon/upload.svg</iconset>
+     </property>
+     <addaction name="actionExport_Concept_Data_to_Json"/>
+     <addaction name="actionExport_Diary_Data_to_Json"/>
+     <addaction name="actionExport_File_Data_to_Json"/>
+     <addaction name="actionExport_RSS_Data_to_Json"/>
+     <addaction name="actionExport_RSS_Tree_Data_to_Json"/>
+    </widget>
+    <addaction name="separator"/>
+    <addaction name="actionSave_Data"/>
+    <addaction name="menuExport_2"/>
+    <addaction name="separator"/>
+    <addaction name="actionSetting"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Tool</string>
+    </property>
+    <widget class="QMenu" name="menuTool">
+     <property name="title">
+      <string>Diary</string>
+     </property>
+     <property name="icon">
+      <iconset resource="resource.qrc">
+       <normaloff>:/icon/book-open.svg</normaloff>:/icon/book-open.svg</iconset>
+     </property>
+     <addaction name="actionSearch_Diary_Text"/>
+     <addaction name="actionAdd_New_Line"/>
+     <addaction name="actionLink_Concept_to_Line"/>
+     <addaction name="actionAnalyze_Diary_with_Concept"/>
+    </widget>
+    <widget class="QMenu" name="menuConcept">
+     <property name="title">
+      <string>Concept</string>
+     </property>
+     <property name="icon">
+      <iconset resource="resource.qrc">
+       <normaloff>:/icon/hash.svg</normaloff>:/icon/hash.svg</iconset>
+     </property>
+     <addaction name="actionSearch_Concept"/>
+     <addaction name="actionCreate_Concept"/>
+     <addaction name="separator"/>
+     <addaction name="actionAdd_Concept_To_Parent"/>
+     <addaction name="actionAdd_Concept_To_Child"/>
+     <addaction name="actionAdd_Concept_To_Relative"/>
+     <addaction name="separator"/>
+    </widget>
+    <widget class="QMenu" name="menuFile_2">
+     <property name="title">
+      <string>File</string>
+     </property>
+     <property name="icon">
+      <iconset resource="resource.qrc">
+       <normaloff>:/icon/inbox.svg</normaloff>:/icon/inbox.svg</iconset>
+     </property>
+     <addaction name="actionSearch_File_Library"/>
+     <addaction name="actionLocate_File_in_File_Library"/>
+     <addaction name="actionFile_Check"/>
+    </widget>
+    <widget class="QMenu" name="menuRSS">
+     <property name="title">
+      <string>RSS</string>
+     </property>
+     <property name="icon">
+      <iconset resource="resource.qrc">
+       <normaloff>:/icon/rss.svg</normaloff>:/icon/rss.svg</iconset>
+     </property>
+     <addaction name="actionCreate_RSS_Folder"/>
+     <addaction name="actionAdd_RSS_Feed"/>
+     <addaction name="actionOpen_WebPage_In_Browser"/>
+     <addaction name="actionRSS_Update_Manually"/>
+    </widget>
+    <addaction name="menuConcept"/>
+    <addaction name="menuTool"/>
+    <addaction name="menuFile_2"/>
+    <addaction name="menuRSS"/>
+    <addaction name="actionEdit"/>
+    <addaction name="actionDelete"/>
+   </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
+   <widget class="QMenu" name="menuTab">
+    <property name="title">
+     <string>Tab</string>
+    </property>
+    <addaction name="actionCreate_New_Tab"/>
+    <addaction name="actionHide_Current_Tab"/>
+    <addaction name="actionDelete_Current_Tab"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuTab"/>
+   <addaction name="menuView"/>
+   <addaction name="menuAbout"/>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget_sticker">
+   <property name="windowTitle">
+    <string>Sticker</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>4</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPlainTextEdit" name="plainTextEdit_sticker"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <action name="actionCreate_Concept">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/plus.svg</normaloff>:/icon/plus.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Create Concept</string>
+   </property>
+   <property name="toolTip">
+    <string>Create Concept</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionAdd_New_Line">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/corner-down-left.svg</normaloff>:/icon/corner-down-left.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Add New Line</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="actionLink_Concept_to_Line">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/link.svg</normaloff>:/icon/link.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Link Concept to Line</string>
+   </property>
+   <property name="toolTip">
+    <string>Link Concept to Line</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="actionSave_Data">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/save.svg</normaloff>:/icon/save.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Save Data</string>
+   </property>
+   <property name="toolTip">
+    <string>Save Data</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionDelete">
+   <property name="icon">
+    <iconset theme="Delete" resource="resource.qrc">
+     <normaloff>:/icon/trash-2.svg</normaloff>:/icon/trash-2.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Delete</string>
+   </property>
+   <property name="toolTip">
+    <string>All sorts of deleting operating depending on which widget you are focusing on.</string>
+   </property>
+   <property name="shortcut">
+    <string>Del</string>
+   </property>
+  </action>
+  <action name="actionAdd_Concept_To_Parent">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/user-plus.svg</normaloff>:/icon/user-plus.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Add Concept To Parent</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+1</string>
+   </property>
+  </action>
+  <action name="actionAdd_Concept_To_Child">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/user-plus.svg</normaloff>:/icon/user-plus.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Add Concept To Child</string>
+   </property>
+   <property name="toolTip">
+    <string>Add Concept To Child</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+2</string>
+   </property>
+  </action>
+  <action name="actionAdd_Concept_To_Relative">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/user-plus.svg</normaloff>:/icon/user-plus.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Add Concept To Relative</string>
+   </property>
+   <property name="toolTip">
+    <string>Add Concept To Relative</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+3</string>
+   </property>
+  </action>
+  <action name="actionToggle_Fullscreen">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/maximize.svg</normaloff>:/icon/maximize.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle Fullscreen</string>
+   </property>
+   <property name="shortcut">
+    <string>F11</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/log-out.svg</normaloff>:/icon/log-out.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Exit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+W</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/book.svg</normaloff>:/icon/book.svg</iconset>
+   </property>
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="actionSearch_Concept">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/search.svg</normaloff>:/icon/search.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Search Concept</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionImport_File_Tree_to_Concept">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/download-cloud.svg</normaloff>:/icon/download-cloud.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Import File Tree to Concept</string>
+   </property>
+   <property name="toolTip">
+    <string>Import File Tree to Concept</string>
+   </property>
+  </action>
+  <action name="actionCreate_New_Tab">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/tablet.svg</normaloff>:/icon/tablet.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Create New Tab</string>
+   </property>
+  </action>
+  <action name="actionHide_Current_Tab">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/archive.svg</normaloff>:/icon/archive.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Hide Current Tab</string>
+   </property>
+  </action>
+  <action name="actionDelete_Current_Tab">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/trash-2.svg</normaloff>:/icon/trash-2.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Delete Current Tab</string>
+   </property>
+  </action>
+  <action name="actionCreate_RSS_Folder">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/folder.svg</normaloff>:/icon/folder.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Create RSS Folder</string>
+   </property>
+  </action>
+  <action name="actionAdd_RSS_Feed">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/rss.svg</normaloff>:/icon/rss.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Add RSS Feed</string>
+   </property>
+   <property name="toolTip">
+    <string>Add RSS Feed</string>
+   </property>
+  </action>
+  <action name="actionOpen_WebPage_In_Browser">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/airplay.svg</normaloff>:/icon/airplay.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Open WebPage In Browser</string>
+   </property>
+   <property name="shortcut">
+    <string>F10</string>
+   </property>
+  </action>
+  <action name="actionExport_Concept_Data_to_Json">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/upload.svg</normaloff>:/icon/upload.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Export Concept Data to Json</string>
+   </property>
+  </action>
+  <action name="actionExport_Diary_Data_to_Json">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/upload.svg</normaloff>:/icon/upload.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Export Diary Data to Json</string>
+   </property>
+  </action>
+  <action name="actionExport_RSS_Data_to_Json">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/upload.svg</normaloff>:/icon/upload.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Export RSS Data to Json</string>
+   </property>
+  </action>
+  <action name="actionSetting">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/settings.svg</normaloff>:/icon/settings.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Setting</string>
+   </property>
+  </action>
+  <action name="actionFile_Check">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/shield.svg</normaloff>:/icon/shield.svg</iconset>
+   </property>
+   <property name="text">
+    <string>File Check</string>
+   </property>
+   <property name="toolTip">
+    <string>File Check</string>
+   </property>
+  </action>
+  <action name="actionExport_File_Data_to_Json">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/upload.svg</normaloff>:/icon/upload.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Export File Data to Json</string>
+   </property>
+   <property name="toolTip">
+    <string>Export File Data to Json</string>
+   </property>
+  </action>
+  <action name="actionEdit">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/edit-3.svg</normaloff>:/icon/edit-3.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Edit</string>
+   </property>
+   <property name="toolTip">
+    <string>Edit</string>
+   </property>
+   <property name="shortcut">
+    <string>F2</string>
+   </property>
+  </action>
+  <action name="actionRSS_Update_Manually">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/refresh-cw.svg</normaloff>:/icon/refresh-cw.svg</iconset>
+   </property>
+   <property name="text">
+    <string>RSS Update Manually</string>
+   </property>
+   <property name="shortcut">
+    <string>F4</string>
+   </property>
+  </action>
+  <action name="actionSearch_Diary_Text">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/search.svg</normaloff>:/icon/search.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Search Diary Text</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
+  <action name="actionSearch_File_Library">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/search.svg</normaloff>:/icon/search.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Search File Library</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionLocate_File_in_File_Library">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/navigation.svg</normaloff>:/icon/navigation.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Locate File in File Library</string>
+   </property>
+   <property name="shortcut">
+    <string>F3</string>
+   </property>
+  </action>
+  <action name="actionExport_RSS_Tree_Data_to_Json">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/upload.svg</normaloff>:/icon/upload.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Export RSS Tree Data to Json</string>
+   </property>
+  </action>
+  <action name="actionStay_on_Top">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/arrow-up.svg</normaloff>:/icon/arrow-up.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Stay on Top</string>
+   </property>
+  </action>
+  <action name="actionAnalyze_Diary_with_Concept">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/aperture.svg</normaloff>:/icon/aperture.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Analyze Diary with Concept</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MyPlainTextEdit</class>
+   <extends>QPlainTextEdit</extends>
+   <header>custom_widget</header>
+  </customwidget>
+  <customwidget>
+   <class>MyConceptLinkedFileList</class>
+   <extends>QListWidget</extends>
+   <header>custom_widget</header>
+  </customwidget>
+  <customwidget>
+   <class>MyTreeWidget</class>
+   <extends>QTreeWidget</extends>
+   <header>custom_widget</header>
+  </customwidget>
+  <customwidget>
+   <class>MyLineEditList</class>
+   <extends>QListWidget</extends>
+   <header>custom_widget</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="resource.qrc"/>
+ </resources>
+ <connections/>
+</ui>

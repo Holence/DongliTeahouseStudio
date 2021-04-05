@@ -334,7 +334,8 @@ class RSS_Adding_Getor_Threador(QThread):
 
 class MyTabWidget(QWidget,Ui_mytabwidget_form):
 
-	clicked=Signal(int)
+	#本来这个是点击tree item后用来传出去show concept用的，现在tab页有自己的concept编辑区了
+	# clicked=Signal(int)
 	
 	def __init__(self,parent,tab_selection_id,tab_selection_depth):
 		super().__init__()
@@ -344,18 +345,278 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		self.tab_selection_id=tab_selection_id
 		self.parent=parent
 
-		#用来出去显示concept内容的
-		self.current_select_ID=None
+		self.current_select_conceptID=None#当前选择的conceptID
+		self.current_leaf_conceptID_list=[]#当前选择的conceptID下的所有leaf的ID的列表
 
+		self.begin_date=self.parent.calendarWidget.selectedDate()#当前分析的开始日期，是QDate类型
+		self.end_date=self.parent.calendarWidget.selectedDate()#当前分析的结束日期，是QDate类型
+		self.MaxY=0#最大的y坐标（一天内最多的concept的数量的最大值
+		self.chartView_spline=MyChartView()
+		self.clear_view()
+		self.horizontalLayout.addWidget(self.chartView_spline)
 		
-		#点击更新文件列表并且显示concept内容
-		self.treeWidget.itemClicked.connect(self.update_file_list_and_show_parent_concept)
 
+
+
+		#编辑结束后自动临时保存
+		self.lineEdit_name.editingFinished.connect(self.concept_info_edited_and_save)
+		###QPlainTextEdit没有editingFinished信号，就用了自定义的MyPlainTextEdit
+		self.plainTextEdit_detail.editingFinished.connect(self.concept_info_edited_and_save)
+
+		#点击更新文件列表并且显示concept内容
+		self.treeWidget.itemClicked.connect(self.tree_item_clicked)
+
+		#文件区
 		self.listWidget_file_root.itemDoubleClicked.connect(self.root_file_open)
 		self.listWidget_file_root.dropped.connect(self.concept_linked_file_add)
 		self.listWidget_file_leafs.itemDoubleClicked.connect(self.leafs_file_open)
-
+		
+		
 		self.tab_update()
+	
+	def tab_update(self):
+		"""
+		外面更新了data来调用这个函数，更新tab内所有的内容，
+		包括tree，concept的信息，concept的file，concept的diary text，concept-diary text的图线
+		"""
+		
+		###################################################################################
+		# Tree
+
+		#先检测tree节点的expand属性
+		current_root=self.treeWidget.invisibleRootItem()
+		self.tree_expand={}
+		try:
+			self.tree_deep_check_expand(self.tab_selection_depth,current_root)
+		except:
+			pass
+		
+		self.treeWidget.clear()
+
+		root_concept=self.parent.concept_data[self.tab_selection_id]
+		new_root=QTreeWidgetItem([str(root_concept["id"])+"|"+root_concept["name"]])
+		self.treeWidget.addTopLevelItem(new_root)
+		self.tree_deep_duild(self.tab_selection_depth,root_concept,new_root)
+		
+		###################################################################################
+		# Concept
+		try:
+			self.concept_show()
+		except:
+			pass
+
+		###################################################################################
+		# File
+		try:
+			self.update_file_list()
+		except:
+			pass
+
+	def tree_item_clicked(self):
+		
+		def update_current_leaf_concept_list():
+			"更新self.current_leaf_conceptID_list"
+			
+			def deepin(depth,ID):
+				if depth==0:
+					return
+				depth-=1
+
+				for child_ID in self.parent.concept_data[ID]["child"]:
+					self.current_leaf_conceptID_list.append(child_ID)
+					deepin(depth,child_ID)
+			
+
+			self.current_leaf_conceptID_list=[]
+			#计算深入到叶子中的深度
+			depth=self.tab_selection_depth+1
+			leaf=self.treeWidget.currentItem()
+			while leaf!=None:
+				leaf=leaf.parent()
+				depth-=1
+
+			deepin(depth,self.current_select_conceptID)
+
+		
+		#更新self.current_select_conceptID和self.current_leaf_conceptID_list
+		self.current_select_conceptID=int(self.treeWidget.currentItem().text(0).split("|")[0])
+		update_current_leaf_concept_list()
+		
+		self.concept_show()
+
+		self.update_file_list()
+
+		self.listWidget_file_root.setEnabled(1)
+		self.listWidget_file_leafs.setEnabled(1)
+		
+		####
+			#现在tab页有自己的concept编辑区了
+			#出去显示concept内容
+			# self.clicked.emit(self.current_select_conceptID)
+	
+
+	def concept_show(self):
+		#ID
+		if self.current_select_conceptID!=None:
+			self.lineEdit_id.setText(str(self.current_select_conceptID))
+
+		#给宇宙大哥让位
+		if self.current_select_conceptID==0:
+			self.lineEdit_name.setReadOnly(1)
+		else:
+			self.lineEdit_name.setReadOnly(0)
+		
+		#Name
+		self.lineEdit_name.setText(self.parent.concept_data[self.current_select_conceptID]["name"])
+		#Detail
+		self.plainTextEdit_detail.setPlainText(self.parent.concept_data[self.current_select_conceptID]["detail"])
+	
+		
+
+		self.begin_date=None
+		self.MaxY=0#最大的y坐标（一天内最多的concept的数量的最大值
+		series=QtCharts.QLineSeries()
+
+		color=generate_color()
+		series.setColor(color)
+		
+		#改线的宽度还得这样改……
+		pen = series.pen()
+		pen.setWidth(2)
+		series.setPen(pen)
+
+		series.setPointsVisible(True)
+
+		#列出self.current_select_conceptID以及它下层所有concept的related text
+		self.textEdit_viewer.clear()
+		week_dict=["星期一","星期二","星期三","星期四","星期五","星期六","星期日"]
+
+		text_list=[]
+		for year_index in range(1970-1970,2170-1970):
+			for month_index in range(0,12):
+				for day_index in range(len(self.parent.diary_data[year_index]["date"][month_index])):
+					
+					y=year_index+1970
+					m=month_index+1
+					d=self.parent.diary_data[year_index]["date"][month_index][day_index]["day"]
+					weeknum=QDate(y,m,d).dayOfWeek()-1
+
+					nowaday=QDate(y,m,d)
+					x=QDateTime(nowaday)
+
+					day_weight=0
+
+					#每天的行
+					for line in self.parent.diary_data[year_index]["date"][month_index][day_index]["text"]:
+						#每一行
+						line_weight=len(line["line_text"])
+						
+						#self.current_select_conceptID在不在line里面？
+						if self.current_select_conceptID in line["linked_concept"]:
+							
+							text_list.append({
+								#老传统用点号和空格分隔
+								"date":"%s.%s.%s %s"%(y,m,d,week_dict[weeknum]),
+								"text":line["line_text"]
+							})
+
+							day_weight+=line_weight
+							continue
+						
+						#self.current_leaf_conceptID_list的元素在不在line里面？
+						for concept_id in self.current_leaf_conceptID_list:
+							if concept_id in line["linked_concept"]:
+				
+								text_list.append({
+									#老传统用点号和空格分隔
+									"date":"%s.%s.%s %s"%(y,m,d,week_dict[weeknum]),
+									"text":line["line_text"]
+								})
+								day_weight+=line_weight
+								break
+
+					if day_weight!=0:
+						
+						if self.begin_date==None:
+							self.begin_date=nowaday
+						
+						self.end_date=nowaday
+						
+						#每天的绘图点
+						y=float(day_weight)
+						if y>self.MaxY:
+							self.MaxY=y
+						
+						series.append(float(x.toMSecsSinceEpoch()),y)
+
+		#如果有的话就列出来
+		if text_list!=[]:
+			#一日算作一个文本块
+			fore_date=text_list[0]["date"]
+			construct_text_list=[]
+			one_day_text=fore_date+"\n\n"
+			for i in text_list:
+				if i["date"]==fore_date:
+					one_day_text+=i["text"]+"\n\n"
+				else:
+					construct_text_list.append(one_day_text.strip())
+					fore_date=i["date"]
+					one_day_text=fore_date+"\n\n"+i["text"]+"\n\n"
+			
+			construct_text_list.append(one_day_text.strip())
+			
+			construct_text=""
+			for i in construct_text_list:
+				construct_text+=i+"\n\n"
+			
+			self.textEdit_viewer.setMarkdown(construct_text)
+		
+
+		#开始绘图
+		(chart,xaxis,yaxis)=self.create_spline_chart()
+
+		if series.count()==1:
+			#只在一天出现过的无法连成线，重置为QScatterSeries点状图类型
+			point=series.at(0)
+			x=point.x()
+			y=point.y()
+			#新建QLineSeries，并放入字典中
+			series=QtCharts.QScatterSeries()
+			series.setColor(color)
+			
+			series.setMarkerSize(10.0)#小点点的大小
+			series.setBorderColor(QColor(255,255,255))#小点点的边框颜色
+
+			series.append(x,y)
+
+		chart.addSeries(series)
+		
+		series.attachAxis(xaxis)
+		series.attachAxis(yaxis)
+
+		self.chartView_spline.setChart(chart)
+		
+
+
+	def concept_info_edited_and_save(self):
+		if self.current_select_conceptID!=None:
+			
+			self.parent.concept_data[self.current_select_conceptID]["name"]=self.lineEdit_name.text()
+			self.parent.concept_data[self.current_select_conceptID]["az"]=convert_to_az(self.parent.concept_data[self.current_select_conceptID]["name"])
+			self.parent.concept_data[self.current_select_conceptID]["detail"]=self.plainTextEdit_detail.toPlainText()
+
+			#直接全部刷新就行了
+			self.parent.diary_line_concept_list_update()
+			self.parent.concept_search_list_update()
+			
+			parent_ID=self.parent.lineEdit_id.text()
+			if parent_ID!="" and self.current_select_conceptID==int(parent_ID):
+				#更新事物界面
+				self.parent.concept_show(self.current_select_conceptID)
+
+			for tab in self.parent.custom_tabs_shown:
+				tab.tab_update()
+			return
 
 	def concept_linked_file_add(self,links):
 		"""
@@ -372,14 +633,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
 			return
 		
-		#当日路径在不在，这里不作过多限制，如果硬盘拔掉了，创建不了路径也没关系，因为要允许添加网页链接
-		if not os.path.exists(self.parent.file_saving_today_dst):
-			try:
-				os.makedirs(self.parent.file_saving_today_dst)
-			except:
-				pass
-		else:
-			pass
+		self.parent.file_library_check_direcory_exist()
 		
 		#存不存在当日文件的容器
 		try:
@@ -504,7 +758,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 
 		#链接concept与文件的信息
 
-		ID=self.current_select_ID
+		ID=self.current_select_conceptID
 
 		already_have=self.parent.concept_data[ID]["file"]
 
@@ -521,9 +775,10 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		#按照文件名排序
 		self.parent.concept_data[ID]["file"].sort(key=lambda x:x["file_name"])
 
-		if self.current_select_ID==int(self.parent.lineEdit_id.text()):
+		parent_ID=self.parent.lineEdit_id.text()
+		if parent_ID!="" and self.current_select_conceptID==int(parent_ID):
 			#更新事物界面
-			self.parent.concept_show(ID)
+			self.parent.concept_show(self.current_select_conceptID)
 		
 		self.parent.file_library_list_update()
 
@@ -532,7 +787,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 
 	def concept_linked_file_remove(self):
 		
-		ID=self.current_select_ID
+		ID=self.current_select_conceptID
 
 		dlg = QDialog(self)
 		dlg.setWindowTitle("Delete Warning")
@@ -571,9 +826,10 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 				do+=1
 
 
-			if self.current_select_ID==int(self.parent.lineEdit_id.text()):
+			parent_ID=self.parent.lineEdit_id.text()
+			if parent_ID!="" and self.current_select_conceptID==int(parent_ID):
 				#更新事物界面
-				self.parent.concept_show(ID)
+				self.parent.concept_show(self.current_select_conceptID)
 
 			for tab in self.parent.custom_tabs_shown:
 				tab.tab_update()
@@ -627,40 +883,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 					# 	return
 
 
-	def update_file_list_and_show_parent_concept(self):
-		
-		self.listWidget_file_root.setEnabled(1)
-		self.listWidget_file_leafs.setEnabled(1)
-		
-		self.update_file_list()
-		
-		#出去显示concept内容
-		self.clicked.emit(self.current_select_ID)
-
-	
-	def tab_update(self):
-		
-		#先检测tree节点的expand属性
-		current_root=self.treeWidget.invisibleRootItem()
-		self.tree_expand={}
-		try:
-			self.deep_check_expand(self.tab_selection_depth,current_root)
-		except:
-			pass
-		
-		self.treeWidget.clear()
-
-		root_concept=self.parent.concept_data[self.tab_selection_id]
-		new_root=QTreeWidgetItem([str(root_concept["id"])+"|"+root_concept["name"]])
-		self.treeWidget.addTopLevelItem(new_root)
-		self.deep_build_tree(self.tab_selection_depth,root_concept,new_root)
-		
-		try:
-			self.update_file_list()
-		except:
-			pass
-
-	def deep_check_expand(self,depth,current_root):
+	def tree_deep_check_expand(self,depth,current_root):
 		if depth==0:
 			return
 		depth-=1
@@ -672,11 +895,9 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			if child.childCount()!=0:
 				#key是str类型的id,value是isExpanded
 				self.tree_expand[child.text(0).split("|")[0]]=child.isExpanded()
-				self.deep_check_expand(depth,child)
+				self.tree_deep_check_expand(depth,child)
 
-		
-
-	def deep_build_tree(self,depth,root_concept,current_root):
+	def tree_deep_duild(self,depth,root_concept,current_root):
 		if depth==0 or root_concept["child"]==[]:
 			return
 		depth-=1
@@ -684,93 +905,60 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		for concept_id in root_concept["child"]:
 			leaf_concept=self.parent.concept_data[concept_id]
 			current_leaf=QTreeWidgetItem(current_root,[str(leaf_concept["id"])+"|"+leaf_concept["name"]])
-			self.deep_build_tree(depth,leaf_concept,current_leaf)
+			self.tree_deep_duild(depth,leaf_concept,current_leaf)
 		
 		try:
 			current_root.setExpanded(self.tree_expand[str(root_concept["id"])])
 		except:
 			pass
 
-	def deep_add_leafs_file(self,depth,ID):
-		
-		if depth==0:
-			return
-		depth-=1
-
-		item=self.parent.concept_data[ID]
-		for file in item["file"]:
-			y=file["y"]
-			m=file["m"]
-			d=file["d"]
-			file_name=file["file_name"]
-
-			#如果是link
-			if "|" in file_name:
-				#link的tooltip没有直接设置成url网址
-				#考虑到几个file listwidget间的拖动操作需要判断link是否已经在file_data中存在，所以需要附带ymd信息
-				#这样损失了直接往浏览器拖动打开网页的功能，但双击、回车打开就行了
-				file_url=self.parent.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
-				# ">Google|http://www.google.com"
-				file_name=file_name[:file_name.rfind("|")][1:]
-			else:
-				file_url=self.parent.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
-			
-			temp=QListWidgetItem()
-			temp.setText(file_name)
-			temp.setIcon(QIcon(file["file_icon"]))
-			temp.setToolTip(file_url)
-			
-			self.listWidget_file_leafs.addItem(temp)
-		
-		for child_ID in self.parent.concept_data[ID]["child"]:
-			
-			self.deep_add_leafs_file(depth,child_ID)
 
 	def update_file_list(self):
-		try:
-			self.current_select_ID=int(self.treeWidget.currentItem().text(0).split("|")[0])
-		except:
-			pass
-		item=self.parent.concept_data[self.current_select_ID]
+		
+		def generate_file_tree_item_list(concept_id):
+			tree_item_list=[]
+
+			item=self.parent.concept_data[concept_id]
+			for file in item["file"]:
+				y=file["y"]
+				m=file["m"]
+				d=file["d"]
+				file_name=file["file_name"]
+
+				#如果是link
+				if "|" in file_name:
+					#link的tooltip没有直接设置成url网址
+					#考虑到几个file listwidget间的拖动操作需要判断link是否已经在file_data中存在，所以需要附带ymd信息
+					#这样损失了直接往浏览器拖动打开网页的功能，但双击、回车打开就行了
+					file_url=self.parent.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
+					# ">Google|http://www.google.com"
+					file_name=file_name[:file_name.rfind("|")][1:]
+				else:
+					file_url=self.parent.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
+				
+				temp=QListWidgetItem()
+				temp.setText(file_name)
+				temp.setIcon(QIcon(file["file_icon"]))
+				temp.setToolTip(file_url)
+
+				tree_item_list.append(temp)
+			
+			return tree_item_list
+
 
 		#本层的文件
 		self.listWidget_file_root.clear()
-		for file in item["file"]:
-			y=file["y"]
-			m=file["m"]
-			d=file["d"]
-			file_name=file["file_name"]
+		root_file_tree_item_list=generate_file_tree_item_list(self.current_select_conceptID)
+		for tree_item in root_file_tree_item_list:
+			self.listWidget_file_root.addItem(tree_item)
 
-			#如果是link
-			if "|" in file_name:
-				#link的tooltip没有直接设置成url网址
-				#考虑到几个file listwidget间的拖动操作需要判断link是否已经在file_data中存在，所以需要附带ymd信息
-				#这样损失了直接往浏览器拖动打开网页的功能，但双击、回车打开就行了
-				file_url=self.parent.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
-				# ">Google|http://www.google.com"
-				file_name=file_name[:file_name.rfind("|")][1:]
-			else:
-				file_url=self.parent.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
-				
-			temp=QListWidgetItem()
-			temp.setText(file_name)
-			temp.setIcon(QIcon(file["file_icon"]))
-			temp.setToolTip(file_url)
-
-			self.listWidget_file_root.addItem(temp)
-
-		#计算深入到叶子中的深度
-		depth=self.tab_selection_depth+1
-		leaf=self.treeWidget.currentItem()
-		while leaf!=None:
-			leaf=leaf.parent()
-			depth-=1
+		
 		
 		#本层之下的所有child里的文件
-
 		self.listWidget_file_leafs.clear()
-		for child_ID in self.parent.concept_data[self.current_select_ID]["child"]:
-			self.deep_add_leafs_file(depth,child_ID)
+		for concept_id in self.current_leaf_conceptID_list:
+			for tree_item in generate_file_tree_item_list(concept_id):
+				self.listWidget_file_leafs.addItem(tree_item)
 
 
 	def root_file_open(self):
@@ -804,7 +992,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		clicked_file_name=clicked_file_link.split("/")[-1]
 		if which_file_type(clicked_file_name)=="image" and self.listWidget_file_root.ctrl_pressed==True:
 
-			ID=int(self.parent.lineEdit_id.text())
+			ID=self.current_select_conceptID
 
 			pic_list=[]
 
@@ -891,6 +1079,67 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 				e=str(e).split(":",1)
 				QMessageBox.critical(self,"Critical Error","%s\n%s\n请手动设置该类型文件的默认启动应用！"%(e[0],e[1]))
 
+
+	
+
+	def clear_view(self):
+		self.MaxY=0#最大的y坐标（一天内最多的concept的数量的最大值
+		self.chartView_spline.setChart(self.create_spline_chart()[0])
+	
+	def create_spline_chart(self):
+		#初始化chart
+		chart = QtCharts.QChart()
+		# chart.setTitle("Spline chart")
+		chart.legend().setAlignment(Qt.AlignLeft)
+		chart.setTheme(QtCharts.QChart.ChartThemeDark)
+		
+		#填充的时候把边框去掉
+		chart.layout().setContentsMargins(0, 0, 0, 0);
+		chart.setBackgroundRoundness(0);
+		
+		# 动画虽然很modern，但拖动的时候有延迟，那就算了吧
+		# chart.setAnimationOptions(QtCharts.QChart.SeriesAnimations)
+		# chart.setAnimationDuration(100)
+
+		# self.chartView.setRubberBand(MyChartView.HorizontalRubberBand)
+
+		#QDateTimeAxis类型的横坐标
+		xaxis=QtCharts.QDateTimeAxis()
+		xaxis.setRange(QDateTime(self.begin_date).addDays(-1),QDateTime(self.end_date).addDays(1))
+		xaxis.setFormat("yyyy.MM.dd")
+		xaxis.setLabelsAngle(60)
+		try:
+			#轴得有个上限，不然缩小了卡死你
+			n=self.begin_date.daysTo(self.end_date)
+			if n>self.chartView_spline.xmax_TickCount:
+				n=self.chartView_spline.xmax_TickCount
+			else:
+				n+=1
+			xaxis.setTickCount(n)
+		except:
+			pass
+		
+		
+		#QValueAxis类型的纵坐标
+		yaxis=QtCharts.QValueAxis()
+		yaxis.setRange(0,self.MaxY*1.1)
+		yaxis.setLabelFormat("%i")
+		try:
+			#轴得有个上限，不然缩小了卡死你
+			n=int(yaxis.max())-int(yaxis.min())
+			if n>self.chartView_spline.ymax_TickCount:
+				n=self.chartView_spline.ymax_TickCount
+			else:
+				n+=1
+			yaxis.setTickCount(n)
+		except:
+			pass
+
+		#放入坐标轴
+		chart.addAxis(xaxis,Qt.AlignBottom)
+		chart.addAxis(yaxis,Qt.AlignLeft)
+
+		return (chart,xaxis,yaxis)
 
 class SettingDialog(QDialog,Ui_setting_dialog):
 	def __init__(self,file_saving_base,font,font_size,pixiv_cookie,instagram_cookie):
@@ -1690,6 +1939,8 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 		# chart.setTitle("Spline chart")
 		chart.legend().setAlignment(Qt.AlignLeft)
 		chart.setTheme(QtCharts.QChart.ChartThemeDark)
+		
+		#填充的时候把边框去掉
 		chart.layout().setContentsMargins(0, 0, 0, 0);
 		chart.setBackgroundRoundness(0);
 		
@@ -1718,7 +1969,7 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 		
 		#QValueAxis类型的纵坐标
 		yaxis=QtCharts.QValueAxis()
-		yaxis.setRange(0,self.MaxY+0.5)
+		yaxis.setRange(0,self.MaxY*1.1)
 		yaxis.setLabelFormat("%i")
 		try:
 			#轴得有个上限，不然缩小了卡死你
@@ -1743,6 +1994,8 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 		# chart.setTitle("Pie chart")
 		chart.legend().setAlignment(Qt.AlignLeft)
 		chart.setTheme(QtCharts.QChart.ChartThemeDark)
+		
+		#填充的时候把边框去掉
 		chart.layout().setContentsMargins(0, 0, 0, 0);
 		chart.setBackgroundRoundness(0);
 		
@@ -1843,11 +2096,11 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 				d=date.day()
 				
 				#如果点到了有concept的日期，那只显示那一天的diary text，
-				self.show_concept_related_text(concept_id,y,m,d)
+				self.concept_related_text_show(concept_id,y,m,d)
 				break
 		else:
 			#如果点到不存在concept的日期上，展示该concept所有的diary text
-			self.show_concept_related_text(concept_id)
+			self.concept_related_text_show(concept_id)
 	
 	
 	def listitem_cliced(self):
@@ -1856,7 +2109,7 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 
 		#展示对应concept的diary text
 		concept_id=self.all_conceptID_to_times_list[index]
-		self.show_concept_related_text(concept_id)
+		self.concept_related_text_show(concept_id)
 
 		###################################################################################################
 		
@@ -1887,7 +2140,7 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 		self.chartView_spline.setChart(chart)
 
 
-	def show_concept_related_text(self,concept_id,y=0,m=0,d=0):
+	def concept_related_text_show(self,concept_id,y=0,m=0,d=0):
 		
 		week_dict=["星期一","星期二","星期三","星期四","星期五","星期六","星期日"]
 		text_list=[]
@@ -1977,7 +2230,7 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 
 	def start_analyze(self):
 		
-		def run_statistics(all_conceptID_to_times_dict,all_conceptID_to_days_dict):
+		def run_statistics(all_conceptID_to_times_dict):
 
 			nowaday=self.begin_date
 			#QDate操作真方便！
@@ -2026,6 +2279,8 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 								pen = series.pen()
 								pen.setWidth(2)
 								series.setPen(pen)
+
+								series.setPointsVisible(True)
 								
 								# 链接点击线的函数
 								# 这里用lambda不知道为什么就是不行，指针都指向了最后一个，换了partial就行了……
@@ -2052,20 +2307,15 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 						if y>self.MaxY:
 							self.MaxY=y
 						series.append(float(x.toMSecsSinceEpoch()),y)
-
-						if all_conceptID_to_days_dict.get(concept_id)==None:
-							all_conceptID_to_days_dict[concept_id]=1
-						else:
-							all_conceptID_to_days_dict[concept_id]+=1
-							
-						
+					
+					
 				except:
 					# 可能某一天没有日记，就找不到day_index，索引失败
 					pass
 				
 				nowaday=nowaday.addDays(1)
 
-			return (all_conceptID_to_times_dict,all_conceptID_to_days_dict)
+			return all_conceptID_to_times_dict
 		
 		def draw_spline_chart():
 
@@ -2076,15 +2326,18 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 			
 			#把series放入chart，并关联上坐标轴
 			for concept_id in self.all_conceptID_to_times_list:
-				
+
+				series=self.all_concept_to_spline_series_dict[concept_id]
+
 				#过滤掉低于self.threshold的concept
-				if all_conceptID_to_days_dict[concept_id]<=self.threshold:
+				if series.count()<=self.threshold:
 					self.all_concept_to_spline_series_dict.pop(concept_id)
 					all_conceptID_to_times_dict.pop(concept_id)
+					continue
 				
 				else:
 					#只在一天出现过的无法连成线，重置为QScatterSeries点状图类型
-					if all_conceptID_to_days_dict[concept_id]==1:
+					if series.count()==1:
 						
 						point=self.all_concept_to_spline_series_dict[concept_id].at(0)
 						x=point.x()
@@ -2110,10 +2363,8 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 
 						#最后放到series字典中
 						self.all_concept_to_spline_series_dict[concept_id]=series
-					else:
-						series=self.all_concept_to_spline_series_dict[concept_id]
 					
-					series.setPointsVisible(True)
+					
 
 					chart.addSeries(series)
 					
@@ -2139,8 +2390,10 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 			
 			for concept_id in self.all_conceptID_to_times_list:
 				
+				series=self.all_concept_to_spline_series_dict[concept_id]
+
 				#过滤掉低于self.threshold的concept
-				if all_conceptID_to_days_dict[concept_id]>self.threshold:
+				if series.count()>self.threshold:
 					concept_name=self.parent.concept_data[concept_id]["name"]
 					concept_times=all_conceptID_to_times_dict[concept_id]
 
@@ -2178,13 +2431,12 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 		# 初始化容器
 		self.all_concept_to_spline_series_dict={}
 		all_conceptID_to_times_dict={}#临时记录每个concept对应的次数，用于最后排序成concept列表，以及绘画PieChart
-		all_conceptID_to_days_dict={}#临时记录每个concept对应的出现的天数，用于最后筛选那些只出现过一次，无法连成线，需要转换为点状图的东西
 
 		
 		self.MaxY=0#最大的y坐标（一天内最多的concept的数量的最大值
 		
 		#开始统计每日的concept
-		(all_conceptID_to_times_dict,all_conceptID_to_days_dict)=run_statistics(all_conceptID_to_times_dict,all_conceptID_to_days_dict)
+		all_conceptID_to_times_dict=run_statistics(all_conceptID_to_times_dict)
 		
 		#统计完毕
 		#开始绘图

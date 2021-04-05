@@ -157,6 +157,7 @@ class MyChartView(QtCharts.QChartView):
 
 
 class MyTreeWidget(QTreeWidget):
+	"RSS Tree用了这个"
 	dropped=Signal()
 	def __init__(self, parent):
 		super(MyTreeWidget, self).__init__(parent)
@@ -164,30 +165,6 @@ class MyTreeWidget(QTreeWidget):
 	def dropEvent(self,event):
 		super(MyTreeWidget,self).dropEvent(event)
 		self.dropped.emit()
-
-
-# class WebEnginePage(QWebEnginePage):
-# 	def javaScriptConsoleMessage(self, level, msg, line, sourceID):
-# 		#重塑这个函数让它不要打印那么多js错误信息出来
-# 		pass
-
-# class MyWebBrowser(QWebEngineView):
-# 	def __init__(self, parent):
-# 		super(MyWebBrowser, self).__init__(parent)
-# 		self.setMinimumWidth(200)
-# 		###不知道为什么，如果这里不加一句load，打开部分网页就会立刻崩溃
-# 		self.load(QUrl("https://www.youtube.com/watch?v=RR0cDQalhus"))
-		
-# 		#但所幸这里重置了page，上面的网页也就不会显示出来
-# 		page=WebEnginePage(self)
-# 		self.setPage(page)
-		
-	
-	# def goto(self,url):
-	# 	print("qweqwe")
-		
-	# 	# self.load(url)
-	# 	# self.setUrl(url)
 
 class MyLineEditList(QListWidget):
 	#diary的文本块拖动得特殊定制！
@@ -213,9 +190,6 @@ class MyLineEditList(QListWidget):
 		super(MyLineEditList,self).focusOutEvent(event)
 		self.setDragEnabled(0)
 		self.setAcceptDrops(0)
-
-
-
 
 class MyPlainTextEdit(QPlainTextEdit):
 	"""
@@ -250,9 +224,6 @@ class MyPlainTextEdit(QPlainTextEdit):
 	def setHtml(self, html):
 		QtGui.QPlainTextEdit.setHtml(self, html)
 		self._changed = False
-
-
-
 
 
 class MyTabFileLeafList(QListWidget):
@@ -299,8 +270,6 @@ class MyTabFileLeafList(QListWidget):
 			self.ctrl_pressed=False
 		if event.key()==Qt.Key_Alt:
 			self.alt_pressed=False
-
-
 
 
 class MyConceptLinkedFileList(QListWidget):
@@ -543,7 +512,13 @@ class MyImageViewer(QMainWindow):
 			if self.index<self.maxlen-1:
 				self.index+=1
 				self.set_pic(self.pic_list[self.index])
-			
+
+
+
+
+
+
+
 
 ###############################################################################################
 ###############################################################################################
@@ -551,6 +526,30 @@ class MyImageViewer(QMainWindow):
 ###############################################################################################
 ###############################################################################################
 ###############################################################################################
+
+# class WebEnginePage(QWebEnginePage):
+# 	def javaScriptConsoleMessage(self, level, msg, line, sourceID):
+# 		#重塑这个函数让它不要打印那么多js错误信息出来
+# 		pass
+
+# class MyWebBrowser(QWebEngineView):
+
+# 	def __init__(self, parent):
+# 		super(MyWebBrowser, self).__init__(parent)
+# 		self.setMinimumWidth(200)
+# 		
+# 		self.load(QUrl("https://www.youtube.com/watch?v=RR0cDQalhus"))
+		
+# 		#但所幸这里重置了page，上面的网页也就不会显示出来
+# 		page=WebEnginePage(self)
+# 		self.setPage(page)
+		
+	
+# 	def goto(self,url):
+# 		print("qweqwe")
+		
+# 		# self.load(url)
+# 		# self.setUrl(url)
 
 # class MyTextLinkedFileList(QListWidget):
 # 	def __init__(self,parent):

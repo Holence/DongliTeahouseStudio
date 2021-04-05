@@ -252,9 +252,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					#新建一个tab，调用自定义的MyTabWidget
 					tab=MyTabWidget(self,custom_tab[1],custom_tab[2])
 
-					#这里的tab应该算是一个指针，可以在这里链上一些槽
-					#点击内部的leaf，回传到这里，去显示concept
-					tab.clicked.connect(lambda ID:self.concept_show(ID))
+					####
+						#tab页有自己的concept编辑区啦
+						#这里的tab应该算是一个指针，可以在这里链上一些槽
+						#点击内部的leaf，回传到这里，去显示concept
+						# tab.clicked.connect(lambda ID:self.concept_show(ID))
 					
 					#一开始不让操作
 					tab.listWidget_file_root.setEnabled(0)
@@ -381,12 +383,18 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 		#初始化diary、concept、file、rss的data
 		if self.data_validity_check()==1:
-			
 			self.data_load()
-
+			
+			#####################################################################################################################
+			
 			self.concept_search_list_update()
 
+			#####################################################################################################################
+			
 			self.diary_show(QDate_transform(self.calendarWidget.selectedDate()))
+
+			#####################################################################################################################
+			
 
 			ymd=time.localtime(time.time())
 			self.y=ymd[0]
@@ -396,6 +404,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.y)+"/"+str(self.m)+"/"+str(self.d)
 			self.searching_file=[]
 			self.file_library_list_update()
+			
+			self.file_saving_today_dst_exist=False
+			self.file_saving_today_dst_exist_check()
+
+			#####################################################################################################################
 
 			self.current_rss_showing=None#如果点开的是rss，那么放的是rss_url；如果点开的是folder，那么存所有文章结构体的列表，
 			self.browser=QWebEngineView()
@@ -410,7 +423,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		else:
 			exit()
 		
-
 		# 初始化窗体
 		self.initialize_window()
 
@@ -812,14 +824,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
 			return
 		
-		#当日路径在不在，这里不作过多限制，如果硬盘拔掉了，创建不了路径也没关系，因为要允许添加网页链接
-		if not os.path.exists(self.file_saving_today_dst):
-			try:
-				os.makedirs(self.file_saving_today_dst)
-			except:
-				pass
-		else:
-			pass
+		self.file_saving_today_dst_exist_check()
 		
 		#存不存在当日文件的容器
 		try:
@@ -1214,8 +1219,20 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		for tab in self.custom_tabs_shown:
 			tab.tab_update()
 
-
-
+	def file_saving_today_dst_exist_check(self):
+		#这个判断是为了不要每次都去侦测硬盘路径，如果打开程序后侦测过一次后，就不要侦测第二次了
+		#如果只是添加网页link的话没必要侦测硬盘，机械硬盘从休眠到启动很慢的
+		if self.file_saving_today_dst_exist==False:
+			
+			#当日路径在不在，这里不作过多限制，如果硬盘拔掉了，创建不了路径也没关系，因为要允许添加网页链接
+			if not os.path.exists(self.file_saving_today_dst):
+				try:
+					os.makedirs(self.file_saving_today_dst)
+					self.file_saving_today_dst_exist=True
+				except:
+					#创建不了就算了，那就只能添加网页link了，想添加文件的话会报错的
+					pass
+			
 
 
 
@@ -2538,9 +2555,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				#新建一个tab，调用自定义的MyTabWidget
 				tab=MyTabWidget(self,tab_selection_id,tab_selection_depth)
 
-				#这里的tab应该算是一个指针，可以在这里链上一些槽
-				#点击内部的leaf，回传到这里，去显示concept
-				tab.clicked.connect(lambda ID:self.concept_show(ID))
+				####
+					#tab页有自己的concept编辑区啦
+					#这里的tab应该算是一个指针，可以在这里链上一些槽
+					#点击内部的leaf，回传到这里，去显示concept
+					# tab.clicked.connect(lambda ID:self.concept_show(ID))
 
 				#一开始不让操作
 				tab.listWidget_file_root.setEnabled(0)
@@ -2593,9 +2612,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		#新建一个tab，调用自定义的MyTabWidget
 		tab=MyTabWidget(self,self.custom_tab_data[index][1],self.custom_tab_data[index][2])
 
-		#这里的tab应该算是一个指针，可以在这里链上一些槽
-		#点击内部的leaf，回传到这里，去显示concept
-		tab.clicked.connect(lambda ID:self.concept_show(ID))
+		####
+			#tab页有自己的concept编辑区啦
+			#这里的tab应该算是一个指针，可以在这里链上一些槽
+			#点击内部的leaf，回传到这里，去显示concept
+			# tab.clicked.connect(lambda ID:self.concept_show(ID))
 
 		self.tabWidget.addTab(tab,QIcon(":/icon/trello.svg"),self.custom_tab_data[index][0])
 		self.tabWidget.setCurrentIndex(self.tabWidget.indexOf(tab))
@@ -3208,8 +3229,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			self.concept_data[ID]["az"]=convert_to_az(self.concept_data[ID]["name"])
 			self.concept_data[ID]["detail"]=self.plainTextEdit_detail.toPlainText()
 
-			#如果当前的文本块或者当日的text中链接的concept中有正在编辑的，那就更新一下
-			#所以不用费劲判断current行或者每一行有没有修改中的ID
 			#直接全部刷新就行了
 			self.diary_line_concept_list_update()
 			self.concept_search_list_update()
@@ -3520,8 +3539,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			self.listWidget_concept_linked_file.addItem(temp)
 		
 
-		week_dict=["星期一","星期二","星期三","星期四","星期五","星期六","星期日"]
 		#找一找Concept related text
+		week_dict=["星期一","星期二","星期三","星期四","星期五","星期六","星期日"]
 		self.listWidget_concept_related_text.clear()
 		text_list=[]
 		for year_index in range(1970-1970,2170-1970):
@@ -4342,14 +4361,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
 			return
 		
-		#当日路径在不在，这里不作过多限制，如果硬盘拔掉了，创建不了路径也没关系，因为要允许添加网页链接
-		if not os.path.exists(self.file_saving_today_dst):
-			try:
-				os.makedirs(self.file_saving_today_dst)
-			except:
-				pass
-		else:
-			pass
+		
+		self.file_saving_today_dst_exist_check()
 		
 		#存不存在当日文件的容器
 		try:
@@ -4753,14 +4766,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
 			return
 		
-		#当日路径在不在，这里不作过多限制，如果硬盘拔掉了，创建不了路径也没关系，因为要允许添加网页链接
-		if not os.path.exists(self.file_saving_today_dst):
-			try:
-				os.makedirs(self.file_saving_today_dst)
-			except:
-				pass
-		else:
-			pass
+		self.file_saving_today_dst_exist_check()
 		
 		#存不存在当日文件的容器
 		try:
