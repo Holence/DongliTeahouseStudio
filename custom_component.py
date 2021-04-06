@@ -620,7 +620,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 							self.series.append(float(x.toMSecsSinceEpoch()),y)
 		
 		else:
-			
+
 			day_in_week=QDate(y,m,d).dayOfWeek()-1
 			
 			year_index=y-1970
@@ -709,11 +709,6 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		pen.setWidth(2)
 		self.series.setPen(pen)
 
-		self.series.setPointsVisible(True)
-		
-		self.series.hovered.connect(self.spline_hovered)
-		self.series.clicked.connect(self.spline_clicked)
-
 		#列出self.current_select_conceptID以及它下层所有concept的related text
 		self.textEdit_viewer.clear()
 		self.concept_related_text_show(plot=True)
@@ -735,6 +730,11 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			self.series.setBorderColor(QColor(255,255,255))#小点点的边框颜色
 
 			self.series.append(x,y)
+
+		self.series.setPointsVisible(True)
+		
+		self.series.hovered.connect(self.spline_hovered)
+		self.series.clicked.connect(self.spline_clicked)
 
 		chart.addSeries(self.series)
 		
@@ -1253,7 +1253,13 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 
 		#QDateTimeAxis类型的横坐标
 		xaxis=QtCharts.QDateTimeAxis()
-		xaxis.setRange(QDateTime(self.begin_date),QDateTime(self.end_date))
+
+		#这里如果是只有一天的话，self.begin_date==self.end_date，设置range会出错，就不显示图像了……
+		if self.begin_date==self.end_date:
+			xaxis.setRange(QDateTime(self.begin_date).addDays(-1),QDateTime(self.end_date).addDays(1))
+		else:
+			xaxis.setRange(QDateTime(self.begin_date),QDateTime(self.end_date))
+		
 		xaxis.setFormat("yyyy.MM.dd")
 		xaxis.setLabelsAngle(60)
 		try:
