@@ -15,7 +15,7 @@ class MyChartView(QtCharts.QChartView):
 		self.__ctrl_pressed=False#crtl滚轮水平缩放
 		self.__shift_pressed=False#shift滚轮左右移动
 		self.__alt_pressed=False#alt拖动图像不移动，这是为了拖动legend列表
-		self.xmax_TickCount=15
+		self.xmax_TickCount=6
 		self.ymax_TickCount=6
 		self.scroll_step=50
 

@@ -12,12 +12,16 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+import resource_rc
 
 class Ui_diary_analyze_dialog(object):
     def setupUi(self, diary_analyze_dialog):
         if not diary_analyze_dialog.objectName():
             diary_analyze_dialog.setObjectName(u"diary_analyze_dialog")
-        diary_analyze_dialog.resize(1172, 948)
+        diary_analyze_dialog.resize(983, 719)
+        icon = QIcon()
+        icon.addFile(u":/icon/holoico.ico", QSize(), QIcon.Normal, QIcon.Off)
+        diary_analyze_dialog.setWindowIcon(icon)
         self.verticalLayout_2 = QVBoxLayout(diary_analyze_dialog)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.splitter_whole = QSplitter(diary_analyze_dialog)
@@ -52,15 +56,6 @@ class Ui_diary_analyze_dialog(object):
 
         self.gridLayout.addWidget(self.dateEdit_end, 1, 3, 1, 1)
 
-        self.comboBox = QComboBox(self.layoutWidget)
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
-        self.comboBox.setObjectName(u"comboBox")
-
-        self.gridLayout.addWidget(self.comboBox, 0, 0, 1, 1)
-
         self.label_3 = QLabel(self.layoutWidget)
         self.label_3.setObjectName(u"label_3")
 
@@ -76,11 +71,6 @@ class Ui_diary_analyze_dialog(object):
 
         self.gridLayout.addWidget(self.label, 0, 2, 1, 1)
 
-        self.pushButton_analyze = QPushButton(self.layoutWidget)
-        self.pushButton_analyze.setObjectName(u"pushButton_analyze")
-
-        self.gridLayout.addWidget(self.pushButton_analyze, 1, 0, 1, 1)
-
         self.pushButton_restore = QPushButton(self.layoutWidget)
         self.pushButton_restore.setObjectName(u"pushButton_restore")
 
@@ -90,6 +80,11 @@ class Ui_diary_analyze_dialog(object):
         self.pushButton_clear.setObjectName(u"pushButton_clear")
 
         self.gridLayout.addWidget(self.pushButton_clear, 0, 1, 1, 1)
+
+        self.pushButton_analyze = QPushButton(self.layoutWidget)
+        self.pushButton_analyze.setObjectName(u"pushButton_analyze")
+
+        self.gridLayout.addWidget(self.pushButton_analyze, 0, 0, 1, 1)
 
         self.gridLayout.setColumnStretch(0, 1)
         self.gridLayout.setColumnStretch(1, 1)
@@ -127,17 +122,12 @@ class Ui_diary_analyze_dialog(object):
 
     def retranslateUi(self, diary_analyze_dialog):
         diary_analyze_dialog.setWindowTitle(QCoreApplication.translate("diary_analyze_dialog", u"Analyze Diary Text", None))
-        self.comboBox.setItemText(0, QCoreApplication.translate("diary_analyze_dialog", u"Custome", None))
-        self.comboBox.setItemText(1, QCoreApplication.translate("diary_analyze_dialog", u"Week", None))
-        self.comboBox.setItemText(2, QCoreApplication.translate("diary_analyze_dialog", u"Month", None))
-        self.comboBox.setItemText(3, QCoreApplication.translate("diary_analyze_dialog", u"Year", None))
-
         self.label_3.setText(QCoreApplication.translate("diary_analyze_dialog", u"Threshold", None))
         self.label_2.setText(QCoreApplication.translate("diary_analyze_dialog", u"To", None))
         self.label.setText(QCoreApplication.translate("diary_analyze_dialog", u"From", None))
-        self.pushButton_analyze.setText(QCoreApplication.translate("diary_analyze_dialog", u"Analyze", None))
         self.pushButton_restore.setText(QCoreApplication.translate("diary_analyze_dialog", u"Restore", None))
         self.pushButton_clear.setText(QCoreApplication.translate("diary_analyze_dialog", u"Clear", None))
+        self.pushButton_analyze.setText(QCoreApplication.translate("diary_analyze_dialog", u"Analyze", None))
         self.textEdit_viewer.setHtml(QCoreApplication.translate("diary_analyze_dialog", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"

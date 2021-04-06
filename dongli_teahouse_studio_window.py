@@ -23,7 +23,7 @@ class Ui_dongli_teahouse_studio_window(object):
     def setupUi(self, dongli_teahouse_studio_window):
         if not dongli_teahouse_studio_window.objectName():
             dongli_teahouse_studio_window.setObjectName(u"dongli_teahouse_studio_window")
-        dongli_teahouse_studio_window.resize(1219, 943)
+        dongli_teahouse_studio_window.resize(1127, 941)
         icon = QIcon()
         icon.addFile(u":/icon/holoico.ico", QSize(), QIcon.Normal, QIcon.Off)
         dongli_teahouse_studio_window.setWindowIcon(icon)
@@ -192,7 +192,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.tabWidget.setIconSize(QSize(16, 16))
         self.tabWidget.setDocumentMode(False)
         self.tabWidget.setTabsClosable(False)
-        self.tabWidget.setMovable(False)
+        self.tabWidget.setMovable(True)
         self.tabWidget.setTabBarAutoHide(False)
         self.tabWidgetPage_home = QWidget()
         self.tabWidgetPage_home.setObjectName(u"tabWidgetPage_home")
@@ -280,6 +280,11 @@ class Ui_dongli_teahouse_studio_window(object):
         icon27 = QIcon()
         icon27.addFile(u":/icon/book-open.svg", QSize(), QIcon.Normal, QIcon.Off)
         self.tabWidget.addTab(self.tabWidgetPage_text, icon27, "")
+        self.tabWidgetPage_zen = QWidget()
+        self.tabWidgetPage_zen.setObjectName(u"tabWidgetPage_zen")
+        icon28 = QIcon()
+        icon28.addFile(u":/icon/moon.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.tabWidget.addTab(self.tabWidgetPage_zen, icon28, "")
 
         self.verticalLayout_8.addWidget(self.tabWidget)
 
@@ -360,9 +365,9 @@ class Ui_dongli_teahouse_studio_window(object):
 
         self.horizontalLayout_8.addWidget(self.listWidget_text_related_concept)
 
-        icon28 = QIcon()
-        icon28.addFile(u":/icon/bookmark.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.toolBox_text.addItem(self.page_text_related_concept, icon28, u"Text Related Concept")
+        icon29 = QIcon()
+        icon29.addFile(u":/icon/bookmark.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.toolBox_text.addItem(self.page_text_related_concept, icon29, u"Text Related Concept")
         self.page_text_linked_file = QWidget()
         self.page_text_linked_file.setObjectName(u"page_text_linked_file")
         self.page_text_linked_file.setGeometry(QRect(0, 0, 274, 158))
@@ -389,9 +394,9 @@ class Ui_dongli_teahouse_studio_window(object):
 
         self.horizontalLayout_7.addWidget(self.listWidget_text_linked_file)
 
-        icon29 = QIcon()
-        icon29.addFile(u":/icon/file.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.toolBox_text.addItem(self.page_text_linked_file, icon29, u"Text Linked File")
+        icon30 = QIcon()
+        icon30.addFile(u":/icon/file.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.toolBox_text.addItem(self.page_text_linked_file, icon30, u"Text Linked File")
         self.splitter_text.addWidget(self.toolBox_text)
 
         self.verticalLayout_1.addWidget(self.splitter_text)
@@ -582,9 +587,9 @@ class Ui_dongli_teahouse_studio_window(object):
 
         self.horizontalLayout_9.addWidget(self.listWidget_concept_related_text)
 
-        icon30 = QIcon()
-        icon30.addFile(u":/icon/file-text.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.toolBox_concept.addItem(self.page_concept_related_text, icon30, u"Concept Related Text")
+        icon31 = QIcon()
+        icon31.addFile(u":/icon/file-text.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.toolBox_concept.addItem(self.page_concept_related_text, icon31, u"Concept Related Text")
         self.page_concept_linked_file = QWidget()
         self.page_concept_linked_file.setObjectName(u"page_concept_linked_file")
         self.page_concept_linked_file.setGeometry(QRect(0, 0, 298, 88))
@@ -604,7 +609,7 @@ class Ui_dongli_teahouse_studio_window(object):
 
         self.horizontalLayout_10.addWidget(self.listWidget_concept_linked_file)
 
-        self.toolBox_concept.addItem(self.page_concept_linked_file, icon29, u"Concept Linked File")
+        self.toolBox_concept.addItem(self.page_concept_linked_file, icon30, u"Concept Linked File")
         self.splitter_concept.addWidget(self.toolBox_concept)
 
         self.verticalLayout_4.addWidget(self.splitter_concept)
@@ -683,7 +688,7 @@ class Ui_dongli_teahouse_studio_window(object):
         dongli_teahouse_studio_window.addDockWidget(Qt.TopDockWidgetArea, self.dockWidget_library)
         self.menubar = QMenuBar(dongli_teahouse_studio_window)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1219, 22))
+        self.menubar.setGeometry(QRect(0, 0, 1127, 22))
         self.menuView = QMenu(self.menubar)
         self.menuView.setObjectName(u"menuView")
         self.menuFile = QMenu(self.menubar)
@@ -698,14 +703,14 @@ class Ui_dongli_teahouse_studio_window(object):
         self.menuTool.setIcon(icon27)
         self.menuConcept = QMenu(self.menuEdit)
         self.menuConcept.setObjectName(u"menuConcept")
-        icon31 = QIcon()
-        icon31.addFile(u":/icon/hash.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.menuConcept.setIcon(icon31)
+        icon32 = QIcon()
+        icon32.addFile(u":/icon/hash.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.menuConcept.setIcon(icon32)
         self.menuFile_2 = QMenu(self.menuEdit)
         self.menuFile_2.setObjectName(u"menuFile_2")
-        icon32 = QIcon()
-        icon32.addFile(u":/icon/inbox.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.menuFile_2.setIcon(icon32)
+        icon33 = QIcon()
+        icon33.addFile(u":/icon/inbox.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.menuFile_2.setIcon(icon33)
         self.menuRSS = QMenu(self.menuEdit)
         self.menuRSS.setObjectName(u"menuRSS")
         self.menuRSS.setIcon(icon16)
@@ -778,7 +783,7 @@ class Ui_dongli_teahouse_studio_window(object):
 
         self.retranslateUi(dongli_teahouse_studio_window)
 
-        self.tabWidget.setCurrentIndex(2)
+        self.tabWidget.setCurrentIndex(3)
         self.toolBox_text.setCurrentIndex(0)
         self.toolBox_text.layout().setSpacing(0)
         self.toolBox_concept.setCurrentIndex(0)
@@ -922,6 +927,7 @@ class Ui_dongli_teahouse_studio_window(object):
 "</style></head><body style=\" font-family:'SimSun'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:18pt;\"><br /></p></body></html>", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage_text), QCoreApplication.translate("dongli_teahouse_studio_window", u"Text", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage_zen), QCoreApplication.translate("dongli_teahouse_studio_window", u"Zen", None))
         self.dockWidget_diary.setWindowTitle(QCoreApplication.translate("dongli_teahouse_studio_window", u"Diary", None))
         self.toolBox_text.setItemText(self.toolBox_text.indexOf(self.page_text_related_concept), QCoreApplication.translate("dongli_teahouse_studio_window", u"Text Related Concept", None))
         self.toolBox_text.setItemText(self.toolBox_text.indexOf(self.page_text_linked_file), QCoreApplication.translate("dongli_teahouse_studio_window", u"Text Linked File", None))

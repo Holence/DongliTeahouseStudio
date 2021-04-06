@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1219</width>
-    <height>943</height>
+    <width>1127</width>
+    <height>941</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,7 +31,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>3</number>
       </property>
       <property name="iconSize">
        <size>
@@ -46,7 +46,7 @@
        <bool>false</bool>
       </property>
       <property name="movable">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
       <property name="tabBarAutoHide">
        <bool>false</bool>
@@ -227,6 +227,15 @@ p, li { white-space: pre-wrap; }
          </widget>
         </item>
        </layout>
+      </widget>
+      <widget class="QWidget" name="tabWidgetPage_zen">
+       <attribute name="icon">
+        <iconset resource="resource.qrc">
+         <normaloff>:/icon/moon.svg</normaloff>:/icon/moon.svg</iconset>
+       </attribute>
+       <attribute name="title">
+        <string>Zen</string>
+       </attribute>
       </widget>
      </widget>
     </item>
@@ -1091,7 +1100,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1219</width>
+     <width>1127</width>
      <height>22</height>
     </rect>
    </property>

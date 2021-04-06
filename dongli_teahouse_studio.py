@@ -228,8 +228,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 			sticker_text=decrypt(self.user_settings.value("sticker"))
 			self.plainTextEdit_sticker.setPlainText(sticker_text)
-					
-			
+						
 			
 			# settings_list=self.user_settings.allKeys()
 			# print(settings_list)
@@ -313,6 +312,17 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			pass
 		
 		self.data_save()
+
+		#保存界面设置
+		self.user_settings.setValue("geometry",self.saveGeometry())
+		self.user_settings.setValue("windowState",self.saveState())
+		self.user_settings.setValue("size",self.size())
+		self.user_settings.setValue("pos",self.pos())
+
+		self.user_settings.setValue("splitter_rss",self.splitter_rss.saveState())
+
+		#自动保存tab data
+		self.user_settings.setValue("custom_tab_data",encrypt(self.custom_tab_data))
 
 		####
 			#全部自动保存
@@ -2760,7 +2770,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 	############################################################################
 
 	def about(self):
-		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 0.1.9.1\nAuthor: 鍵山狐\nContact: Holence08@gmail.com")
+		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 0.1.9.2\nAuthor: 鍵山狐\nContact: Holence08@gmail.com")
 
 
 
@@ -3198,18 +3208,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		#自动保存RSS data
 		encrypt_save(self.rss_data,"RSS_Data.dlcw")
 		encrypt_save(self.rss_tree_data,"RSS_Tree_Data.dlcw")
-		
-
-		#保存界面设置
-		self.user_settings.setValue("geometry",self.saveGeometry())
-		self.user_settings.setValue("windowState",self.saveState())
-		self.user_settings.setValue("size",self.size())
-		self.user_settings.setValue("pos",self.pos())
-
-		self.user_settings.setValue("splitter_rss",self.splitter_rss.saveState())
-
-		#自动保存tab data
-		self.user_settings.setValue("custom_tab_data",encrypt(self.custom_tab_data))
 
 		#保存sticker
 		sticker_text=self.plainTextEdit_sticker.toPlainText()
