@@ -12,13 +12,9 @@ Features:
 
 ---
 
-Examples
+Example
 
 ![Example1](./Manual/Example1.jpg)
-
-![Example1](./Manual/Example2.jpg)
-
-![Example1](./Manual/Example3.jpg)
 
 ---
 
@@ -34,11 +30,10 @@ Inspired By:
 
 TODO List:
 
-- [ ] Zen (a place to reflect and write)
 - [ ] More export options
+- [ ] ~~More RSS Parse Modes~~
 - [ ] File right click context menu
 - [ ] A short manual
-- [x] More RSS Parse Modes
 - [x] Diary text linked concept Time-Frequency Analytics
 
 ---
@@ -46,11 +41,9 @@ TODO List:
  
  
   
-
-  
-
-   
-
-     
+  
+   
+   
+    
 
 Next Dream...
