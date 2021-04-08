@@ -1193,7 +1193,8 @@ p, li { white-space: pre-wrap; }
      <addaction name="actionCreate_RSS_Folder"/>
      <addaction name="actionAdd_RSS_Feed"/>
      <addaction name="actionOpen_WebPage_In_Browser"/>
-     <addaction name="actionRSS_Update_Manually"/>
+     <addaction name="actionUpdate_Feed_Manually"/>
+     <addaction name="actionStart_Daily_Update_Manually"/>
     </widget>
     <addaction name="menuConcept"/>
     <addaction name="menuTool"/>
@@ -1543,13 +1544,16 @@ p, li { white-space: pre-wrap; }
     <string>F2</string>
    </property>
   </action>
-  <action name="actionRSS_Update_Manually">
+  <action name="actionUpdate_Feed_Manually">
    <property name="icon">
     <iconset resource="resource.qrc">
      <normaloff>:/icon/refresh-cw.svg</normaloff>:/icon/refresh-cw.svg</iconset>
    </property>
    <property name="text">
-    <string>RSS Update Manually</string>
+    <string>Update Feed Manually</string>
+   </property>
+   <property name="toolTip">
+    <string>Update Feed Manually</string>
    </property>
    <property name="shortcut">
     <string>F4</string>
@@ -1616,6 +1620,18 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Analyze Diary with Concept</string>
+   </property>
+  </action>
+  <action name="actionStart_Daily_Update_Manually">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/refresh-cw.svg</normaloff>:/icon/refresh-cw.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Start Daily Update Manually</string>
+   </property>
+   <property name="toolTip">
+    <string>Start Daily Update Manually</string>
    </property>
   </action>
  </widget>

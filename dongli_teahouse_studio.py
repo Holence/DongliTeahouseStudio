@@ -191,7 +191,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.actionEdit.triggered.connect(self.center_edit)
 
 		#手动更新RSS
-		self.actionRSS_Update_Manually.triggered.connect(self.rss_feed_manually_update)
+		self.actionUpdate_Feed_Manually.triggered.connect(self.rss_feed_manually_update)
 		
 		#Diary text search
 		self.actionSearch_Diary_Text.triggered.connect(self.diary_text_search)
@@ -210,6 +210,9 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 		#Diary分析
 		self.actionAnalyze_Diary_with_Concept.triggered.connect(self.diary_analyze)
+
+		#手动每日更新
+		self.actionStart_Daily_Update_Manually.triggered.connect(lambda:self.rss_feed_daily_update(manually=True))
 
 	def initialize_window(self):
 		#恢复界面设置
@@ -558,15 +561,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#保存所有相关的数据
 		self.diary_data_save_out()
 		encrypt_save(self.concept_data,"Concept_Data.dlcw")
-		encrypt_save(self.file_data,"File_Data.dlcw")
-		self.window_title_update()
-
-		
+		encrypt_save(self.file_data,"File_Data.dlcw")		
 
 		#更新所有相关的界面
 		try:
-			ID=self.lineEdit_id.text()
-			self.concept_show(ID)
+			self.concept_show(int(self.lineEdit_id.text()))
 		except:
 			pass
 		self.diary_show(QDate_transform(self.calendarWidget.selectedDate()))
@@ -1269,7 +1268,18 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			instagram_cookie=""
 			pass
 		
-		dlg=SettingDialog(self.file_saving_base,font,font_size,pixiv_cookie,instagram_cookie)
+		try:
+			rss_auto_update=self.user_settings.value("rss_auto_update")
+			if rss_auto_update=="true" or rss_auto_update=="True":
+				rss_auto_update=True
+			elif rss_auto_update=="false" or rss_auto_update=="False":
+				rss_auto_update=False
+		except:
+			rss_auto_update=False
+			pass
+		
+		dlg=SettingDialog()
+		dlg.set_option(self.file_saving_base,font,font_size,pixiv_cookie,instagram_cookie,rss_auto_update)
 	
 		if self.window_is_stay_on_top()==True:
 			dlg.setWindowFlag(Qt.WindowStaysOnTopHint,True)
@@ -1295,6 +1305,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			instagram_cookie=dlg.lineEdit_instagram_cookie.text()
 			self.user_settings.setValue("instagram_cookie",encrypt(instagram_cookie))
 			
+			rss_auto_update=dlg.checkBox_rss_auto_update.isChecked()
+			self.user_settings.setValue("rss_auto_update",rss_auto_update)
 		else:
 			pass
 
@@ -1314,7 +1326,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 
 
-	def rss_feed_daily_update(self):
+	def rss_feed_daily_update(self,manually=False):
 		#淦！为了搞界面展示后的自动后台更新，搞了将近四个小时……
 		#先是搞不好QSystemTrayIcon
 		#然后不知道python的thread库和QT的QThread的区别，捣腾了半天python的thread，最终卡界面……
@@ -1361,7 +1373,12 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			if ">" in window_title:
 				window_title=window_title.split(">")[0][:-1]
 			self.setWindowTitle(window_title)
-			
+		
+		
+		if manually==False:
+			rss_auto_update=self.user_settings.value("rss_auto_update")
+			if rss_auto_update!="true" and rss_auto_update!="True":
+				return
 
 		# 在每日更新的时候有qlock请求，
 		# 如果这时拖动了树会调用rss_tree_data_update去更新tree_data
@@ -1382,7 +1399,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			if today in self.rss_data[rss_url]["frequency"] and last_update!=self.rss_data[rss_url]["last_update"]:
 				updating_url_list.append(rss_url)
 				
-
+		# print(updating_url_list)
 		# print("Today is",today)
 
 		#传入要更新的列表
@@ -1869,7 +1886,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				rss_url_list.append([rss_name,rss_url])
 			
 			#传进去一个元素是[rss_name,rss_url]的rss列表
-			dlg = RSS_Feed_Edit_Dialog(self,rss_url_list)
+			dlg = RSSFeedEditDialog(self,rss_url_list)
 
 			if self.window_is_stay_on_top()==True:
 				dlg.setWindowFlag(Qt.WindowStaysOnTopHint,True)
@@ -2931,10 +2948,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		if self.listWidget_search_file.hasFocus():
 			self.file_library_file_rename()
 		
-
+		#rss编辑
 		elif self.treeWidget_rss.hasFocus():
 			self.rss_edit()
 
+		#Concept related text编辑
+		elif self.listWidget_concept_related_text.hasFocus():
+			self.concept_related_text_edit()
 
 	def window_toggle_fullscreen(self):
 		
@@ -4188,9 +4208,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 	
 	def diary_line_concept_link(self):
 		
-		if self.is_first_arrived==1:
-			QMessageBox.warning(self,"Warning","请选中行后再进行链接！")
-			return
+		# if self.is_first_arrived==1:
+		# 	QMessageBox.warning(self,"Warning","请选中行后再进行链接！")
+		# 	return
 		try:
 			item_id=int(self.lineEdit_id.text())
 			#支持多行同时添加链接物
@@ -4664,7 +4684,17 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					# 	message.exec_()
 					# 	return
 
-			
+	
+	def concept_related_text_edit(self):
+		source_id=int(self.lineEdit_id.text())
+		dlg=ConceptRelatedTextEditDialog(self,source_id)
+		dlg.exec_()
+		try:
+			self.concept_show(int(self.lineEdit_id.text()))
+		except:
+			pass
+		self.diary_line_concept_list_update()
+
 
 
 	def concept_related_text_review(self):

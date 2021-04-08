@@ -12,6 +12,7 @@ from file_check_dialog import Ui_file_check_dialog
 from rss_feed_edit_dialog import Ui_rss_feed_edit_dialog
 from diary_search_dialog import Ui_diary_search_dialog
 from diary_analyze_dialog import Ui_diary_analyze_dialog
+from concept_related_text_dialog import Ui_concept_related_text_dialog
 
 class RSS_Updator_Threador(QThread):
 	"""
@@ -355,6 +356,9 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		self.chartView_spline=MyChartView()
 		self.clear_view()
 
+		self.plainTextEdit_detail.setEnabled(0)
+		self.lineEdit_name.setEnabled(0)
+
 		#貌似没办法在ui文件中定义一个只含有一个widget的splitter，只能先拿一个东西占位，再删掉了
 		self.pushButton.deleteLater()
 		self.splitter_top.addWidget(self.chartView_spline)
@@ -442,7 +446,9 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 
 			deepin(depth,self.current_select_conceptID)
 
-		
+		self.plainTextEdit_detail.setEnabled(1)
+		self.lineEdit_name.setEnabled(1)
+
 		#更新self.current_select_conceptID和self.current_leaf_conceptID_list
 		self.current_select_conceptID=int(self.treeWidget.currentItem().text(0).split("|")[0])
 		update_current_leaf_concept_list()
@@ -1296,18 +1302,24 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		return (chart,xaxis,yaxis)
 
 class SettingDialog(QDialog,Ui_setting_dialog):
-	def __init__(self,file_saving_base,font,font_size,pixiv_cookie,instagram_cookie):
+	def __init__(self):
 		super().__init__()
 		self.setupUi(self)
 		
+
+		self.pushButton_general.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
+		self.pushButton_rss.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(1))
+
 		self.pushButtonfile_saving_base.clicked.connect(self.dir_dialog)
 		self.pushButton_font.clicked.connect(self.font_dialog)
 
-
+	
+	def set_option(self,file_saving_base,font,font_size,pixiv_cookie,instagram_cookie,rss_auto_update):
 		self.lineEdit_file_saving_base.setText(file_saving_base)
 
 		self.font=font
 		self.font_size=font_size
+
 		try:
 			self.lineEdit_font.setText(self.font.family()+";"+str(self.font_size))
 		except:
@@ -1323,22 +1335,28 @@ class SettingDialog(QDialog,Ui_setting_dialog):
 		except:
 			pass
 
+		try:
+			self.checkBox_rss_auto_update.setChecked(rss_auto_update)
+		except:
+			pass
+		
 	def dir_dialog(self):
 		dlg=QFileDialog(self)
 		file_saving_base=dlg.getExistingDirectory()
 		self.lineEdit_file_saving_base.setText(file_saving_base)
 
 	def font_dialog(self):
-		ok, font = QFontDialog.getFont(QFont(), self)
+		dlg=QFontDialog(self)
+
+		ok, font = dlg.getFont(self.font,self)
 		if ok:
+			
 			self.font=font
 			self.font_size=font.pointSize()
 			self.lineEdit_font.setText(self.font.family()+";"+str(self.font_size))
 
 
-
-
-class RSS_Feed_Edit_Dialog(QDialog,Ui_rss_feed_edit_dialog):
+class RSSFeedEditDialog(QDialog,Ui_rss_feed_edit_dialog):
 	#传进来的列表元素是[rss_name,rss_url]
 	def __init__(self,parent,rss_url_list):
 		super().__init__()
@@ -1548,7 +1566,6 @@ class RSS_Feed_Edit_Dialog(QDialog,Ui_rss_feed_edit_dialog):
 			self.lineEdit_unread.setText("xxx")
 
 
-
 class FileCheckDialog(QDialog,Ui_file_check_dialog):
 	"""
 		缺失的文件
@@ -1597,8 +1614,13 @@ class FileCheckDialog(QDialog,Ui_file_check_dialog):
 		index=self.listWidget_missing_file.currentRow()
 
 		self.listWidget_missing_file_related_concept.clear()
-		for ID in self.missing[index]["linked_concept"]:
-			self.listWidget_missing_file_related_concept.addItem(str(ID)+"|"+self.parent.concept_data[ID]["name"])
+		try:
+			for ID in self.missing[index]["linked_concept"]:
+				self.listWidget_missing_file_related_concept.addItem(str(ID)+"|"+self.parent.concept_data[ID]["name"])
+		except:
+			QMessageBox.warning(self,"Warning","访问Concept Data出错！")
+			return
+			pass
 		
 		y=str(self.missing[index]["y"])
 		m=str(self.missing[index]["m"])
@@ -1855,6 +1877,180 @@ class FileCheckDialog(QDialog,Ui_file_check_dialog):
 		self.file_check_list_update()
 		return
 
+
+class ConceptRelatedTextEditDialog(QDialog,Ui_concept_related_text_dialog):
+	def __init__(self,parent,source_id):
+		super().__init__()
+		self.setupUi(self)
+		self.parent=parent
+		self.source_id=source_id
+
+		self.text_list=[]
+		#######################
+		# self.text_list存储的结构，方便回溯删除：
+		# self.text_list.append({
+		# 	"y":year_index,
+		# 	"m":month_index,
+		# 	"d":day_index,
+		# 	"line_index":line_index,
+		# 	"text":"%s.%s.%s %s"%(y,m,d,week_dict[weeknum])+"\n\n"+line["line_text"]
+		# })
+		#######################
+
+		self.lineEdit_source_id.setText(str(source_id))
+		self.show_source_list()
+
+		
+		
+		self.pushButton_delete.clicked.connect(self.source_concept_related_text_delete)
+		self.pushButton_remove.clicked.connect(self.target_text_remove)
+		self.pushButton_copy.clicked.connect(self.concept_related_text_transfer)
+
+	def show_source_list(self):
+		"去parent的diary data中搜一遍，生成self.text_list列表，并在self.listWidget_source中展示出来"
+
+		#找一找Concept related text
+		week_dict=["星期一","星期二","星期三","星期四","星期五","星期六","星期日"]
+		self.listWidget_source.clear()
+		
+		self.text_list=[]
+		for year_index in range(1970-1970,2170-1970):
+			for month_index in range(0,12):
+				for day_index in range(len(self.parent.diary_data[year_index]["date"][month_index])):
+
+					for line in self.parent.diary_data[year_index]["date"][month_index][day_index]["text"]:
+						if self.source_id in line["linked_concept"]:
+							y=year_index+1970
+							m=month_index+1
+							d=self.parent.diary_data[year_index]["date"][month_index][day_index]["day"]
+							weeknum=QDate(y,m,d).dayOfWeek()-1
+							
+							self.text_list.append({
+								"y":year_index,
+								"m":month_index,
+								"d":day_index,
+								"line_index":line["index"],
+								"text":"%s.%s.%s %s"%(y,m,d,week_dict[weeknum])+"\n\n"+line["line_text"]
+							})
+						
+
+	
+		#如果有的话就列出来
+		if self.text_list!=[]:
+			index=0
+			for i in self.text_list:
+				text=str(index)+"|"+i["text"]
+				self.listWidget_source.addItem(text)
+				index+=1
+	
+	def source_concept_related_text_delete(self):
+		source_name=self.parent.concept_data[self.source_id]["name"]
+
+		dlg = QDialog(self)
+		dlg.setWindowTitle("Transfer Warning")
+		warning_text="确定要将列表中的text与Concept： %s|%s 进行取消关联吗？\n\n这是无法撤销的操作！\n\n--------------\n"%(self.source_id,source_name)
+		for index in sorted([item.row() for item in self.listWidget_source.selectedIndexes()]):
+			text_index=int(self.listWidget_source.item(index).text().split("|")[0])
+			warning_text+=self.text_list[text_index]["text"]+"\n\n"
+
+		warning_label=QTextEdit()
+		warning_label.setText(warning_text)
+		warning_label.setReadOnly(1)
+		
+		QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+		buttonBox = QDialogButtonBox(QBtn)
+		buttonBox.accepted.connect(dlg.accept)
+		buttonBox.rejected.connect(dlg.reject)
+
+		layout=QVBoxLayout()
+		layout.addWidget(warning_label)
+		layout.addWidget(buttonBox)
+		dlg.setLayout(layout)
+
+		if dlg.exec_():
+			for index in sorted([item.row() for item in self.listWidget_source.selectedIndexes()]):
+				
+				line=self.text_list[index]
+				year_index=line["y"]
+				month_index=line["m"]
+				day_index=line["d"]
+				line_index=line["line_index"]
+
+				self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_concept"].remove(self.source_id)
+				
+			QMessageBox.information(self,"Information","取消关联成功！")
+			self.show_source_list()
+	
+	def target_text_remove(self):
+		"去除target列表中的所选项"
+		for index in sorted([item.row() for item in self.listWidget_target.selectedIndexes()]):
+			self.listWidget_target.takeItem(index)
+
+	def target_list_check_duplicate(self):
+		"查重"
+
+		have=[]
+		for index in range(self.listWidget_target.count()):
+			text_index=int(self.listWidget_target.item(index).text().split("|")[0])
+			
+			if text_index not in have:
+				have.append(text_index)
+			else:
+				warning_text=str(text_index)+"|"+self.text_list[text_index]["text"]
+				QMessageBox.warning(self,"Warning","存在重复项：\n\n%s"%warning_text)
+				self.listWidget_target.setCurrentRow(index)
+				return False
+		return True
+	
+	def concept_related_text_transfer(self):
+		try:
+			targe_id=int(self.lineEdit_target_id.text())
+			targe_name=self.parent.concept_data[targe_id]["name"]
+		except:
+			QMessageBox.warning(self,"Warning","Target ID设置错误！")
+			return
+		
+		#查重
+		if not self.target_list_check_duplicate():
+			return
+		
+		dlg = QDialog(self)
+		dlg.setWindowTitle("Transfer Warning")
+
+		warning_text="确定要将列表中的text与Concept： %s|%s 进行链接吗？\n\n这是无法撤销的操作！\n\n--------------\n"%(targe_id,targe_name)
+		for index in range(self.listWidget_target.count()):
+			text_index=int(self.listWidget_target.item(index).text().split("|")[0])
+			warning_text+=self.text_list[text_index]["text"]+"\n\n"
+
+		warning_label=QTextEdit()
+		warning_label.setText(warning_text)
+		warning_label.setReadOnly(1)
+		
+		QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+		buttonBox = QDialogButtonBox(QBtn)
+		buttonBox.accepted.connect(dlg.accept)
+		buttonBox.rejected.connect(dlg.reject)
+
+		layout=QVBoxLayout()
+		layout.addWidget(warning_label)
+		layout.addWidget(buttonBox)
+		dlg.setLayout(layout)
+
+		if dlg.exec_():
+			
+			for index in range(self.listWidget_target.count()):
+				text_index=int(self.listWidget_target.item(index).text().split("|")[0])
+				line=self.text_list[text_index]
+
+				year_index=line["y"]
+				month_index=line["m"]
+				day_index=line["d"]
+				line_index=line["line_index"]
+
+				if targe_id not in self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_concept"]:
+					self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_concept"].append(targe_id)
+
+			QMessageBox.information(self,"Information","链接成功！")
 
 class DiarySearchDialog(QDialog,Ui_diary_search_dialog):
 	
