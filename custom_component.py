@@ -786,7 +786,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
 			return
 		
-		self.parent.file_library_check_direcory_exist()
+		self.parent.file_saving_today_dst_exist_check()
 		
 		#存不存在当日文件的容器
 		try:

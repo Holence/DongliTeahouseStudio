@@ -273,18 +273,15 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				#把隐藏了的tab，放在tab menu的action里面
 				else:
 					
-					ii=index
 					action=QAction(custom_tab[0],self)
 					action.setIcon(QIcon(":/icon/trello.svg"))
-					#貌似这里如果直接用了index，好像调进去的就是指向index的地址的数字了，就是那个循环结束后的index了
-					#所以用另一个ii先指向了index，如果index变化了，ii还能保存之前的那个数
-					action.triggered.connect(lambda:self.tab_custom_resurrection(ii,action))
+					action.triggered.connect(partial(self.tab_custom_resurrection,index,action))
 					self.menuTab.addAction(action)
 					
 				index+=1
 		
-		except:#第一次进来，初始化custom_tab_data
-
+		except Exception as e:#第一次进来，初始化custom_tab_data
+			print(e)
 			self.custom_tab_data=[]
 
 
@@ -2628,7 +2625,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			#新增一个指向“能恢复tab并且销毁自身”的action
 			action=QAction(tab_name,self)
 			action.setIcon(QIcon(":/icon/trello.svg"))
-			action.triggered.connect(lambda:self.tab_custom_resurrection(index,action))
+			action.triggered.connect(partial(self.tab_custom_resurrection,index,action))
 			self.menuTab.addAction(action)
 			
 
