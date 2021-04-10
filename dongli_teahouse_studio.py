@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
-
-import sys
-
-#### from threading import Thread,Lock
-
 from socket import setdefaulttimeout
 
-from custom_palette import *
 from custom_function import *
 from custom_widget import *
 from custom_component import *
@@ -14,7 +8,6 @@ from custom_component import *
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
-
 from PySide2.QtWebEngineWidgets import *
 
 from dongli_teahouse_studio_window import Ui_dongli_teahouse_studio_window
@@ -23,12 +16,34 @@ from dongli_teahouse_studio_window import Ui_dongli_teahouse_studio_window
 class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 	def initialize_signal(self):
+		
+		#########################################################################################################
+		#File
+		#导出
+		self.actionExport_Concept_Data_to_Json.triggered.connect(lambda:self.center_export("Concept"))
+		self.actionExport_Diary_Data_to_Json.triggered.connect(lambda:self.center_export("Diary"))
+		self.actionExport_File_Data_to_Json.triggered.connect(lambda:self.center_export("File"))
+		self.actionExport_RSS_Data_to_Json.triggered.connect(lambda:self.center_export("RSS"))
+		self.actionExport_RSS_Tree_Data_to_Json.triggered.connect(lambda:self.center_export("RSS Tree"))
+		self.actionExport_Zen_Data_to_Json.triggered.connect(lambda:self.center_export("Zen"))
+		self.actionExport_Zen_Tree_Data_to_Json.triggered.connect(lambda:self.center_export("Zen Tree"))
+
+		#Setting
+		self.actionSetting.triggered.connect(self.setting_menu)
+		#保存所有数据到外存ctrl+s
+		self.actionSave_Data.triggered.connect(self.data_save)
+		#ctrl+w关闭
+		self.actionExit.triggered.connect(self.close)
+
+		#########################################################################################################
+		#Tool
 		#所有的删除由当时focus的控件决定操作
 		self.actionDelete.triggered.connect(self.center_delete)
-		#文本块增加关联concept或文件ctrl+e
-		self.actionLink_Concept_to_Line.triggered.connect(self.diary_line_concept_link)
+		#F2编辑文件信息或者RSS信息或Concept related texxt
+		self.actionEdit.triggered.connect(self.center_edit)
 
-
+		#########################################################################################################
+		#Concept
 		#搜索框中输入
 		self.lineEdit_search_concept.textEdited.connect(self.concept_search_list_update)
 		#双击进入搜索的选项
@@ -36,52 +51,37 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#拖动重排
 		#model()是什么玩意，这就变成了QAbstractItemModel ？
 		self.listWidget_search_concept.model().rowsMoved.connect(self.concept_search_list_drag_update)
-
 		#双击关联列表
 		self.listWidget_parent.itemDoubleClicked.connect(lambda:self.concept_show(self.listWidget_parent.currentItem().text().split("|")[0]))
 		self.listWidget_child.itemDoubleClicked.connect(lambda:self.concept_show(self.listWidget_child.currentItem().text().split("|")[0]))
 		self.listWidget_relative.itemDoubleClicked.connect(lambda:self.concept_show(self.listWidget_relative.currentItem().text().split("|")[0]))
-
 		#编辑结束后自动临时保存
 		self.lineEdit_name.editingFinished.connect(self.concept_info_edited_and_save)
 		###QPlainTextEdit没有editingFinished信号，就用了自定义的MyPlainTextEdit
 		self.plainTextEdit_detail.editingFinished.connect(self.concept_info_edited_and_save)
-		###QPlainTextEdit没有editingFinished信号，就用了自定义的MyPlainTextEdit
-		self.plainTextEdit_single_line.editingFinished.connect(self.diary_line_edited_and_save)
-
-
 		#新建事物ctrl+n
 		self.actionCreate_Concept.triggered.connect(self.concept_creat)
-		
-		#保存所有数据到外存ctrl+s
-		self.actionSave_Data.triggered.connect(self.data_save)
-
 		#关联列表操作ctrl+123
 		self.actionAdd_Concept_To_Parent.triggered.connect(lambda:self.concept_relationship_add("parent"))
 		self.actionAdd_Concept_To_Child.triggered.connect(lambda:self.concept_relationship_add("child"))
 		self.actionAdd_Concept_To_Relative.triggered.connect(lambda:self.concept_relationship_add("relative"))
-
-		#新增一行ctrl+d
-		self.actionAdd_New_Line.triggered.connect(self.diary_line_add)
-
-
-		#
-		self.calendarWidget.clicked.connect(lambda :self.diary_show(QDate_transform(self.calendarWidget.selectedDate())))
-		
-		#点击关联事物列表
-		self.listWidget_text_related_concept.itemDoubleClicked.connect(lambda:self.concept_show(self.listWidget_text_related_concept.currentItem().text().split("|")[0]))
-
-		#点击行显示文本
-		self.listWidget_lines.itemClicked.connect(self.diary_line_show)
-		#拖动行重排
-		self.listWidget_lines.model().rowsMoved.connect(self.diary_line_list_drag_update)
-
 		#concept链接文件
 		#自定义了MyFileDragAndDropList，实现外部文件的dropin
 		self.listWidget_concept_linked_file.dropped.connect(self.concept_linked_file_add)
 		self.listWidget_concept_linked_file.itemDoubleClicked.connect(self.concept_linked_file_open)
 		#一开始没有展示item了，就禁用file列表
 		self.listWidget_concept_linked_file.setEnabled(0)
+		#筛选concept对应的diary text
+		self.listWidget_concept_related_text.itemDoubleClicked.connect(self.concept_related_text_review)
+
+		#ctrl+q自动锁定搜索框
+		self.actionSearch_Concept.triggered.connect(self.concept_search_focus)
+		#搜索框按enter自动展示第一个concept
+		self.lineEdit_search_concept.returnPressed.connect(lambda: self.concept_show(self.listWidget_search_concept.item(0).text().split("|")[0]) if self.listWidget_search_concept.item(0)!=None else 0)
+
+		####
+			#导入文件树
+			# self.actionImport_File_Tree_to_Concept.triggered.connect(self.concept_import_file_tree)
 
 		####
 			# 现在要拖到外面了，就不限制了
@@ -89,7 +89,33 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			####侦测在外部还是在内部，改变dragEnable
 			#### self.listWidget_concept_linked_file.focusouted.connect(lambda:self.listWidget_concept_linked_file.setDragEnabled(1))
 			#### self.listWidget_concept_linked_file.focusined.connect(lambda:self.listWidget_concept_linked_file.setDragEnabled(0))
-		
+
+
+		#########################################################################################################
+		#Diary
+		self.calendarWidget.clicked.connect(lambda :self.diary_show(QDate_transform(self.calendarWidget.selectedDate())))
+		#新增一行ctrl+d
+		self.actionAdd_New_Line.triggered.connect(self.diary_line_add)
+		###QPlainTextEdit没有editingFinished信号，就用了自定义的MyPlainTextEdit
+		self.plainTextEdit_single_line.editingFinished.connect(self.diary_line_edited_and_save)
+		#文本块增加关联concept或文件ctrl+e
+		self.actionLink_Concept_to_Line.triggered.connect(self.diary_line_concept_link)
+		#点击关联事物列表
+		self.listWidget_text_related_concept.itemDoubleClicked.connect(lambda:self.concept_show(self.listWidget_text_related_concept.currentItem().text().split("|")[0]))
+		#点击行显示文本
+		self.listWidget_lines.itemClicked.connect(self.diary_line_show)
+		#拖动行重排
+		self.listWidget_lines.model().rowsMoved.connect(self.diary_line_list_drag_update)
+		#text链接文件
+		self.listWidget_text_linked_file.dropped.connect(self.diary_line_file_link)
+		self.listWidget_text_linked_file.itemDoubleClicked.connect(self.diary_line_file_open)
+		#Diary text search
+		self.actionSearch_Diary_Text.triggered.connect(self.diary_text_search)
+		#Diary分析
+		self.actionAnalyze_Diary_with_Concept.triggered.connect(self.diary_analyze)
+
+		#########################################################################################################
+		#File Library
 		#file manager文件
 		self.listWidget_search_file.dropped.connect(self.file_library_file_add)
 		self.listWidget_search_file.itemDoubleClicked.connect(self.file_library_file_open)
@@ -104,16 +130,60 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.lineEdit_search_file.returnPressed.connect(self.file_library_list_focus)
 		#文件链接concept的列表
 		self.listWidget_file_related_concept.itemDoubleClicked.connect(lambda:self.concept_show(self.listWidget_file_related_concept.currentItem().text().split("|")[0]))
+		#运行File Ckeck
+		self.actionFile_Check.triggered.connect(self.file_check)
+		#ctrl+q搜索文件
+		self.actionSearch_File_Library.triggered.connect(self.file_library_search_focus)
+		#在Library中定位选中的文件
+		self.actionLocate_File_in_File_Library.triggered.connect(self.center_locate_file_in_library)
 
-		#text链接文件
-		self.listWidget_text_linked_file.dropped.connect(self.diary_line_file_link)
-		self.listWidget_text_linked_file.itemDoubleClicked.connect(self.diary_line_file_open)
+		#########################################################################################################
+		#RSS
+		self.actionCreate_RSS_Folder.triggered.connect(self.rss_feed_folder_create)
+		self.actionAdd_RSS_Feed.triggered.connect(self.rss_feed_add)
+		self.actionOpen_WebPage_In_Browser.triggered.connect(self.rss_open_webpage)
+		#点击treeitem，show文章列表
+		self.treeWidget_rss.itemClicked.connect(self.rss_feed_article_list_show)
+		#每次拖动排阶级后，就检查，RSS不能作为folder
+		self.treeWidget_rss.dropped.connect(self.rss_tree_drop_update)
+		#点击文章
+		self.listWidget_rss.itemClicked.connect(self.rss_feed_article_show)
+		#手动更新RSS
+		self.actionUpdate_Feed_Manually.triggered.connect(self.rss_feed_manually_update)
+		#rss搜索
+		self.lineEdit_rss_search.returnPressed.connect(self.rss_tree_build)
+		#手动每日更新
+		self.actionStart_Daily_Update_Manually.triggered.connect(lambda:self.rss_feed_daily_update(manually=True))
+
+		#########################################################################################################
+		#Zen
+		self.actionCreate_Zen_Folder.triggered.connect(self.zen_folder_create)
+		self.actionAdd_Zen_Segment.triggered.connect(self.zen_segment_add)
+		self.actionSwitch_between_View_Edit.triggered.connect(self.zen_switch_mode)
+		
+		#zen搜索
+		self.lineEdit_zen_search.textEdited.connect(self.zen_tree_build)
+		
+		#每次拖动排阶级后，就检查，
+		self.treeWidget_zen.dropped.connect(self.zen_tree_drop_update)
+
+		self.treeWidget_zen.itemClicked.connect(self.zen_segment_show)
+
+		self.plainTextEdit_zen.editingFinished.connect(self.zen_segment_save)
+
+		#########################################################################################################
+		#Tab
+		self.actionCreate_New_Tab.triggered.connect(self.tab_custom_create)
+		self.actionHide_Current_Tab.triggered.connect(self.tab_custom_hide)
+		self.actionDelete_Current_Tab.triggered.connect(self.tab_custom_delete)
 
 
-
-		#筛选concept对应的diary text
-		self.listWidget_concept_related_text.itemDoubleClicked.connect(self.concept_related_text_review)
-
+		#########################################################################################################
+		#View
+		#f11全屏
+		self.actionToggle_Fullscreen.triggered.connect(self.window_toggle_fullscreen)
+		#置顶Action
+		self.actionStay_on_Top.triggered.connect(self.window_toggle_stay_on_top)
 
 		#添加view设置
 		action=self.dockWidget_concept.toggleViewAction()
@@ -136,83 +206,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		action.setIcon(QIcon(":/icon/coffee.svg"))
 		self.menuView.addAction(action)
 
-		#f11全屏
-		self.actionToggle_Fullscreen.triggered.connect(self.window_toggle_fullscreen)
-		
-		#ctrl+w关闭
-		self.actionExit.triggered.connect(self.close)
-
+		#########################################################################################################
+		#Help
 		#about界面
 		self.actionAbout.triggered.connect(self.about)
-
-		#ctrl+q自动锁定搜索框
-		self.actionSearch_Concept.triggered.connect(self.concept_search_focus)
-
-	
-
-		#搜索框按enter自动展示第一个concept
-		self.lineEdit_search_concept.returnPressed.connect(lambda: self.concept_show(self.listWidget_search_concept.item(0).text().split("|")[0]) if self.listWidget_search_concept.item(0)!=None else 0)
-
-		####
-			#导入文件树
-			# self.actionImport_File_Tree_to_Concept.triggered.connect(self.concept_import_file_tree)
-
-
-		self.actionCreate_New_Tab.triggered.connect(self.tab_custom_create)
-		self.actionHide_Current_Tab.triggered.connect(self.tab_custom_hide)
-		self.actionDelete_Current_Tab.triggered.connect(self.tab_custom_delete)
-
-
-		self.actionCreate_RSS_Folder.triggered.connect(self.rss_feed_folder_create)
-		self.actionAdd_RSS_Feed.triggered.connect(self.rss_feed_add)
-		self.actionOpen_WebPage_In_Browser.triggered.connect(self.rss_open_webpage)
-		
-		#点击treeitem，show文章列表
-		self.treeWidget_rss.itemClicked.connect(self.rss_feed_article_list_show)
-		#每次拖动排阶级后，就检查，RSS不能作为folder
-		self.treeWidget_rss.dropped.connect(self.rss_tree_drop_update)
-		#点击文章
-		self.listWidget_rss.itemClicked.connect(self.rss_feed_article_show)
-
-		#导出
-		self.actionExport_Concept_Data_to_Json.triggered.connect(lambda:self.center_export("Concept"))
-		self.actionExport_Diary_Data_to_Json.triggered.connect(lambda:self.center_export("Diary"))
-		self.actionExport_File_Data_to_Json.triggered.connect(lambda:self.center_export("File"))
-		self.actionExport_RSS_Data_to_Json.triggered.connect(lambda:self.center_export("RSS"))
-		self.actionExport_RSS_Tree_Data_to_Json.triggered.connect(lambda:self.center_export("RSS Tree"))
-
-		#Setting
-		self.actionSetting.triggered.connect(self.setting_menu)
-
-		#运行File Ckeck
-		self.actionFile_Check.triggered.connect(self.file_check)
-		
-		#F2编辑文件信息或者RSS信息
-		self.actionEdit.triggered.connect(self.center_edit)
-
-		#手动更新RSS
-		self.actionUpdate_Feed_Manually.triggered.connect(self.rss_feed_manually_update)
-		
-		#Diary text search
-		self.actionSearch_Diary_Text.triggered.connect(self.diary_text_search)
-
-		#ctrl+q搜索文件
-		self.actionSearch_File_Library.triggered.connect(self.file_library_search_focus)
-
-		#在Library中定位选中的文件
-		self.actionLocate_File_in_File_Library.triggered.connect(self.center_locate_file_in_library)
-
-		#置顶Action
-		self.actionStay_on_Top.triggered.connect(self.window_toggle_stay_on_top)
-
-		#rss搜索
-		self.lineEdit_rss_search.returnPressed.connect(self.rss_tree_build)
-
-		#Diary分析
-		self.actionAnalyze_Diary_with_Concept.triggered.connect(self.diary_analyze)
-
-		#手动每日更新
-		self.actionStart_Daily_Update_Manually.triggered.connect(lambda:self.rss_feed_daily_update(manually=True))
 
 	def initialize_window(self):
 		#恢复界面设置
@@ -224,6 +221,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.move(self.user_settings.value("pos"))
 
 			self.splitter_rss.restoreState(self.user_settings.value("splitter_rss"))
+			self.splitter_zen.restoreState(self.user_settings.value("splitter_zen"))
 			
 			font=self.user_settings.value("font")
 			font_size=self.user_settings.value("font_size")
@@ -280,8 +278,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					
 				index+=1
 		
-		except Exception as e:#第一次进来，初始化custom_tab_data
-			print(e)
+		except:#第一次进来，初始化custom_tab_data
 			self.custom_tab_data=[]
 
 
@@ -320,6 +317,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.user_settings.setValue("pos",self.pos())
 
 		self.user_settings.setValue("splitter_rss",self.splitter_rss.saveState())
+		self.user_settings.setValue("splitter_zen",self.splitter_zen.saveState())
 
 		#自动保存tab data
 		self.user_settings.setValue("custom_tab_data",encrypt(self.custom_tab_data))
@@ -360,6 +358,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 	def __init__(self):
 		super().__init__()
 		self.setupUi(self)
+		setdefaulttimeout(3.0)
 
 		# self.__press_pos = QPoint()
 		# self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.CustomizeWindowHint)
@@ -430,6 +429,9 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 			self.rss_feed_daily_update()
 			self.manually_updateing=False
+			#####################################################################################################################
+
+			self.zen_tree_build()
 		else:
 			exit()
 		
@@ -442,9 +444,487 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.initialize_custom_tab()
 		self.tabWidget.setCurrentIndex(0)
 
-		# self.diary_analyze()
-		# exit()
 
+
+	def zen_folder_create(self):
+		if self.lineEdit_zen_search.text()!="":
+			QMessageBox.warning(self,"Warning","请清空Zen搜索条件！")
+			return
+		
+		dlg = QDialog(self)
+		dlg.setWindowTitle("Create New Zen Folder")
+
+		name_label=QLabel("Folder Name:")
+		name_enter=QLineEdit()
+		
+		QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+		buttonBox = QDialogButtonBox(QBtn)
+		buttonBox.accepted.connect(dlg.accept)
+		buttonBox.rejected.connect(dlg.reject)
+
+		layout=QVBoxLayout()
+		layout.addWidget(name_label)
+		layout.addWidget(name_enter)
+		layout.addWidget(buttonBox)
+		dlg.setLayout(layout)
+
+		if dlg.exec_():
+			folder_name=name_enter.text()
+			
+			#文件夹不能重名
+			alreay_have=[]
+			for i in self.zen_tree_data:
+				if type(i)==dict:
+					alreay_have.append(i["folder_name"])
+			
+			if folder_name not in alreay_have:
+
+				#哈哈哈哈，隐藏了header后，它只显示第一个column，这样就可以在后面添加附属信息了！
+				#这样就可以不用每时每刻记录Zen data，每时每刻修改Zen data
+				#只用在最后遍历整棵树，存储Zen树就行了！
+				temp=QTreeWidgetItem([folder_name,"Folder"])
+				temp.setIcon(0,QIcon(":/icon/folder.svg"))
+
+				self.treeWidget_zen.addTopLevelItem(temp)
+
+				self.zen_tree_data_update()
+			else:
+				QMessageBox.warning(self,"Warning","Zen文件夹不能重名！")
+				return
+		else:
+			return
+	
+	def zen_segment_add(self):
+		if self.lineEdit_zen_search.text()!="":
+			QMessageBox.warning(self,"Warning","请清空Zen搜索条件！")
+			return
+		
+		dlg = QDialog(self)
+		dlg.setWindowTitle("Create New Zen Segment")
+
+		name_label=QLabel("Segment Name:")
+		name_enter=QLineEdit()
+		
+		QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+		buttonBox = QDialogButtonBox(QBtn)
+		buttonBox.accepted.connect(dlg.accept)
+		buttonBox.rejected.connect(dlg.reject)
+
+		layout=QVBoxLayout()
+		layout.addWidget(name_label)
+		layout.addWidget(name_enter)
+		layout.addWidget(buttonBox)
+		dlg.setLayout(layout)
+
+		if dlg.exec_():
+			segment_name=name_enter.text()
+			
+			#segment不能重名
+			alreay_have=self.zen_data.keys()
+			
+			if segment_name not in alreay_have:
+
+				#哈哈哈哈，隐藏了header后，它只显示第一个column，这样就可以在后面添加附属信息了！
+				#这样就可以不用每时每刻记录Zen data，每时每刻修改Zen data
+				#只用在最后遍历整棵树，存储Zen树就行了！
+				temp=QTreeWidgetItem([segment_name,"Segment"])
+				temp.setIcon(0,QIcon(":/icon/rss.svg"))
+
+				self.treeWidget_zen.addTopLevelItem(temp)
+				self.zen_data[segment_name]=""
+
+				self.zen_tree_data_update()
+			else:
+				QMessageBox.warning(self,"Warning","Segment不能重名！")
+				return
+		else:
+			return
+	
+	def zen_tree_build(self):
+		# 根据zen_tree_data的层级结构，建树
+		tree_expand={}
+		root=self.treeWidget_zen.invisibleRootItem()
+		for index in range(root.childCount()):
+			#如果是folder，就记录一下expand属性
+			if root.child(index).text(2)=="":
+				folder_name=root.child(index).text(0)
+				tree_expand[folder_name]=root.child(index).isExpanded()
+		
+		self.treeWidget_zen.clear()
+		
+		zen_searching=self.lineEdit_zen_search.text()
+
+		#默认搜Feed name
+		if zen_searching!="":
+			
+			#反正在搜索模式下拖动排序也是没用的
+			#（因为搜索模式下的zen_tree_data_update要先清空搜索，再zen_tree_build出完整的tree，侦测tree中的从属关系，最后在恢复原有搜索）
+			#所以这里干脆禁止拖动
+			self.treeWidget_zen.setDragEnabled(0)
+			self.treeWidget_zen.setDragDropMode(QAbstractItemView.NoDragDrop)
+
+			#搜文件夹
+			if zen_searching[:3]=="f: " or zen_searching[:3]=="F: ":
+				search_name=zen_searching[3:].lower()
+				for top_level in self.zen_tree_data:
+					if type(top_level)==dict and ( search_name in top_level["folder_name"] or search_name in convert_to_az(top_level["folder_name"]) ):
+						
+						folder_name=top_level["folder_name"]
+
+						temp_root=QTreeWidgetItem([folder_name,"Folder"])
+						temp_root.setIcon(0,QIcon(":/icon/folder.svg"))
+						temp_root.setText(0,folder_name)
+						self.treeWidget_zen.addTopLevelItem(temp_root)
+
+						for segment_name in top_level["Segment"]:
+							
+							temp=QTreeWidgetItem(temp_root,[segment_name,"Segment"])
+							temp.setIcon(0,QIcon(":/icon/rss.svg"))
+
+						try:
+							temp_root.setExpanded(tree_expand[folder_name])
+						except:
+							pass
+
+			#搜text 内容
+			elif zen_searching[:3]=="t: " or zen_searching[:3]=="T: ":
+				search_name=zen_searching[3:]
+				for top_level in self.zen_tree_data:
+					#top_level放了folder
+					if type(top_level)==dict:
+						
+						folder_name=top_level["folder_name"]
+
+						temp_root=QTreeWidgetItem([folder_name,"Folder",""])
+						temp_root.setIcon(0,QIcon(":/icon/folder.svg"))
+						temp_root.setText(0,folder_name)
+
+						has=False
+						
+						for segment_name in top_level["Segment"]:
+
+							if search_name in self.zen_data[segment_name] or search_name in convert_to_az(self.zen_data[segment_name]):
+								has=True
+								
+								temp=QTreeWidgetItem(temp_root,[segment_name,"Segment"])
+								temp.setIcon(0,QIcon(":/icon/rss.svg"))
+						
+						if has==True:
+							self.treeWidget_zen.addTopLevelItem(temp_root)
+
+							try:
+								temp_root.setExpanded(tree_expand[folder_name])
+							except:
+								pass
+					
+					#top_level放了segment
+					else:
+						segment_name=top_level
+
+						if search_name in self.zen_data[segment_name] or search_name in convert_to_az(self.zen_data[segment_name]):
+							
+							temp=QTreeWidgetItem([segment_name,"Segment"])
+							temp.setIcon(0,QIcon(":/icon/rss.svg"))
+
+							self.treeWidget_zen.addTopLevelItem(temp)
+
+			#默认搜feed name
+			else:
+				search_name=zen_searching.lower()
+				for top_level in self.zen_tree_data:
+					#top_level放了folder
+					if type(top_level)==dict:
+						
+						folder_name=top_level["folder_name"]
+
+						temp_root=QTreeWidgetItem([folder_name,"Folder",""])
+						temp_root.setIcon(0,QIcon(":/icon/folder.svg"))
+						temp_root.setText(0,folder_name)
+
+						has=False
+						
+						for segment_name in top_level["Segment"]:
+
+							if search_name in segment_name or search_name in convert_to_az(segment_name):
+								has=True
+								
+								temp=QTreeWidgetItem(temp_root,[segment_name,"Segment"])
+								temp.setIcon(0,QIcon(":/icon/rss.svg"))
+						
+						if has==True:
+							self.treeWidget_zen.addTopLevelItem(temp_root)
+
+							try:
+								temp_root.setExpanded(tree_expand[folder_name])
+							except:
+								pass
+					
+					#top_level放了segment
+					else:
+						segment_name=top_level
+
+						if search_name in segment_name or search_name in convert_to_az(segment_name):
+
+							temp=QTreeWidgetItem([segment_name,"Segment"])
+							temp.setIcon(0,QIcon(":/icon/rss.svg"))
+
+							self.treeWidget_zen.addTopLevelItem(temp)
+		
+		#搜索为空，展示全部
+		else:
+
+			self.treeWidget_zen.setDragEnabled(1)
+			self.treeWidget_zen.setDragDropMode(QAbstractItemView.InternalMove)
+
+			for top_level in self.zen_tree_data:
+				#top_level放了folder
+				if type(top_level)==dict:
+					folder_name=top_level["folder_name"]
+					
+					temp_root=QTreeWidgetItem([folder_name,"Folder",""])
+					temp_root.setIcon(0,QIcon(":/icon/folder.svg"))
+					temp_root.setText(0,folder_name)
+					self.treeWidget_zen.addTopLevelItem(temp_root)
+
+					for segment_name in top_level["Segment"]:
+						
+						temp=QTreeWidgetItem(temp_root,[segment_name,"Segment"])
+						temp.setIcon(0,QIcon(":/icon/rss.svg"))
+
+					try:
+						temp_root.setExpanded(tree_expand[folder_name])
+					except:
+						pass
+				
+				#top_level放了segment
+				else:
+					segment_name=top_level
+
+					temp=QTreeWidgetItem([segment_name,"Segment"])
+					temp.setIcon(0,QIcon(":/icon/rss.svg"))
+
+					self.treeWidget_zen.addTopLevelItem(temp)
+	
+	def zen_tree_data_update(self):
+		# 根据树的结构，重塑zen_tree_data
+		def deepin(root,pointer):
+			for index in range(root.childCount()):
+				
+				#如果是segment
+				if root.child(index).text(1)=="Segment":
+					segment_name=root.child(index).text(0)
+					
+					pointer.append(segment_name)
+					continue
+				
+				#如果是Folder
+				else:
+					folder_name=root.child(index).text(0)
+					folder={
+						"folder_name":folder_name,
+						"Segment":[]
+					}
+					pointer.append(folder)
+					
+					#传入这个folder中的zen列表的pointer
+					deepin(root.child(index),folder["Segment"])
+		
+
+		#这里更新zen_tree_data用的是遍历树侦测结构的方法，所以如果在搜索模式中，要先清除搜索，还原树
+		zen_searching=self.lineEdit_zen_search.text()
+		if zen_searching!="":
+			self.lineEdit_zen_search.setText("")
+			self.zen_tree_build()
+
+
+		self.zen_tree_data=[]
+		root=self.treeWidget_zen.invisibleRootItem()
+		deepin(root,self.zen_tree_data)
+
+
+		if zen_searching!="":
+			self.lineEdit_zen_search.setText(zen_searching)
+
+	def zen_tree_drop_update(self):
+		# 每次拖动排阶级后，就检查，zen不能作为folder
+		
+		root=self.treeWidget_zen.invisibleRootItem()
+		for index in range(root.childCount()):
+			top_level=root.child(index)
+
+			#如果是根级的Segment，那么它的下面不能有东西
+			if top_level.text(1)=="Segment":
+				if top_level.childCount()!=0:
+					QMessageBox.warning(self,"Warning","Segment不能作为Folder！")
+					self.zen_tree_build()
+					return
+			
+			#如果是根级的folder，那么它的下面不能有folder，只能有Segment，且Segment底下不能有东西
+			else:
+				for index2 in range(top_level.childCount()):
+					second_level=top_level.child(index2)
+
+					#是folder
+					if second_level.text(1)=="Folder":
+						QMessageBox.warning(self,"Warning","Folder只能有一层！")
+						self.zen_tree_build()
+						return
+					#是Segment
+					else:
+						if second_level.childCount()!=0:
+							QMessageBox.warning(self,"Warning","Segment不能作为Folder！")
+							self.zen_tree_build()
+							return
+		
+		self.zen_tree_data_update()
+		self.zen_tree_build()
+
+	def zen_segment_show(self):
+		TYPE=self.treeWidget_zen.currentItem().text(1)
+		if TYPE=="Folder":
+			return
+		
+		segment_name=self.treeWidget_zen.currentItem().text(0)
+		self.stackedWidget_zen.setCurrentIndex(0)
+		text=self.zen_data[segment_name]
+
+		self.textEdit_viewer_zen.setMarkdown(text)
+		self.plainTextEdit_zen.setPlainText(text)
+
+		# 奶奶的 《老 子》 不干了
+		# zen_searching=self.lineEdit_zen_search.text()
+		# if zen_searching[:3]=="t: " or zen_searching[:3]=="T: ":
+		# 	searching_text=zen_searching[3:]
+		# 	#所在行数，不能保证每次都正确定位，因为markdown中的换行可能是两个可能是一个
+		# 	row=text[:text.find(searching_text)].count("\n\n")+text[:text.find(searching_text)].replace("\n\n","").count("\n")
+		# 	self.plainTextEdit_zen.row=row
+			
+		# 	self.textEdit_viewer_zen.setFocus()
+		# 	cursor=QTextCursor(self.textEdit_viewer_zen.document().findBlockByLineNumber(row))
+		# 	self.textEdit_viewer_zen.moveCursor(QTextCursor.End)
+		# 	self.textEdit_viewer_zen.setTextCursor(cursor)
+	
+	def zen_segment_save(self):
+		
+		segment_name=self.treeWidget_zen.currentItem().text(0)
+		self.zen_data[segment_name]=self.plainTextEdit_zen.toPlainText()
+	
+	def zen_switch_mode(self):
+		# self.stackedWidget_zen的第0个是textEdit_viewer_zen
+		# self.stackedWidget_zen的第1个是plainTextEdit_zen
+
+		if self.stackedWidget_zen.currentIndex()==0:
+			#切换到编辑模式
+			self.stackedWidget_zen.setCurrentIndex(1)
+
+			####
+				#根本不用这么麻烦，切换回去就完事了……
+				# text=self.textEdit_viewer_zen.toMarkdown()
+				# text=re.sub("(?<=[^\n])\n(?=[^\n])","",text)
+				# self.plainTextEdit_zen.setPlainText(text)
+
+				# #恢复cursor位置
+				# cursor=self.plainTextEdit_zen.restore_cursor_pos()
+				# self.plainTextEdit_zen.moveCursor(QTextCursor.End)
+				# self.plainTextEdit_zen.setTextCursor(cursor)
+			
+		elif self.stackedWidget_zen.currentIndex()==1:
+			#切换到预览模式
+			self.stackedWidget_zen.setCurrentIndex(0)
+			text=self.plainTextEdit_zen.toPlainText()
+			self.textEdit_viewer_zen.setMarkdown(text)
+			
+			####
+				#更新cursor位置
+				# self.plainTextEdit_zen.update_cursor_pos()
+
+
+	def zen_edit(self):
+		selected_item=[item for item in self.treeWidget_zen.selectedItems()]
+		
+		if len(selected_item)>1:
+			QMessageBox.warning(self,"Warning","一个一个编辑吧")
+			return
+		
+		item=selected_item[0]
+
+		old_name=item.text(0)
+		#改文件夹的名字
+		
+		dlg = QDialog(self)
+		dlg.setMinimumSize(400,200)
+		dlg.setWindowTitle("Rename")
+
+		old_name_label=QLabel("Old Name:")
+		old_name_enter=QLineEdit()
+		old_name_enter.setText(old_name)
+		old_name_enter.setReadOnly(1)
+
+		new_name_label=QLabel("New Name:")
+		new_name_enter=QLineEdit()
+		new_name_enter.setText(old_name)
+		
+		QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+		buttonBox = QDialogButtonBox(QBtn)
+		buttonBox.accepted.connect(dlg.accept)
+		buttonBox.rejected.connect(dlg.reject)
+
+		layout=QVBoxLayout()
+		layout.addWidget(old_name_label)
+		layout.addWidget(old_name_enter)
+		layout.addWidget(new_name_label)
+		layout.addWidget(new_name_enter)
+		layout.addWidget(buttonBox)
+		dlg.setLayout(layout)
+
+		#输入框自动定位
+		new_name_enter.setFocus()
+		new_name_enter.setSelection(0,len(old_name))
+
+		if dlg.exec_():
+			new_name=new_name_enter.text()
+			
+			if item.text(1)=="Folder":
+				for top_level in self.zen_tree_data:
+					#top_level放了folder
+					if type(top_level)==dict and top_level["folder_name"]==old_name:
+						top_level["folder_name"]=new_name
+						break
+				
+			elif item.text(1)=="Segment":
+				index=0
+				for top_level in self.zen_tree_data:
+					#top_level放了folder
+					if type(top_level)==dict:
+						index1=0
+						find=False
+						for segment_name in top_level["Segment"]:
+							if segment_name==old_name:
+								top_level["Segment"][index1]=new_name
+
+								old_text=self.zen_data[old_name]
+								self.zen_data.pop(old_name)
+								self.zen_data[new_name]=old_text
+
+								find=True
+								break
+							index1+=1
+						
+						if find==True:
+							break
+					else:
+						segment_name=top_level
+						if segment_name==old_name:
+							self.zen_tree_data[index]=new_name
+							
+							old_text=self.zen_data[old_name]
+							self.zen_data.pop(old_name)
+							self.zen_data[new_name]=old_text
+							
+							break
+					index+=1
+			self.zen_tree_build()
+		pass
 
 
 	def diary_text_search(self):
@@ -571,7 +1051,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 	def file_library_search_focus(self):
 		self.lineEdit_search_file.setFocus()
 		self.lineEdit_search_file.selectAll()
-
 
 	def file_library_add_a_file_to_search_list(self,y,m,d,file_name):
 		"传进来int类型的ymd，以及file_name，在listWidget_search_file中添加一个item，并在self.searching_file中append信息"
@@ -761,8 +1240,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			else:
 				list_file_in_filename(search)
 				return
-
-
 
 	def file_library_list_focus(self):
 		self.listWidget_search_file.setFocus()
@@ -1320,6 +1797,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			save_to_json(self.rss_data,"RSS_Data.json")
 		elif which=="RSS Tree":
 			save_to_json(self.rss_tree_data,"RSS_Tree_Data.json")
+		elif which=="Zen":
+			save_to_json(self.zen_data,"Zen_Data.json")
+		elif which=="Zen Tree":
+			save_to_json(self.zen_tree_data,"Zen_Tree_Data.json")
 
 
 
@@ -2031,7 +2512,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		
 		self.rss_tree_data_update()
 		self.rss_tree_build()
-		
 
 
 	def rss_tree_data_update(self):
@@ -2689,102 +3169,102 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				self.tabWidget.removeTab(tab_index)
 
 
-
-	############################################################################
-	# 要摒弃树就彻底一点，这个就别用了哈~
-	# 这东西也没法用了哈哈，现在是固定格式、固定位置的File Library了
-	# 是不能允许在外面逍遥自在的文件树的存在的
-	# 这东西还是留着吧，当时自己敲这个一遍通过，还挺高兴的呢
-	# 想看这东西的效果的话，去旧版本看吧。
-	# 现在在这里数据结构不匹配，存进去了file也打不开。
-	# def concept_import_file_tree(self):
-		
-	# 	def deepin(current_dir,parent_ID):
-
-	# 		current_dir=current_dir.replace("\\","/")
-	# 		ID=len(self.concept_data)
-	# 		name=current_dir.split("/")[-1]
-	# 		self.concept_data.append({
-	# 			"id": ID,
-	# 			"name": name,
-	# 			"detail": "",
-	# 			"parent": [],
-	# 			"child": [],
-	# 			"relative": [],
-	# 			"az": convert_to_az(name),
-	# 			"file": []
-	# 		})
-	# 		if parent_ID!=-1:
-	# 			#和上一级建立父子关系
-	# 			self.concept_data[parent_ID]["child"].append(ID)
-	# 			self.concept_data[ID]["parent"].append(parent_ID)
-
-	# 		dir_list=os.listdir(current_dir)
-	# 		dir_list.sort()
-	# 		for i in dir_list:
-				
-	# 			next_dir=os.path.join(current_dir,i)
-	# 			#是file
-	# 			if not os.path.isdir(next_dir):
-	# 				next_dir=next_dir.replace("\\","/")
-	# 				file_name=next_dir.split("/")[-1]
-	# 				file_icon=which_icon(file_name)
-	# 				self.concept_data[ID]["file"].append({
-	# 					"file_name":file_name,
-	# 					"file_link":next_dir,
-	# 					"file_icon":file_icon
-	# 				})
-				
-	# 			#是dir
-	# 			else:
-	# 				if self.progress.wasCanceled():
-	# 					return
-	# 				self.cnt+=1
-	# 				self.progress.setValue(self.cnt)
-
-	# 				deepin(next_dir,ID)
+	####
+		############################################################################
+		# 要摒弃树就彻底一点，这个就别用了哈~
+		# 这东西也没法用了哈哈，现在是固定格式、固定位置的File Library了
+		# 是不能允许在外面逍遥自在的文件树的存在的
+		# 这东西还是留着吧，当时自己敲这个一遍通过，还挺高兴的呢
+		# 想看这东西的效果的话，去旧版本看吧。
+		# 现在在这里数据结构不匹配，存进去了file也打不开。
+		# def concept_import_file_tree(self):
 			
-	# 		self.concept_data[ID]["parent"].sort()
-	# 		self.concept_data[ID]["child"].sort()
-	# 		self.concept_data[ID]["file"].sort(key=lambda x:x["file_name"])
-	# 		return
-		
+		# 	def deepin(current_dir,parent_ID):
 
-	# 	QMessageBox.warning(self,"Warning","这个功能将会导入文件树，其中的文件夹算作concept，\n文件夹中的文件算作concept linked file，这并不是\n很符合软件的理念，但也许有人会用得上吧。")
-		
-	# 	dlg=QFileDialog(self)
-	# 	directory=dlg.getExistingDirectory()
+		# 		current_dir=current_dir.replace("\\","/")
+		# 		ID=len(self.concept_data)
+		# 		name=current_dir.split("/")[-1]
+		# 		self.concept_data.append({
+		# 			"id": ID,
+		# 			"name": name,
+		# 			"detail": "",
+		# 			"parent": [],
+		# 			"child": [],
+		# 			"relative": [],
+		# 			"az": convert_to_az(name),
+		# 			"file": []
+		# 		})
+		# 		if parent_ID!=-1:
+		# 			#和上一级建立父子关系
+		# 			self.concept_data[parent_ID]["child"].append(ID)
+		# 			self.concept_data[ID]["parent"].append(parent_ID)
 
-	# 	self.progress=QProgressDialog("Importing Concept From File Tree...","Cancel",0,20000,self)
-	# 	################################################################
-	# 	#################他奶奶的凭什么加上这句话就不会假死?!!!!##############
-	# 	########################我他妈折腾这东西花了快两个小时？！！##########
-	# 	####################又是用多线程又是用延迟，！######################
-	# 	####################结果你就告诉我用这个?！#########################
-	# 	self.progress.setWindowModality(Qt.WindowModal)
-	# 	#####他妈的学校这破网还连不上VPN，##################################
-	# 	#############################没有GOOGLE怎么活啊？！！##############
-	# 	################################################################
-	# 	self.progress.setMinimumDuration(1)
-	# 	self.cnt=0
+		# 		dir_list=os.listdir(current_dir)
+		# 		dir_list.sort()
+		# 		for i in dir_list:
+					
+		# 			next_dir=os.path.join(current_dir,i)
+		# 			#是file
+		# 			if not os.path.isdir(next_dir):
+		# 				next_dir=next_dir.replace("\\","/")
+		# 				file_name=next_dir.split("/")[-1]
+		# 				file_icon=which_icon(file_name)
+		# 				self.concept_data[ID]["file"].append({
+		# 					"file_name":file_name,
+		# 					"file_link":next_dir,
+		# 					"file_icon":file_icon
+		# 				})
+					
+		# 			#是dir
+		# 			else:
+		# 				if self.progress.wasCanceled():
+		# 					return
+		# 				self.cnt+=1
+		# 				self.progress.setValue(self.cnt)
 
-	# 	deepin(directory,-1)
-		
-	# 	self.progress.setValue(20000)
+		# 				deepin(next_dir,ID)
+				
+		# 		self.concept_data[ID]["parent"].sort()
+		# 		self.concept_data[ID]["child"].sort()
+		# 		self.concept_data[ID]["file"].sort(key=lambda x:x["file_name"])
+		# 		return
+			
 
-	# 	del self.progress
-	# 	del self.cnt
+		# 	QMessageBox.warning(self,"Warning","这个功能将会导入文件树，其中的文件夹算作concept，\n文件夹中的文件算作concept linked file，这并不是\n很符合软件的理念，但也许有人会用得上吧。")
+			
+		# 	dlg=QFileDialog(self)
+		# 	directory=dlg.getExistingDirectory()
+
+		# 	self.progress=QProgressDialog("Importing Concept From File Tree...","Cancel",0,20000,self)
+		# 	################################################################
+		# 	#################他奶奶的凭什么加上这句话就不会假死?!!!!##############
+		# 	########################我他妈折腾这东西花了快两个小时？！！##########
+		# 	####################又是用多线程又是用延迟，！######################
+		# 	####################结果你就告诉我用这个?！#########################
+		# 	self.progress.setWindowModality(Qt.WindowModal)
+		# 	#####他妈的学校这破网还连不上VPN，##################################
+		# 	#############################没有GOOGLE怎么活啊？！！##############
+		# 	################################################################
+		# 	self.progress.setMinimumDuration(1)
+		# 	self.cnt=0
+
+		# 	deepin(directory,-1)
+			
+		# 	self.progress.setValue(20000)
+
+		# 	del self.progress
+		# 	del self.cnt
 
 
-	# 	self.concept_search_list_update()
-	# 	self.window_title_update()
+		# 	self.concept_search_list_update()
+		# 	self.window_title_update()
 
-	# 	for tab in self.custom_tabs_shown:
-	# 		tab.tab_update()
-	############################################################################
+		# 	for tab in self.custom_tabs_shown:
+		# 		tab.tab_update()
+		############################################################################
 
 	def about(self):
-		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 0.1.9.2\nAuthor: 鍵山狐\nContact: Holence08@gmail.com")
+		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 0.1.9.3\nAuthor: 鍵山狐\nContact: Holence08@gmail.com")
 
 
 
@@ -2800,6 +3280,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.listWidget_concept_related_text.setFont(font)
 		self.treeWidget_rss.setFont(font)
 		self.listWidget_rss.setFont(font)
+		self.treeWidget_zen.setFont(font)
 
 		#偏小
 		font.setPointSize(int(font_size*0.8))
@@ -2821,6 +3302,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		#展示区偏大
 		font.setPointSize(int(font_size*1.4))
 		self.textEdit_viewer.setFont(font)
+		self.textEdit_viewer_zen.setFont(font)
+		self.plainTextEdit_zen.setFont(font)
 
 		#头文字偏小
 		font.setPointSize(int(font_size*0.8))
@@ -2948,6 +3431,10 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		#rss编辑
 		elif self.treeWidget_rss.hasFocus():
 			self.rss_edit()
+		
+		#rss编辑
+		elif self.treeWidget_zen.hasFocus():
+			self.zen_edit()
 
 		#Concept related text编辑
 		elif self.listWidget_concept_related_text.hasFocus():
@@ -3158,6 +3645,49 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			encrypt_save(rss_data,"RSS_Data.dlcw")
 		
 		##########################################################################################################
+		#################################################ZEN######################################################
+		##########################################################################################################
+
+		if "Zen_Data.dlcw" in os.listdir("."):
+			#不是第一次进来
+			try:
+				#检查zen_tree_data和zen_data中的segment_name是否有出入
+				
+				zen_tree_data=decrypt_load("Zen_Tree_Data.dlcw")
+				l0=[]
+				for top_level in zen_tree_data:
+					#top_level放了folder
+					if type(top_level)==dict:
+						for segment_name in top_level["Segment"]:
+							l0.append(segment_name)
+
+					#top_level放了segment
+					else:
+						segment_name=top_level
+						l0.append(segment_name)
+
+				zen_data=decrypt_load("Zen_Data.dlcw")
+				l1=list(zen_data.keys())
+
+				if list_difference(l0,l1)==[]:
+					pass
+				else:
+					QMessageBox.critical(self,"Error","Zen信息不匹配，请联系相关开发人员！")
+					return 0
+			except:
+				QMessageBox.critical(self,"Error","Zen文件出错，请联系相关开发人员！")
+				return 0
+		
+		#第一次进来
+		else:
+			zen_tree_data=[]
+			zen_data={}
+			
+			encrypt_save(zen_tree_data,"Zen_Tree_Data.dlcw")
+			encrypt_save(zen_data,"Zen_Data.dlcw")
+
+
+		##########################################################################################################
 		#################################################Done#####################################################
 		##########################################################################################################
 		
@@ -3177,6 +3707,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 		self.rss_data=decrypt_load("RSS_Data.dlcw")
 		self.rss_tree_data=decrypt_load("RSS_Tree_Data.dlcw")
+		
+		self.zen_data=decrypt_load("Zen_Data.dlcw")
+		self.zen_tree_data=decrypt_load("Zen_Tree_Data.dlcw")
 		
 		# print(self.rss_tree_data)
 
@@ -3213,20 +3746,24 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 	def data_save(self):
 		
-		#Save Diary_Data
+		#Diary data
 		self.diary_data_save_out()
 
-		#自动保存concept data
+		#concept data
 		encrypt_save(self.concept_data,"Concept_Data.dlcw")
 
-		#自动保存file data
+		#file data
 		encrypt_save(self.file_data,"File_Data.dlcw")
 
-		#自动保存RSS data
+		#RSS data
 		encrypt_save(self.rss_data,"RSS_Data.dlcw")
 		encrypt_save(self.rss_tree_data,"RSS_Tree_Data.dlcw")
 
-		#保存sticker
+		#Zen data
+		encrypt_save(self.zen_data,"Zen_Data.dlcw")
+		encrypt_save(self.zen_tree_data,"Zen_Tree_Data.dlcw")
+
+		#sticker
 		sticker_text=self.plainTextEdit_sticker.toPlainText()
 		self.user_settings.setValue("sticker",encrypt(sticker_text))
 
@@ -4276,10 +4813,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			#列出当前行的关联事物
 			self.diary_line_concept_list_update()
 			self.window_title_update()
-		
 
-		
-		
+
 
 	def diary_line_list_drag_update(self):
 		#drag and drop是一个一个放入的，而rowsMoved这个信号，如果移动了多行，就在第一个放入的时候触发了，导致只有第一个放入的行被正确重排了
@@ -4359,7 +4894,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			for item_id in self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_concept"]:
 				self.listWidget_text_related_concept.addItem(str(item_id)+"|"+self.concept_data[item_id]["name"])
 
-	
 
 	def concept_linked_file_add(self,links):
 		"""
@@ -5058,37 +5592,5 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				self.diary_line_file_show()
 				self.window_title_update()	
 
-	
 
 "无框窗口！！！self.setWindowFlags(Qt.CustomizeWindowHint|Qt.FramelessWindowHint)"
-
-
-
-
-
-
-
-
-
-
-
-if __name__ == "__main__":
-	
-	setdefaulttimeout(3.0)
-	
-	# QApplication.setAttribute(Qt.AA_UseOpenGLES)
-	# QApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
-	# QApplication.setAttribute(Qt.AA_UseDesktopOpenGL)
-	# QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
-
-	# QDesktopServices.openUrl(QUrl("https://doc.qt.io/qt-5/qdesktopservices.html", QUrl.TolerantMode));
-	app = QApplication([])
-	
-	app.setStyle("Fusion")
-	app.setPalette(MyDarkPalette())
-	window=DongliTeahouseStudio()
-	
-
-	
-	window.show()
-	sys.exit(app.exec_())

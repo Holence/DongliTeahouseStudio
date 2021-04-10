@@ -199,12 +199,29 @@ class MyPlainTextEdit(QPlainTextEdit):
 
 	editingFinished = Signal()
 	receivedFocus = Signal()
-	
 	def __init__(self, parent):
 		super(MyPlainTextEdit, self).__init__(parent)
 		self._changed = False
 		self.setTabChangesFocus( True )
 		self.textChanged.connect( self._handle_text_changed )
+	
+		#记录cursor的位置
+		self.row=0
+		self.column=0
+
+	def restore_cursor_pos(self):
+		"想恢复cursor还得这么麻烦"
+		cursor=self.textCursor()
+		cursor.movePosition(QTextCursor.Start)
+		cursor.movePosition(QTextCursor.Down,QTextCursor.MoveAnchor,self.row)
+		cursor.movePosition(QTextCursor.Right,QTextCursor.MoveAnchor,self.column)
+		return cursor
+
+	def update_cursor_pos(self):
+		"想恢复cursor还得这么麻烦"
+		cursor=self.textCursor()
+		self.row=cursor.blockNumber()
+		self.column=cursor.positionInBlock()
 
 	def focusInEvent(self, event):
 		super(MyPlainTextEdit, self).focusInEvent( event )
@@ -222,9 +239,60 @@ class MyPlainTextEdit(QPlainTextEdit):
 		self._changed = state
 
 	def setHtml(self, html):
-		QtGui.QPlainTextEdit.setHtml(self, html)
+		QPlainTextEdit.setHtml(self, html)
 		self._changed = False
 
+class MyTextEdit(QTextEdit):
+	"""
+	A TextEdit editor that sends editingFinished events 
+	when the text was changed and focus is lost.
+	"""
+
+	editingFinished = Signal()
+	receivedFocus = Signal()
+	
+	def __init__(self, parent):
+		super(MyTextEdit, self).__init__(parent)
+		self._changed = False
+		self.setTabChangesFocus( True )
+		self.textChanged.connect( self._handle_text_changed )
+		
+		#记录cursor的位置
+		self.row=0
+		self.column=0
+
+	def restore_cursor_pos(self):
+		"想恢复cursor还得这么麻烦"
+		cursor=self.textCursor()
+		cursor.movePosition(QTextCursor.Start)
+		cursor.movePosition(QTextCursor.Down,QTextCursor.MoveAnchor,self.row)
+		cursor.movePosition(QTextCursor.Right,QTextCursor.MoveAnchor,self.column)
+		return cursor
+
+	def update_cursor_pos(self):
+		"想恢复cursor还得这么麻烦"
+		cursor=self.textCursor()
+		self.row=cursor.blockNumber()
+		self.column=cursor.positionInBlock()
+
+	def focusInEvent(self, event):
+		super(MyTextEdit, self).focusInEvent( event )
+		self.receivedFocus.emit()
+
+	def focusOutEvent(self, event):
+		if self._changed:
+			self.editingFinished.emit()
+		super(MyTextEdit, self).focusOutEvent( event )
+
+	def _handle_text_changed(self):
+		self._changed = True
+
+	def setTextChanged(self, state=True):
+		self._changed = state
+
+	def setHtml(self, html):
+		QTextEdit.setHtml(self, html)
+		self._changed = False
 
 class MyTabFileLeafList(QListWidget):
 	def __init__(self,parent):

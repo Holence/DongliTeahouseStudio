@@ -34,17 +34,14 @@ Inspired By:
 
 TODO List:
 
-- [ ] Zen (a place to reflect and write)
 - [ ] More export options
-- [ ] File right click context menu
+- [ ] ~~File right click context menu~~
 - [ ] A short manual
-- [x] More RSS Parse Modes
-- [x] Diary text linked concept Time-Frequency Analytics
 
 ---
 
  
- 
+
   
 
   
