@@ -15,6 +15,103 @@ from dongli_teahouse_studio_window import Ui_dongli_teahouse_studio_window
 
 class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
+
+	# Mainwindow无边框的移动方法
+	def mousePressEvent(self, event):
+		if event.button() == Qt.LeftButton:
+			self.__press_pos = event.pos()  
+
+	def mouseReleaseEvent(self, event):
+		if event.button() == Qt.LeftButton:
+			self.__press_pos = QPoint()
+
+	def mouseMoveEvent(self, event):
+		if not self.__press_pos.isNull():  
+			self.move(self.pos() + (event.pos() - self.__press_pos))
+
+	def __init__(self):
+		super().__init__()
+		self.setupUi(self)
+		self.user_settings=QSettings("user_settings.ini",QSettings.IniFormat)
+		self.qlock=QMutex(QMutex.NonRecursive)
+		setdefaulttimeout(3.0)
+
+		self.__press_pos = QPoint()
+		self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.CustomizeWindowHint)
+		
+		# self.setWindowOpacity(0.95)
+
+		# QCoreApplication.setApplicationName("Teahouse Studio")
+		# QCoreApplication.setOrganizationName("Dongli Teahouse")
+
+		#初始化concept、diary、file、rss、zen的数据
+		self.initialize_data()
+		#初始化信号
+		self.initialize_signal()
+		#这个一定得放在初始化窗体之前，貌似对dock的设置会被其中某个步骤重置掉
+		self.initialize_dockwidget()
+		#初始化窗体
+		self.initialize_window()
+		#初始化system tray
+		self.initialize_tray()
+		#初始化tab
+		self.initialize_custom_tab()
+
+	def initialize_data(self):
+		#初始化diary、concept、file、rss的data
+		if self.data_validity_check()==1:
+			self.data_load()
+			
+			#####################################################################################################################
+			self.easter_egg_deleting_universe=0
+			
+			self.concept_search_list_update()
+
+			#####################################################################################################################
+			self.current_year_index=0
+			self.current_month_index=0
+			self.current_day_index=0
+			self.current_day=0#记录这个，用来找那些不存在当前日的，重排序后的index
+			self.is_new_diary=0#标记新日记，增添容器、新建新日记时要用
+			self.is_first_arrived=0#增添、删除、列出链接物的时候要用
+			self.new_diary={}#临时存储还没重排序找到day索引值的新日记
+			self.current_line_index=0
+
+			self.diary_show(QDate_transform(self.calendarWidget.selectedDate()))
+
+			#####################################################################################################################
+			
+
+			ymd=time.localtime(time.time())
+			self.y=ymd[0]
+			self.m=ymd[1]
+			self.d=ymd[2]
+			#当日存文件的地方
+			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.y)+"/"+str(self.m)+"/"+str(self.d)
+			self.searching_file=[]
+			self.file_library_list_update()
+			
+			self.file_saving_today_dst_exist=False
+			self.file_saving_today_dst_exist_check()
+
+			#####################################################################################################################
+
+			self.current_rss_showing=None#如果点开的是rss，那么放的是rss_url；如果点开的是folder，那么存所有文章结构体的列表，
+			self.browser=QWebEngineView()
+			self.splitter_rss.addWidget(self.browser)
+			self.splitter_rss.setStretchFactor(0,1)
+			self.splitter_rss.setStretchFactor(1,1)
+			self.splitter_rss.setStretchFactor(2,1)
+			self.rss_tree_build()
+
+			self.rss_feed_daily_update()
+			self.manually_updateing=False
+			#####################################################################################################################
+
+			self.zen_tree_build()
+		else:
+			QCoreApplication.exit()
+
 	def initialize_signal(self):
 		
 		#########################################################################################################
@@ -114,6 +211,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#Diary分析
 		self.actionAnalyze_Diary_with_Concept.triggered.connect(self.diary_analyze)
 
+		# self.listWidget_lines.右键点击
+
 		#########################################################################################################
 		#File Library
 		#file manager文件
@@ -135,7 +234,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#ctrl+q搜索文件
 		self.actionSearch_File_Library.triggered.connect(self.file_library_search_focus)
 		#在Library中定位选中的文件
-		self.actionLocate_File_in_File_Library.triggered.connect(self.center_locate_file_in_library)
+		self.actionLocate.triggered.connect(self.center_locate)
 
 		#########################################################################################################
 		#RSS
@@ -167,9 +266,15 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#每次拖动排阶级后，就检查，
 		self.treeWidget_zen.dropped.connect(self.zen_tree_drop_update)
 
-		self.treeWidget_zen.itemClicked.connect(self.zen_segment_show)
+		self.treeWidget_zen.itemDoubleClicked.connect(self.zen_segment_show)
 
 		self.plainTextEdit_zen.editingFinished.connect(self.zen_segment_save)
+
+		self.pushButton_sublime.clicked.connect(self.zen_open_sublime)
+		self.pushButton_typora.clicked.connect(self.zen_open_typora)
+
+		self.lineEdit_zen_text_search.textEdited.connect(self.zen_text_search)
+		self.lineEdit_zen_text_search.returnPressed.connect(self.zen_text_search)
 
 		#########################################################################################################
 		#Tab
@@ -184,6 +289,15 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.actionToggle_Fullscreen.triggered.connect(self.window_toggle_fullscreen)
 		#置顶Action
 		self.actionStay_on_Top.triggered.connect(self.window_toggle_stay_on_top)
+
+		self.actionMaximize_Main_Window.triggered.connect(self.showMaximized)
+		self.actionRestore_Main_Window.triggered.connect(self.showNormal)
+		self.actionHide_Main_Window.triggered.connect(self.hide)
+		#牛逼疯了！我要的就是这个！
+		#如果是点窗口右上角的的最小化，调用的是self.showMinimized
+		#这会把所有归属于mainwindow的窗口都最小化，我的漂浮dockwidget就没了
+		#
+		#而如果用的是hide，那只会把mainwindow隐藏掉，我的漂浮dockwidget就一直在那里！
 
 		#添加view设置
 		action=self.dockWidget_concept.toggleViewAction()
@@ -211,7 +325,52 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#about界面
 		self.actionAbout.triggered.connect(self.about)
 
+	def initialize_dockwidget(self):
+		
+		self.dockWidget_concept.setTitleBarWidget(self.verticalWidget_titlebar_concept)
+		self.pushButton_concept_close.clicked.connect(lambda:self.dockWidget_concept.hide())
+		QSizeGrip(self.frame_sizegrip_concept)
+		
+		self.dockWidget_concept.dockLocationChanged.connect(lambda:self.frame_sizegrip_concept.show() if self.dockWidget_concept.isFloating() else self.frame_sizegrip_concept.hide())
+		if self.dockWidget_concept.isFloating():
+			self.frame_sizegrip_concept.show()
+		else:
+			self.frame_sizegrip_concept.hide()
+
+
+		self.dockWidget_diary.setTitleBarWidget(self.verticalWidget_titlebar_diary)
+		self.pushButton_diary_close.clicked.connect(lambda:self.dockWidget_diary.hide())
+		QSizeGrip(self.frame_sizegrip_diary)
+
+		self.dockWidget_diary.dockLocationChanged.connect(lambda:self.frame_sizegrip_diary.show() if self.dockWidget_diary.isFloating() else self.frame_sizegrip_diary.hide())
+		if self.dockWidget_diary.isFloating():
+			self.frame_sizegrip_diary.show()
+		else:
+			self.frame_sizegrip_diary.hide()
+		
+		self.dockWidget_library.setTitleBarWidget(self.verticalWidget_titlebar_library)
+		self.pushButton_library_close.clicked.connect(lambda:self.dockWidget_library.hide())
+		QSizeGrip(self.frame_sizegrip_library)
+
+		self.dockWidget_library.dockLocationChanged.connect(lambda:self.frame_sizegrip_library.show() if self.dockWidget_library.isFloating() else self.frame_sizegrip_library.hide())
+		if self.dockWidget_library.isFloating():
+			self.frame_sizegrip_library.show()
+		else:
+			self.frame_sizegrip_library.hide()
+
+		self.dockWidget_sticker.setTitleBarWidget(self.verticalWidget_titlebar_sticker)
+		self.pushButton_sticker_close.clicked.connect(lambda:self.dockWidget_sticker.hide())
+		QSizeGrip(self.frame_sizegrip_sticker)
+
+		self.dockWidget_sticker.dockLocationChanged.connect(lambda:self.frame_sizegrip_sticker.show() if self.dockWidget_sticker.isFloating() else self.frame_sizegrip_sticker.hide())
+		if self.dockWidget_sticker.isFloating():
+			self.frame_sizegrip_sticker.show()
+		else:
+			self.frame_sizegrip_sticker.hide()
+
 	def initialize_window(self):
+		
+		self.menubar.setVisible(False)
 		#恢复界面设置
 		try:
 			
@@ -229,15 +388,36 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 			sticker_text=decrypt(self.user_settings.value("sticker"))
 			self.plainTextEdit_sticker.setPlainText(sticker_text)
-						
+			
 			
 			# settings_list=self.user_settings.allKeys()
 			# print(settings_list)
 		except:
 			pass
 
+	def initialize_tray(self):
+		self.trayIconMenu=QMenu(self)
+
+		self.trayIcon=QSystemTrayIcon(self)
+		self.trayIcon.setIcon(QIcon("holoico.ico"))
+		
+		#################################################################
+
+
+		# self.trayIconMenu.addSeparator()
+
+		
+		self.trayIconMenu.addAction(self.actionSetting)
+		self.trayIconMenu.addMenu(self.menuView)
+		self.trayIconMenu.addAction(self.actionExit)
+
+
+		self.trayIcon.setContextMenu(self.trayIconMenu)
+		self.trayIcon.show()
 
 	def initialize_custom_tab(self):
+		#custom_tabs_shown存储正在界面上展示的tabs，这些是用来实时与concept data同步更新的
+		self.custom_tabs_shown=[]
 
 		#恢复custom_tab配置
 		try:#不是第一次进来
@@ -280,7 +460,9 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		
 		except:#第一次进来，初始化custom_tab_data
 			self.custom_tab_data=[]
-
+		
+		#Home页
+		self.tabWidget.setCurrentIndex(0)
 
 	def closeEvent(self,event):
 		super(DongliTeahouseStudio,self).closeEvent(event)
@@ -340,111 +522,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			# 		event.ignore()
 			# 	elif button == QMessageBox.No:
 			# 		event.accept()
-
-	####
-		#Mainwindow无边框的移动方法
-		# def mousePressEvent(self, event):
-		# 	if event.button() == Qt.LeftButton:
-		# 		self.__press_pos = event.pos()  
-
-		# def mouseReleaseEvent(self, event):
-		# 	if event.button() == Qt.LeftButton:
-		# 		self.__press_pos = QPoint()
-
-		# def mouseMoveEvent(self, event):
-		# 	if not self.__press_pos.isNull():  
-		# 		self.move(self.pos() + (event.pos() - self.__press_pos))
-	
-	def __init__(self):
-		super().__init__()
-		self.setupUi(self)
-		setdefaulttimeout(3.0)
-
-		# self.__press_pos = QPoint()
-		# self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.CustomizeWindowHint)
-		# self.setWindowOpacity(0.95)
-
-
-		#初始化信号
-		self.initialize_signal()
-
-		self.user_settings=QSettings("user_settings.ini",QSettings.IniFormat)
-
-		# QCoreApplication.setApplicationName("Teahouse Studio")
-		# QCoreApplication.setOrganizationName("Dongli Teahouse")
-
-
-		#初始化变量
-		self.qmenu=QMenu(self)
-
-		self.current_year_index=0
-		self.current_month_index=0
-		self.current_day_index=0
-		self.current_day=0#记录这个，用来找那些不存在当前日的，重排序后的index
-		self.is_new_diary=0#标记新日记，增添容器、新建新日记时要用
-		self.is_first_arrived=0#增添、删除、列出链接物的时候要用
-		self.new_diary={}#临时存储还没重排序找到day索引值的新日记
-		self.current_line_index=0
-
-		self.easter_egg_deleting_universe=0
-
-		self.qlock=QMutex(QMutex.NonRecursive)
-
-		#初始化diary、concept、file、rss的data
-		if self.data_validity_check()==1:
-			self.data_load()
-			
-			#####################################################################################################################
-			
-			self.concept_search_list_update()
-
-			#####################################################################################################################
-			
-			self.diary_show(QDate_transform(self.calendarWidget.selectedDate()))
-
-			#####################################################################################################################
-			
-
-			ymd=time.localtime(time.time())
-			self.y=ymd[0]
-			self.m=ymd[1]
-			self.d=ymd[2]
-			#当日存文件的地方
-			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.y)+"/"+str(self.m)+"/"+str(self.d)
-			self.searching_file=[]
-			self.file_library_list_update()
-			
-			self.file_saving_today_dst_exist=False
-			self.file_saving_today_dst_exist_check()
-
-			#####################################################################################################################
-
-			self.current_rss_showing=None#如果点开的是rss，那么放的是rss_url；如果点开的是folder，那么存所有文章结构体的列表，
-			self.browser=QWebEngineView()
-			self.splitter_rss.addWidget(self.browser)
-			self.splitter_rss.setStretchFactor(0,1)
-			self.splitter_rss.setStretchFactor(1,1)
-			self.splitter_rss.setStretchFactor(2,1)
-			self.rss_tree_build()
-
-			self.rss_feed_daily_update()
-			self.manually_updateing=False
-			#####################################################################################################################
-
-			self.zen_tree_build()
-		else:
-			exit()
-		
-		# 初始化窗体
-		self.initialize_window()
-
-		#初始化tab
-		#custom_tabs_shown存储正在界面上展示的tabs，这些是用来实时与concept data同步更新的
-		self.custom_tabs_shown=[]
-		self.initialize_custom_tab()
-		self.tabWidget.setCurrentIndex(0)
-
-
 
 	def zen_folder_create(self):
 		if self.lineEdit_zen_search.text()!="":
@@ -791,6 +868,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.textEdit_viewer_zen.setMarkdown(text)
 		self.plainTextEdit_zen.setPlainText(text)
 
+		self.zen_text_search()
+
 		# 奶奶的 《老 子》 不干了
 		# zen_searching=self.lineEdit_zen_search.text()
 		# if zen_searching[:3]=="t: " or zen_searching[:3]=="T: ":
@@ -837,7 +916,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			####
 				#更新cursor位置
 				# self.plainTextEdit_zen.update_cursor_pos()
-
 
 	def zen_edit(self):
 		selected_item=[item for item in self.treeWidget_zen.selectedItems()]
@@ -926,13 +1004,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.zen_tree_build()
 		pass
 
-
 	def diary_text_search(self):
 		dlg=DiarySearchDialog(self)
 		if self.window_is_stay_on_top()==True:
 			dlg.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 		dlg.exec_()
-
 
 	def diary_analyze(self):
 		dlg=DiaryAnalyzeDialog(self)
@@ -1091,7 +1167,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				y=self.y
 				m=self.m
 				d=self.d
-				self.dockWidget_library.setWindowTitle("Library : Searching: Date: %s.%s.%s"%(y,m,d))
+				self.label_titlebar_library.setText("Library : Searching: Date: %s.%s.%s"%(y,m,d))
 
 				for file_name in sorted(self.file_data[y][m][d].keys()):
 					self.file_library_add_a_file_to_search_list(y,m,d,file_name)
@@ -1110,13 +1186,13 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				for file_name in sorted(self.file_data[y][m][d].keys()):
 					self.file_library_add_a_file_to_search_list(y,m,d,file_name)
 				
-				self.dockWidget_library.setWindowTitle("Library : Searching: Date: %s.%s.%s"%(y,m,d))
+				self.label_titlebar_library.setText("Library : Searching: Date: %s.%s.%s"%(y,m,d))
 			except:
-				self.dockWidget_library.setWindowTitle("Library : Searching: Date: ")
+				self.label_titlebar_library.setText("Library : Searching: Date: ")
 				pass
 		
 		def list_file_without_concept():
-			self.dockWidget_library.setWindowTitle("Library : Searching: No Linked Concept: ")
+			self.label_titlebar_library.setText("Library : Searching: No Linked Concept: ")
 			for y in range(1970,2170):
 				for m in range(1,13):
 					for d in self.file_data[y][m].keys():
@@ -1174,9 +1250,9 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				for searched_concept_name in searched_concepts:
 					title+=searched_concept_name+" & "
 				title=title[:-3]
-				self.dockWidget_library.setWindowTitle(title)
+				self.label_titlebar_library.setText(title)
 			else:
-				self.dockWidget_library.setWindowTitle("Library : Searching: Concept Name: ")
+				self.label_titlebar_library.setText("Library : Searching: Concept Name: ")
 		
 		def list_file_in_filename(search):
 			"搜索文件名只有“与”模式，关键词用空格分隔，列出文件名同时包含所有关键词的文件"
@@ -1192,7 +1268,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 							else:
 								self.file_library_add_a_file_to_search_list(y,m,d,file_name)
 			
-			self.dockWidget_library.setWindowTitle("Library : Searching: File Name: %s"%search)
+			self.label_titlebar_library.setText("Library : Searching: File Name: %s"%search)
 
 
 		########################################################################################
@@ -1219,7 +1295,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		else:
 			#特殊搜索模式
 			if search[0]=="\\":
-				self.dockWidget_library.setWindowTitle("Library : Searching: Special Mode: ")
+				self.label_titlebar_library.setText("Library : Searching: Special Mode: ")
 
 				# "日期搜索模式:\d 2021.3.12"
 				if search[:3]=="\\d " or search[:3]=="\\D ":
@@ -1244,7 +1320,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 	def file_library_list_focus(self):
 		self.listWidget_search_file.setFocus()
 		self.listWidget_search_file.setCurrentRow(0)
-
 
 	def file_library_file_info_show(self):
 		"""
@@ -1282,12 +1357,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 						if ">" in file_name:
 							have_link=file_name.split("|")[1]
 							if have_link==link:
-								tray=QSystemTrayIcon()
-								tray.setContextMenu(self.qmenu)
-								tray.setIcon(QIcon(":/icon/holoico.ico"))
-								tray.hide()
-								tray.show()
-								tray.showMessage("Infomation","该链接已存在！\n%s"%link)
+								self.trayIcon.showMessage("Infomation","该链接已存在！\n%s"%link)
 								return False
 		return True
 
@@ -1348,12 +1418,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					title=result[1]
 				else:
 					title="Unkown Page"
-					tray=QSystemTrayIcon()
-					tray.setContextMenu(self.qmenu)
-					tray.setIcon(QIcon(":/icon/holoico.ico"))
-					tray.hide()
-					tray.show()
-					tray.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
+					self.trayIcon.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
 				file_name=">"+title+"|"+i
 				self.file_data[self.y][self.m][self.d][file_name]=[]
 
@@ -1401,7 +1466,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.progress.deleteLater()
 		
 		self.file_library_list_update()
-
 
 	def file_library_file_open(self):
 		"""
@@ -1461,7 +1525,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			except Exception as e :
 				e=str(e).split(":",1)
 				QMessageBox.critical(self,"Critical Error","%s\n%s\n请手动设置该类型文件的默认启动应用！"%(e[0],e[1]))
-
 
 	def file_library_file_delete(self):
 		"""
@@ -1556,7 +1619,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 		for tab in self.custom_tabs_shown:
 			tab.tab_update()
-
 
 	def file_library_file_rename(self):
 		def check_validity(new_name_enter,buttonBox):
@@ -1702,6 +1764,310 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		for tab in self.custom_tabs_shown:
 			tab.tab_update()
 
+	def concept_linked_file_rename(self):
+		"直接复制粘贴file_library_file_rename的了，懒得抽象了"
+		def check_validity(new_name_enter,buttonBox):
+			if should_not_change!="":
+				# ">Google|http://www.google.com"
+				new_file_name=new_name_enter.text()
+				#没有>了
+				if new_file_name[0]!=">":
+					buttonBox.setEnabled(0)
+					return
+				else:
+					buttonBox.setEnabled(1)
+				
+				#没有|http://www.google.com了
+				tail="|"+new_file_name.split("|")[-1]
+				if should_not_change!=tail:
+					buttonBox.button(QDialogButtonBox.Ok).setEnabled(0)
+				else:
+					buttonBox.button(QDialogButtonBox.Ok).setEnabled(1)
+		
+		for file_index in sorted([item.row() for item in self.listWidget_concept_linked_file.selectedIndexes()]):
+			
+			file_str=self.listWidget_concept_linked_file.item(file_index).toolTip()
+			old_file=file_str.replace(self.file_saving_base,"")[1:].split("/")
+			
+			
+			old_y=int(old_file[0])
+			old_m=int(old_file[1])
+			old_d=int(old_file[2])
+
+			if "|" in file_str:
+				old_file_name=file_str[file_str.find(">"):]
+			else:
+				old_file_name=old_file[3]
+
+			old_file_linked_concept=self.file_data[old_y][old_m][old_d][old_file_name]
+
+			dlg = QDialog(self)
+			dlg.setMinimumSize(400,200)
+			dlg.setWindowTitle("Rename")
+
+			old_name_label=QLabel("Old Name:")
+			old_name_enter=QLineEdit()
+			old_name_enter.setText(old_file_name)
+			old_name_enter.setReadOnly(1)
+
+			new_name_label=QLabel("New Name:")
+			new_name_enter=QLineEdit()
+			new_name_enter.setText(old_file_name)
+			
+			QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+			buttonBox = QDialogButtonBox(QBtn)
+			buttonBox.accepted.connect(dlg.accept)
+			buttonBox.rejected.connect(dlg.reject)
+
+			layout=QVBoxLayout()
+			layout.addWidget(old_name_label)
+			layout.addWidget(old_name_enter)
+			layout.addWidget(new_name_label)
+			layout.addWidget(new_name_enter)
+			layout.addWidget(buttonBox)
+			dlg.setLayout(layout)
+
+			new_name_enter.textEdited.connect(lambda:check_validity(new_name_enter,buttonBox))
+			#输入框自动定位
+			new_name_enter.setFocus()
+
+			#should_not_change用来防止乱修改网址link
+			if "|" in old_file_name:
+				# ">Google|http://www.google.com"
+				should_not_change="|"+old_file_name.split("|")[-1]
+				old_file_extension=old_file_name.split("|")[-1]
+				new_name_enter.setSelection(1,len(old_file_name)-len(old_file_extension)-2)
+			else:
+				should_not_change=""
+				old_file_extension=old_file_name.split(".")[-1]
+				new_name_enter.setSelection(0,len(old_file_name)-len(old_file_extension)-1)
+
+			if dlg.exec_():
+				new_file_name=new_name_enter.text()
+				
+				if new_file_name==old_file_name:
+					continue
+
+
+				old_file_url=self.file_saving_base+"/"+str(old_y)+"/"+str(old_m)+"/"+str(old_d)+"/"+old_file_name
+				new_file_url=self.file_saving_base+"/"+str(old_y)+"/"+str(old_m)+"/"+str(old_d)+"/"+new_file_name
+				
+				if should_not_change=="":
+					try:
+						os.rename(old_file_url,new_file_url)
+					except Exception as e:
+						# dont_allow=["?","*","/","\\","<",">",":","\"","|"]
+						#出错，继续下一个文件
+						QMessageBox.critical(self,"Error","重命名%s出错：\n\n%s"%(old_file_url,e))
+						continue
+
+				if should_not_change=="":
+					new_file_icon=which_icon(new_file_name)
+				else:
+					new_file_icon=which_icon(new_file_name+".url")
+
+				# replace concept data中的old data，增加file data中的new data
+				self.file_data[old_y][old_m][old_d][new_file_name]=[]
+				for ID in old_file_linked_concept:
+
+					#file data中的linked id顺便改了
+					self.file_data[old_y][old_m][old_d][new_file_name].append(ID)
+
+					#replace old file中linked id中的linked file的信息
+					for ff_index in range(len(self.concept_data[ID]["file"])):
+						
+						ff=self.concept_data[ID]["file"][ff_index]
+						if ff["y"]==old_y and ff["m"]==old_m and ff["d"]==old_d and ff["file_name"]==old_file_name:
+							self.concept_data[ID]["file"][ff_index]["file_name"]=new_file_name
+							self.concept_data[ID]["file"][ff_index]["file_icon"]=new_file_icon
+
+							break
+					
+				
+				# 删除file data中的old data
+				del self.file_data[old_y][old_m][old_d][old_file_name]
+
+				# replace diary data中的old data
+				for year_index in range(1970-1970,2170-1970):
+					for month_index in range(0,12):
+						for day_index in range(len(self.diary_data[year_index]["date"][month_index])):
+							for line_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"])):
+								for ff_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"])):
+									ff=self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]
+									if ff["y"]==old_y and ff["m"]==old_m and ff["d"]==old_d and ff["file_name"]==old_file_name:
+										
+										self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["file_name"]=new_file_name
+										self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["file_icon"]=new_file_icon
+
+										break
+				self.diary_data_save_out()
+				
+			else:
+				#一个文件取消重命名，进行下一个
+				continue
+		
+		self.file_library_list_update()
+		try:
+			self.concept_show(int(self.lineEdit_id.text()))
+		except:
+			pass
+		self.diary_line_file_show()
+
+		for tab in self.custom_tabs_shown:
+			tab.tab_update()
+
+	def diary_line_file_rename(self):
+		"直接复制粘贴file_library_file_rename的了，懒得抽象了"
+		def check_validity(new_name_enter,buttonBox):
+			if should_not_change!="":
+				# ">Google|http://www.google.com"
+				new_file_name=new_name_enter.text()
+				#没有>了
+				if new_file_name[0]!=">":
+					buttonBox.setEnabled(0)
+					return
+				else:
+					buttonBox.setEnabled(1)
+				
+				#没有|http://www.google.com了
+				tail="|"+new_file_name.split("|")[-1]
+				if should_not_change!=tail:
+					buttonBox.button(QDialogButtonBox.Ok).setEnabled(0)
+				else:
+					buttonBox.button(QDialogButtonBox.Ok).setEnabled(1)
+		
+		for file_index in sorted([item.row() for item in self.listWidget_text_linked_file.selectedIndexes()]):
+			
+			file_str=self.listWidget_text_linked_file.item(file_index).toolTip()
+			old_file=file_str.replace(self.file_saving_base,"")[1:].split("/")
+			
+			
+			old_y=int(old_file[0])
+			old_m=int(old_file[1])
+			old_d=int(old_file[2])
+
+			if "|" in file_str:
+				old_file_name=file_str[file_str.find(">"):]
+			else:
+				old_file_name=old_file[3]
+
+			old_file_linked_concept=self.file_data[old_y][old_m][old_d][old_file_name]
+
+			dlg = QDialog(self)
+			dlg.setMinimumSize(400,200)
+			dlg.setWindowTitle("Rename")
+
+			old_name_label=QLabel("Old Name:")
+			old_name_enter=QLineEdit()
+			old_name_enter.setText(old_file_name)
+			old_name_enter.setReadOnly(1)
+
+			new_name_label=QLabel("New Name:")
+			new_name_enter=QLineEdit()
+			new_name_enter.setText(old_file_name)
+			
+			QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+			buttonBox = QDialogButtonBox(QBtn)
+			buttonBox.accepted.connect(dlg.accept)
+			buttonBox.rejected.connect(dlg.reject)
+
+			layout=QVBoxLayout()
+			layout.addWidget(old_name_label)
+			layout.addWidget(old_name_enter)
+			layout.addWidget(new_name_label)
+			layout.addWidget(new_name_enter)
+			layout.addWidget(buttonBox)
+			dlg.setLayout(layout)
+
+			new_name_enter.textEdited.connect(lambda:check_validity(new_name_enter,buttonBox))
+			#输入框自动定位
+			new_name_enter.setFocus()
+
+			#should_not_change用来防止乱修改网址link
+			if "|" in old_file_name:
+				# ">Google|http://www.google.com"
+				should_not_change="|"+old_file_name.split("|")[-1]
+				old_file_extension=old_file_name.split("|")[-1]
+				new_name_enter.setSelection(1,len(old_file_name)-len(old_file_extension)-2)
+			else:
+				should_not_change=""
+				old_file_extension=old_file_name.split(".")[-1]
+				new_name_enter.setSelection(0,len(old_file_name)-len(old_file_extension)-1)
+
+			if dlg.exec_():
+				new_file_name=new_name_enter.text()
+				
+				if new_file_name==old_file_name:
+					continue
+
+
+				old_file_url=self.file_saving_base+"/"+str(old_y)+"/"+str(old_m)+"/"+str(old_d)+"/"+old_file_name
+				new_file_url=self.file_saving_base+"/"+str(old_y)+"/"+str(old_m)+"/"+str(old_d)+"/"+new_file_name
+				
+				if should_not_change=="":
+					try:
+						os.rename(old_file_url,new_file_url)
+					except Exception as e:
+						# dont_allow=["?","*","/","\\","<",">",":","\"","|"]
+						#出错，继续下一个文件
+						QMessageBox.critical(self,"Error","重命名%s出错：\n\n%s"%(old_file_url,e))
+						continue
+
+				if should_not_change=="":
+					new_file_icon=which_icon(new_file_name)
+				else:
+					new_file_icon=which_icon(new_file_name+".url")
+
+				# replace concept data中的old data，增加file data中的new data
+				self.file_data[old_y][old_m][old_d][new_file_name]=[]
+				for ID in old_file_linked_concept:
+
+					#file data中的linked id顺便改了
+					self.file_data[old_y][old_m][old_d][new_file_name].append(ID)
+
+					#replace old file中linked id中的linked file的信息
+					for ff_index in range(len(self.concept_data[ID]["file"])):
+						
+						ff=self.concept_data[ID]["file"][ff_index]
+						if ff["y"]==old_y and ff["m"]==old_m and ff["d"]==old_d and ff["file_name"]==old_file_name:
+							self.concept_data[ID]["file"][ff_index]["file_name"]=new_file_name
+							self.concept_data[ID]["file"][ff_index]["file_icon"]=new_file_icon
+
+							break
+					
+				
+				# 删除file data中的old data
+				del self.file_data[old_y][old_m][old_d][old_file_name]
+
+				# replace diary data中的old data
+				for year_index in range(1970-1970,2170-1970):
+					for month_index in range(0,12):
+						for day_index in range(len(self.diary_data[year_index]["date"][month_index])):
+							for line_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"])):
+								for ff_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"])):
+									ff=self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]
+									if ff["y"]==old_y and ff["m"]==old_m and ff["d"]==old_d and ff["file_name"]==old_file_name:
+										
+										self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["file_name"]=new_file_name
+										self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["file_icon"]=new_file_icon
+
+										break
+				self.diary_data_save_out()
+				
+			else:
+				#一个文件取消重命名，进行下一个
+				continue
+		
+		self.file_library_list_update()
+		try:
+			self.concept_show(int(self.lineEdit_id.text()))
+		except:
+			pass
+		self.diary_line_file_show()
+
+		for tab in self.custom_tabs_shown:
+			tab.tab_update()
+
 	def file_saving_today_dst_exist_check(self):
 		#这个判断是为了不要每次都去侦测硬盘路径，如果打开程序后侦测过一次后，就不要侦测第二次了
 		#如果只是添加网页link的话没必要侦测硬盘，机械硬盘从休眠到启动很慢的
@@ -1715,9 +2081,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				except:
 					#创建不了就算了，那就只能添加网页link了，想添加文件的话会报错的
 					pass
-			
-
-
 
 	def setting_menu(self):
 
@@ -1752,8 +2115,20 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			rss_auto_update=False
 			pass
 		
+		try:
+			typora_directory=decrypt(self.user_settings.value("typora_directory"))
+		except:
+			typora_directory=""
+			pass
+		
+		try:
+			sublime_directory=decrypt(self.user_settings.value("sublime_directory"))
+		except:
+			sublime_directory=""
+			pass
+		
 		dlg=SettingDialog()
-		dlg.set_option(self.file_saving_base,font,font_size,pixiv_cookie,instagram_cookie,rss_auto_update)
+		dlg.set_option(self.file_saving_base,font,font_size,typora_directory,sublime_directory,pixiv_cookie,instagram_cookie,rss_auto_update)
 	
 		if self.window_is_stay_on_top()==True:
 			dlg.setWindowFlag(Qt.WindowStaysOnTopHint,True)
@@ -1764,6 +2139,13 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.user_settings.setValue("file_saving_base",encrypt(self.file_saving_base))
 			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.y)+"/"+str(self.m)+"/"+str(self.d)
 			self.file_library_list_update()
+
+			typora_directory=dlg.lineEdit_typora.text()
+			self.user_settings.setValue("typora_directory",encrypt(typora_directory))
+
+			sublime_directory=dlg.lineEdit_sublime.text()
+			self.user_settings.setValue("sublime_directory",encrypt(sublime_directory))
+
 
 			if dlg.font!=None:
 				font=dlg.font
@@ -1784,8 +2166,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		else:
 			pass
 
-
-
 	def center_export(self,which):
 		if which=="Concept":
 			save_to_json(self.concept_data,"Concept_Data.json")
@@ -1801,8 +2181,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			save_to_json(self.zen_data,"Zen_Data.json")
 		elif which=="Zen Tree":
 			save_to_json(self.zen_tree_data,"Zen_Tree_Data.json")
-
-
 
 	def rss_feed_daily_update(self,manually=False):
 		#淦！为了搞界面展示后的自动后台更新，搞了将近四个小时……
@@ -1888,7 +2266,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.daily_update_thread.finished.connect(fuckyou)
 		self.daily_update_thread.started.connect(update_window_title)
 		self.daily_update_thread.start()
-
 
 	def rss_feed_manually_update(self):
 		
@@ -2144,7 +2521,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		else:
 			pass
 
-
 	def rss_feed_folder_create(self):
 		if self.rss_searching!="":
 			QMessageBox.warning(self,"Warning","请清空RSS搜索条件！")
@@ -2192,7 +2568,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				return
 		else:
 			return
-
 
 	def rss_feed_delete(self):
 		
@@ -2308,7 +2683,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						
 			# 			#传入这个folder中的rss列表的pointer
 			# 			deepin_del_feed_in_tree(root.child(index),pointer[index]["RSS"],delete_feed_url)
-
 
 	def rss_edit(self):
 		def mark_all_article_in_folder(folder_name):
@@ -2513,7 +2887,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.rss_tree_data_update()
 		self.rss_tree_build()
 
-
 	def rss_tree_data_update(self):
 		# 根据树的结构，重塑rss_tree_data
 		def deepin(root,pointer):
@@ -2558,7 +2931,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 		if self.rss_searching!="":
 			self.lineEdit_rss_search.setText(self.rss_searching)
-
 
 	def rss_tree_build(self):
 		# 根据rss_tree_data的层级结构，建树
@@ -2811,7 +3183,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 					self.treeWidget_rss.addTopLevelItem(temp)
 
-
 	def rss_feed_article_list_show(self):
 		"""
 		因为自动更新rss时会同时刷新tree和刷新文章列表，所以会捕获不到treeWidget_rss.currentItem()，
@@ -2935,9 +3306,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				"把正在看的folder的name藏在最后，重新进这个函数的时候有用（就是现在这种情况），反正那边点击文章的也不会戳到屁股上的"
 				self.current_rss_showing.append(folder_name)
 
-
-
-
 	def rss_feed_article_show(self):
 		"""
 		两种情况，文章列表来源于单个rss，或者文章列表来源于folder
@@ -2997,16 +3365,10 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		if article_url.isValid():
 			self.browser.load(article_url)
 
-
 	def rss_open_webpage(self):
 		curren_url=self.browser.page().url().toString()
 		if curren_url!="":
 			os.system("start explorer \"%s\""%curren_url)
-
-
-
-
-
 
 	def tab_custom_create(self):
 		dlg = QDialog(self)
@@ -3107,7 +3469,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			action.setIcon(QIcon(":/icon/trello.svg"))
 			action.triggered.connect(partial(self.tab_custom_resurrection,index,action))
 			self.menuTab.addAction(action)
-			
 
 	def tab_custom_resurrection(self,index,action):
 		#更新custom_tab_data的数据
@@ -3130,7 +3491,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 		#销毁action
 		self.menuTab.removeAction(action)
-		
+
 	def tab_custom_delete(self):
 		tab_index=self.tabWidget.currentIndex()
 		tab_name=self.tabWidget.tabText(tab_index)
@@ -3167,7 +3528,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				
 				#tab窗删除这个tab
 				self.tabWidget.removeTab(tab_index)
-
 
 	####
 		############################################################################
@@ -3266,10 +3626,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 	def about(self):
 		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 0.1.9.3\nAuthor: 鍵山狐\nContact: Holence08@gmail.com")
 
-
-
-
-
 	def font_set(self,font,font_size):
 		font_size=int(font_size)
 
@@ -3315,6 +3671,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.dockWidget_concept.setFont(font)
 		self.toolBox_concept.setFont(font)
 
+		self.dockWidget_library.setFont(font)
+		self.dockWidget_sticker.setFont(font)
+
 		font.setPointSize(10)
 		self.calendarWidget.setFont(font)
 
@@ -3324,61 +3683,77 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.listWidget_text_linked_file.setGridSize(QSize(font_size*3,font_size*3))
 		self.listWidget_text_linked_file.setSpacing(font_size)
 		self.listWidget_text_linked_file.setWordWrap(1)
+
 		self.listWidget_concept_linked_file.setIconSize(QSize(font_size,font_size))
 		self.listWidget_concept_linked_file.setGridSize(QSize(font_size*3,font_size*3))
 		self.listWidget_concept_linked_file.setSpacing(font_size)
 		self.listWidget_concept_linked_file.setWordWrap(1)
+
+		for tab in self.custom_tabs_shown:
+			tab.listWidget_file_root.setIconSize(QSize(font_size,font_size))
+			tab.listWidget_file_root.setGridSize(QSize(font_size*3,font_size*3))
+			tab.listWidget_file_root.setSpacing(font_size)
+			tab.listWidget_file_root.setWordWrap(1)
+			
+			tab.listWidget_file_leafs.setIconSize(QSize(font_size,font_size))
+			tab.listWidget_file_leafs.setGridSize(QSize(font_size*3,font_size*3))
+			tab.listWidget_file_leafs.setSpacing(font_size)
+			tab.listWidget_file_leafs.setWordWrap(1)
+	
+	def file_library_locate_from_other_place(self,listwidget):
 		
-	def center_locate_file_in_library(self):
-		def locating(listwidget):
-			if len(listwidget.selectedIndexes())>1:
-				QMessageBox.warning(self,"Warning","一次只能Locate一个文件！")
-				return
+		if len(listwidget.selectedIndexes())>1:
+			QMessageBox.warning(self,"Warning","一次只能Locate一个文件！")
+			return
+		else:
+			
+			file_str=listwidget.currentItem().toolTip()
+			
+			#replace出来的东西：
+			#/2021/3/23/>John Legend|https://www.youtube.com/aadasdasd
+			#/2021/3/23/24.jpg
+			date_and_name=file_str.replace(self.file_saving_base,"")[1:].split("/")
+			y=int(date_and_name[0])
+			m=int(date_and_name[1])
+			d=int(date_and_name[2])
+
+			if "|" in file_str:
+				file_name=file_str[file_str.find(">"):]
 			else:
-				
-				file_str=listwidget.currentItem().toolTip()
-				
-				#replace出来的东西：
-				#/2021/3/23/>John Legend|https://www.youtube.com/aadasdasd
-				#/2021/3/23/24.jpg
-				date_and_name=file_str.replace(self.file_saving_base,"")[1:].split("/")
-				y=int(date_and_name[0])
-				m=int(date_and_name[1])
-				d=int(date_and_name[2])
+				file_name=date_and_name[3]
 
-				if "|" in file_str:
-					file_name=file_str[file_str.find(">"):]
-				else:
-					file_name=date_and_name[3]
+			self.listWidget_search_file.clear()
+			self.lineEdit_date.clear()
+			self.listWidget_file_related_concept.clear()
+			self.searching_file=[]
+			
+			self.file_library_add_a_file_to_search_list(y,m,d,file_name)
+			
+			self.dockWidget_library.activateWindow()
+			self.listWidget_search_file.setFocus()
+			self.listWidget_search_file.setCurrentRow(0)
 
-				self.listWidget_search_file.clear()
-				self.lineEdit_date.clear()
-				self.listWidget_file_related_concept.clear()
-				self.searching_file=[]
-				
-				self.file_library_add_a_file_to_search_list(y,m,d,file_name)
-				
-				self.dockWidget_library.activateWindow()
-				self.listWidget_search_file.setFocus()
-				self.listWidget_search_file.setCurrentRow(0)
+	def concept_locate_from_tab(self,treeWidget):
+		ID=treeWidget.currentItem().text(0).split("|")[0]
+		self.concept_show(ID)
 
-
-		#concept删除链接文件
+	def center_locate(self):
+		#concept 链接文件 定位
 		if self.listWidget_concept_linked_file.hasFocus():
-			locating(self.listWidget_concept_linked_file)
-
-		
-		#文本块删除链接文件
+			self.file_library_locate_from_other_place(self.listWidget_concept_linked_file)
+		#文本块 链接文件 定位
 		elif self.listWidget_text_linked_file.hasFocus():
-			locating(self.listWidget_text_linked_file)
-		
-		#tab删除root file
+			self.file_library_locate_from_other_place(self.listWidget_text_linked_file)
+		#tab root file 定位
 		else:
 			for tab in self.custom_tabs_shown:
 				if tab.listWidget_file_root.hasFocus():
-					locating(tab.listWidget_file_root)
+					self.file_library_locate_from_other_place(tab.listWidget_file_root)
 					break
-
+				elif tab.treeWidget.hasFocus():
+					self.concept_locate_from_tab(tab.treeWidget)
+					break
+	
 	def center_delete(self):
 		
 		
@@ -3421,15 +3796,10 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					tab.concept_linked_file_remove()
 					break
 
-	
 	def center_edit(self):
 		
-		#文件重命名
-		if self.listWidget_search_file.hasFocus():
-			self.file_library_file_rename()
-		
 		#rss编辑
-		elif self.treeWidget_rss.hasFocus():
+		if self.treeWidget_rss.hasFocus():
 			self.rss_edit()
 		
 		#rss编辑
@@ -3439,6 +3809,20 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		#Concept related text编辑
 		elif self.listWidget_concept_related_text.hasFocus():
 			self.concept_related_text_edit()
+		
+		#文件重命名
+		elif self.listWidget_search_file.hasFocus():
+			self.file_library_file_rename()
+		elif self.listWidget_concept_linked_file.hasFocus():
+			self.concept_linked_file_rename()
+		elif self.listWidget_text_linked_file.hasFocus():
+			self.diary_line_file_rename()		
+		#tab删除root file
+		else:
+			for tab in self.custom_tabs_shown:
+				if tab.listWidget_file_root.hasFocus():
+					tab.concept_linked_file_rename()
+					break
 
 	def window_toggle_fullscreen(self):
 		
@@ -3694,7 +4078,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 		return 1
 
-
 	def data_load(self):
 		"load file、concept、file、rss的data"
 
@@ -3842,7 +4225,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		except:
 			pass
 
-
 	def window_title_update(self):
 		
 		if self.origin_diary_data!=self.diary_data:
@@ -3886,7 +4268,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				for i in self.concept_data:
 					if i["parent"]==[]:
 						self.listWidget_search_concept.addItem(str(i["id"])+"|"+i["name"])
-				self.dockWidget_concept.setWindowTitle("Concept Searching: No Parent")
+				self.label_titlebar_concept.setText("Concept Searching: No Parent")
 			#附加name信息
 			else:
 				search_name=search[4:]
@@ -3894,7 +4276,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					if i["parent"]==[]:
 						if search_name==str(i["id"]) or search_name in i["name"] or search_name in i["az"] or search_name in i["detail"] or search_name in convert_to_az(i["detail"]):
 							self.listWidget_search_concept.addItem(str(i["id"])+"|"+i["name"])
-				self.dockWidget_concept.setWindowTitle("Concept Searching: No Parent %s"%search_name)
+				self.label_titlebar_concept.setText("Concept Searching: No Parent %s"%search_name)
 
 		#没有child
 		elif search[:4]=="\^c " and search[4:7]!="\^p":
@@ -3903,7 +4285,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				for i in self.concept_data:
 					if i["child"]==[]:
 						self.listWidget_search_concept.addItem(str(i["id"])+"|"+i["name"])
-				self.dockWidget_concept.setWindowTitle("Concept Searching: No Child")
+				self.label_titlebar_concept.setText("Concept Searching: No Child")
 			#附加name信息
 			else:
 				search_name=search[4:]
@@ -3911,7 +4293,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					if i["child"]==[]:
 						if search_name==str(i["id"]) or search_name in i["name"] or search_name in i["az"] or search_name in i["detail"] or search_name in convert_to_az(i["detail"]):
 							self.listWidget_search_concept.addItem(str(i["id"])+"|"+i["name"])
-				self.dockWidget_concept.setWindowTitle("Concept Searching: No Child %s"%search_name)
+				self.label_titlebar_concept.setText("Concept Searching: No Child %s"%search_name)
 
 		#没有parent也没有child
 		elif search[:8]=="\^p \^c " or search[:8]=="\^c \^p ":
@@ -3920,7 +4302,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				for i in self.concept_data:
 					if i["parent"]==[] and i["child"]==[]:
 						self.listWidget_search_concept.addItem(str(i["id"])+"|"+i["name"])
-				self.dockWidget_concept.setWindowTitle("Concept Searching: No Parent & No Child")
+				self.label_titlebar_concept.setText("Concept Searching: No Parent & No Child")
 			#附加name信息
 			else:
 				search_name=search[8:]
@@ -3928,7 +4310,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					if i["parent"]==[] and i["child"]==[]:
 						if search_name==str(i["id"]) or search_name in i["name"] or search_name in i["az"] or search_name in i["detail"] or search_name in convert_to_az(i["detail"]):
 							self.listWidget_search_concept.addItem(str(i["id"])+"|"+i["name"])
-				self.dockWidget_concept.setWindowTitle("Concept Searching: No Parent & No Child %s"%search_name)
+				self.label_titlebar_concept.setText("Concept Searching: No Parent & No Child %s"%search_name)
 
 		#正常模式搜名字
 		else:
@@ -3936,9 +4318,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				#搜索id或name或az name或detail
 				if search==str(i["id"]) or search in i["name"] or search in i["az"] or search in i["detail"] or search in convert_to_az(i["detail"]):
 					self.listWidget_search_concept.addItem(str(i["id"])+"|"+i["name"])
-			self.dockWidget_concept.setWindowTitle("Concept Searching: %s"%search)
+			self.label_titlebar_concept.setText("Concept Searching: %s"%search)
 
-	
 	def concept_search_list_drag_update(self):
 		# 因为file data中也有concept id的信息，若要修改
 
@@ -4014,7 +4395,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		for tab in self.custom_tabs_shown:
 			tab.tab_update()
 
-
 	def diary_markdown_view_update(self):
 		full_text=""
 		for i in self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"]:
@@ -4027,7 +4407,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			#列出所有行
 			self.listWidget_lines.addItem(single_line["line_text"])
 		self.diary_markdown_view_update()
-
 
 	def concept_show(self,ID):
 		#点开一个item才允许用file列表
@@ -4066,6 +4445,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		
 		#file链接列表
 		self.listWidget_concept_linked_file.clear()
+		if len(item["file"])>0:
+			self.toolBox_concept.setItemText(1,"Concept Linked File: %s"%len(item["file"]))
+		else:
+			self.toolBox_concept.setItemText(1,"Concept Linked File")
+		
 		for file in item["file"]:
 			y=file["y"]
 			m=file["m"]
@@ -4114,6 +4498,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 	
 		#如果有的话就列出来
 		if text_list!=[]:
+			
+			self.toolBox_concept.setItemText(0,"Concept Related Text: %s"%len(text_list))
+			
 			#一日算作一个文本块
 			fore_date=text_list[0]["date"]
 			construct_text_list=[]
@@ -4130,6 +4517,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 			for i in construct_text_list:
 				self.listWidget_concept_related_text.addItem(i)
+		else:
+			self.toolBox_concept.setItemText(0,"Concept Related Text")
+		
 		self.listWidget_concept_related_text.scrollToBottom()
 
 
@@ -4381,11 +4771,18 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		except:
 			pass
 
-
 	def concept_relationship_add(self,mode):
 		try:
 			item_ID=int(self.lineEdit_id.text())
-			link_ID=int(self.listWidget_search_concept.currentItem().text().split("|")[0])
+			
+			if self.listWidget_search_concept.hasFocus():
+				link_ID=int(self.listWidget_search_concept.currentItem().text().split("|")[0])
+			else:
+				for tab in self.custom_tabs_shown:
+					if tab.treeWidget.hasFocus():
+						link_ID=int(tab.treeWidget.currentItem().text(0).split("|")[0])
+						break
+			
 			item_name=self.concept_data[item_ID]["name"]
 			link_name=self.concept_data[link_ID]["name"]
 
@@ -4535,12 +4932,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		except:
 			pass
 
-
 	def diary_show(self,date):
 		y=int(date[0])
 		m=int(date[1])
 		d=int(date[2])
-		self.dockWidget_diary.setWindowTitle("Diary %s.%s.%s"%(y,m,d))
+		self.label_titlebar_diary.setText("Diary %s.%s.%s"%(y,m,d))
 		
 		self.plainTextEdit_single_line.clear()
 		self.plainTextEdit_single_line.setEnabled(0)
@@ -4550,6 +4946,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.listWidget_text_related_concept.clear()
 		self.listWidget_text_linked_file.clear()
 		self.textEdit_viewer.clear()
+
+		self.toolBox_text.setItemText(0,"Text Related Concept")
+		self.toolBox_text.setItemText(1,"Text Linked File")
 
 		#存储当前年月坐标
 		
@@ -4605,8 +5004,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 			#初始行号设置为-1，这样新增的话就在第一行了
 			self.current_line_index=-1
-		
-		
 
 	def diary_line_show(self):
 		
@@ -4814,8 +5211,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			self.diary_line_concept_list_update()
 			self.window_title_update()
 
-
-
 	def diary_line_list_drag_update(self):
 		#drag and drop是一个一个放入的，而rowsMoved这个信号，如果移动了多行，就在第一个放入的时候触发了，导致只有第一个放入的行被正确重排了
 		#所以干脆在多选的时候禁止drag and drop，功能不完善总比有bug好一些
@@ -4887,13 +5282,26 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					if item_id not in have_shown:
 						have_shown.append(item_id)
 						self.listWidget_text_related_concept.addItem(str(item_id)+"|"+self.concept_data[item_id]["name"])
+			
+			if len(have_shown)>0:
+				self.toolBox_text.setItemText(0,"Text Related Concept: %s"%len(have_shown))
+			else:
+				self.toolBox_text.setItemText(0,"Text Related Concept")
+			
 			return
 		if self.is_first_arrived==0:
 			#已经是老伙计了，只需要列出单行就行了
 			self.listWidget_text_related_concept.clear()
+
+			count=0
 			for item_id in self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_concept"]:
 				self.listWidget_text_related_concept.addItem(str(item_id)+"|"+self.concept_data[item_id]["name"])
+				count+=1
 
+			if count>0:
+				self.toolBox_text.setItemText(0,"Text Related Concept: %s"%count)
+			else:
+				self.toolBox_text.setItemText(0,"Text Related Concept")
 
 	def concept_linked_file_add(self,links):
 		"""
@@ -4991,12 +5399,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						title=result[1]
 					else:
 						title="Unkown Page"
-						tray=QSystemTrayIcon()
-						tray.setContextMenu(self.qmenu)
-						tray.setIcon(QIcon(":/icon/holoico.ico"))
-						tray.hide()
-						tray.show()
-						tray.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
+						self.trayIcon.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
 					
 					file_name=">"+title+"|"+i
 					self.file_data[self.y][self.m][self.d][file_name]=[]
@@ -5059,7 +5462,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		for tab in self.custom_tabs_shown:
 			tab.tab_update()
 
-
 	def concept_linked_file_open(self):
 		#######################################
 		# windows上可以使用os.startfile
@@ -5119,7 +5521,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			except Exception as e :
 				e=str(e).split(":",1)
 				QMessageBox.critical(self,"Critical Error","%s\n%s\n请手动设置该类型文件的默认启动应用！"%(e[0],e[1]))
-
 
 	def concept_linked_file_remove(self):
 		
@@ -5215,7 +5616,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					# 	message.exec_()
 					# 	return
 
-	
 	def concept_related_text_edit(self):
 		source_id=int(self.lineEdit_id.text())
 		dlg=ConceptRelatedTextEditDialog(self,source_id)
@@ -5225,8 +5625,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		except:
 			pass
 		self.diary_line_concept_list_update()
-
-
 
 	def concept_related_text_review(self):
 		ID=int(self.lineEdit_id.text())
@@ -5255,10 +5653,14 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 	def diary_line_file_show(self):
 		self.listWidget_text_linked_file.clear()
-		#刚进来，展示所有的文本块的文件
+		
+		#不是新的一篇
 		if self.is_new_diary==0:
 			
+			#刚进来，展示所有的文本块的文件
 			if self.is_first_arrived==1:	
+				count=0
+
 				for line_index in range(len(self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"])):
 					for file in self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][line_index]["linked_file"]:
 						y=file["y"]
@@ -5283,8 +5685,15 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						temp.setToolTip(file_url)
 
 						self.listWidget_text_linked_file.addItem(temp)
+						count+=1
+					
+				if count>0:
+					self.toolBox_text.setItemText(1,"Text Linked File: %s"%count)
+				else:
+					self.toolBox_text.setItemText(1,"Text Linked File")
 			#只要一行的
 			else:
+				count=0
 				for file in self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"]:
 					y=file["y"]
 					m=file["m"]
@@ -5308,7 +5717,12 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					temp.setToolTip(file_url)
 					
 					self.listWidget_text_linked_file.addItem(temp)
+					count+=1
 
+				if count>0:
+					self.toolBox_text.setItemText(1,"Text Linked File: %s"%count)
+				else:
+					self.toolBox_text.setItemText(1,"Text Linked File")
 
 	def diary_line_file_link(self,links):
 		"""
@@ -5407,12 +5821,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						title=result[1]
 					else:
 						title="Unkown Page"
-						tray=QSystemTrayIcon()
-						tray.setContextMenu(self.qmenu)
-						tray.setIcon(QIcon(":/icon/holoico.ico"))
-						tray.hide()
-						tray.show()
-						tray.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
+						self.trayIcon.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
 					
 					file_name=">"+title+"|"+i
 					self.file_data[self.y][self.m][self.d][file_name]=[]
@@ -5502,7 +5911,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			# 		QMessageBox.warning(self,"Warning","若要从外部导入文件，请拖到File区！")
 			# 		return
 
-
 	def diary_line_file_open(self):
 		#######################################
 		# windows上可以使用os.startfile
@@ -5591,6 +5999,71 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					
 				self.diary_line_file_show()
 				self.window_title_update()	
+
+	def zen_open_typora(self):
+		try:
+			typora_directory=decrypt(self.user_settings.value("typora_directory"))
+		except:
+			QMessageBox.warning(self,"Warning","请先设置Typora启动路径！")
+			return
+
+		if typora_directory!="":
+			try:
+				Popen(typora_directory)
+			except Exception as e:
+				QMessageBox.warning(self,"Warning","%s"%e)
+		else:
+			QMessageBox.warning(self,"Warning","请先设置Typora启动路径！")
+			return
+
+	def zen_open_sublime(self):
+		
+		try:
+			sublime_directory=decrypt(self.user_settings.value("sublime_directory"))
+		except:
+			QMessageBox.warning(self,"Warning","请先设置Sublime启动路径！")
+			return
+
+		if sublime_directory!="":
+			try:
+				Popen(sublime_directory)
+			except Exception as e:
+				QMessageBox.warning(self,"Warning","%s"%e)
+		else:
+			QMessageBox.warning(self,"Warning","请先设置Sublime启动路径！")
+			return
+
+	def zen_text_search(self):
+
+		searching=self.lineEdit_zen_text_search.text()
+		text=self.plainTextEdit_zen.toPlainText()
+		
+		#恢复初始颜色
+		fmt=QTextCharFormat()
+		cursor=QTextCursor(self.plainTextEdit_zen.document())
+
+		cursor.setPosition(0, QTextCursor.MoveAnchor)
+		cursor.setPosition(len(text), QTextCursor.KeepAnchor)
+		cursor.setCharFormat(fmt)
+
+		#上色
+		fmt.setBackground(QColor(107,114,74))
+
+		begin=0
+		start=0
+		count=-1
+		while begin!=-1:
+			begin=text.find(searching,start)
+			end=begin+len(searching)
+			start=begin+1
+
+			if begin!=-1:
+				count+=1
+				cursor.setPosition(begin, QTextCursor.MoveAnchor)
+				cursor.setPosition(end, QTextCursor.KeepAnchor)
+				cursor.setCharFormat(fmt)
+		
+		self.label_zen_text_search.setText(str(count))
 
 
 "无框窗口！！！self.setWindowFlags(Qt.CustomizeWindowHint|Qt.FramelessWindowHint)"

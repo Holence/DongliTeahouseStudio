@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>562</width>
-    <height>346</height>
+    <width>642</width>
+    <height>466</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -91,11 +91,38 @@
           <number>0</number>
          </property>
          <widget class="QWidget" name="page">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>240</height>
+           </size>
+          </property>
           <layout class="QGridLayout" name="gridLayout">
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Font</string>
+             </property>
+            </widget>
+           </item>
            <item row="0" column="0">
             <widget class="QLabel" name="label">
              <property name="text">
               <string>File Saving Directory</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_6">
+             <property name="text">
+              <string>Typora Directory</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0">
+            <widget class="QLineEdit" name="lineEdit_sublime">
+             <property name="enabled">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
@@ -106,17 +133,24 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
-            <widget class="QPushButton" name="pushButtonfile_saving_base">
+           <item row="3" column="1">
+            <widget class="QPushButton" name="pushButton_font">
              <property name="text">
-              <string>Open...</string>
+              <string>Font...</string>
              </property>
             </widget>
            </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_2">
+           <item row="5" column="0">
+            <widget class="QLineEdit" name="lineEdit_typora">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="1">
+            <widget class="QPushButton" name="pushButton_typora">
              <property name="text">
-              <string>Font</string>
+              <string>Open...</string>
              </property>
             </widget>
            </item>
@@ -130,16 +164,36 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="1">
-            <widget class="QPushButton" name="pushButton_font">
+           <item row="1" column="1">
+            <widget class="QPushButton" name="pushButtonfile_saving_base">
              <property name="text">
-              <string>Font...</string>
+              <string>Open...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_7">
+             <property name="text">
+              <string>Sublime Directory</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="1">
+            <widget class="QPushButton" name="pushButton_sublime">
+             <property name="text">
+              <string>Open...</string>
              </property>
             </widget>
            </item>
           </layout>
          </widget>
          <widget class="QWidget" name="page_2">
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>120</height>
+           </size>
+          </property>
           <layout class="QGridLayout" name="gridLayout_2">
            <item row="0" column="0">
             <widget class="QLabel" name="label_3">
@@ -181,22 +235,6 @@
           </layout>
          </widget>
         </widget>
-       </item>
-       <item>
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>200</height>
-          </size>
-         </property>
-        </spacer>
        </item>
        <item>
         <widget class="QDialogButtonBox" name="buttonBox">

@@ -288,5 +288,7 @@
         <file>icon/zoom-out.svg</file>
         <file>icon/holoico.ico</file>
         <file>icon/holoico.jpg</file>
+        <file>icon/sublime_icon.png</file>
+        <file>icon/typora_icon.png</file>
     </qresource>
 </RCC>

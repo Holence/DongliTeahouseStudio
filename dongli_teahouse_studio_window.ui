@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1127</width>
-    <height>941</height>
+    <width>1079</width>
+    <height>1198</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,12 +19,27 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_8">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>4</number>
+    </property>
+    <property name="topMargin">
+     <number>4</number>
+    </property>
+    <property name="rightMargin">
+     <number>4</number>
+    </property>
+    <property name="bottomMargin">
+     <number>4</number>
+    </property>
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="minimumSize">
        <size>
-        <width>200</width>
-        <height>0</height>
+        <width>600</width>
+        <height>600</height>
        </size>
       </property>
       <property name="tabShape">
@@ -140,7 +155,7 @@
           <property name="handleWidth">
            <number>10</number>
           </property>
-          <widget class="QWidget" name="layoutWidget">
+          <widget class="QWidget" name="layoutWidget4">
            <layout class="QVBoxLayout" name="verticalLayout">
             <item>
              <widget class="QLineEdit" name="lineEdit_rss_search"/>
@@ -258,7 +273,7 @@ p, li { white-space: pre-wrap; }
           <property name="handleWidth">
            <number>10</number>
           </property>
-          <widget class="QWidget" name="">
+          <widget class="QWidget" name="layoutWidget">
            <layout class="QVBoxLayout" name="verticalLayout_9">
             <item>
              <widget class="QLineEdit" name="lineEdit_zen_search"/>
@@ -319,71 +334,192 @@ p, li { white-space: pre-wrap; }
             </item>
            </layout>
           </widget>
-          <widget class="QStackedWidget" name="stackedWidget_zen">
-           <property name="currentIndex">
-            <number>0</number>
-           </property>
-           <widget class="QWidget" name="page_3">
-            <layout class="QHBoxLayout" name="horizontalLayout_4">
-             <property name="spacing">
-              <number>0</number>
-             </property>
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="QTextBrowser" name="textEdit_viewer_zen">
-               <property name="readOnly">
-                <bool>true</bool>
-               </property>
-               <property name="html">
-                <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+          <widget class="QWidget" name="layoutWidget5">
+           <layout class="QVBoxLayout" name="verticalLayout_11">
+            <item>
+             <widget class="QStackedWidget" name="stackedWidget_zen">
+              <property name="currentIndex">
+               <number>0</number>
+              </property>
+              <widget class="QWidget" name="page_3">
+               <layout class="QHBoxLayout" name="horizontalLayout_4">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QTextBrowser" name="textEdit_viewer_zen">
+                  <property name="styleSheet">
+                   <string notr="true"/>
+                  </property>
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                  <property name="html">
+                   <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'SimSun'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:18pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-               </property>
-               <property name="textInteractionFlags">
-                <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-               </property>
-               <property name="openExternalLinks">
-                <bool>true</bool>
-               </property>
+                  </property>
+                  <property name="textInteractionFlags">
+                   <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
+                  </property>
+                  <property name="openExternalLinks">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </widget>
-             </item>
-            </layout>
-           </widget>
-           <widget class="QWidget" name="page_4">
-            <layout class="QHBoxLayout" name="horizontalLayout_5">
-             <property name="spacing">
-              <number>0</number>
-             </property>
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
-             <item>
-              <widget class="MyPlainTextEdit" name="plainTextEdit_zen"/>
-             </item>
-            </layout>
-           </widget>
+              <widget class="QWidget" name="page_4">
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="MyPlainTextEdit" name="plainTextEdit_zen"/>
+                </item>
+               </layout>
+              </widget>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_11">
+              <item>
+               <widget class="QPushButton" name="pushButton_typora">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>36</width>
+                  <height>36</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>36</width>
+                  <height>36</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="resource.qrc">
+                  <normaloff>:/icon/typora_icon.png</normaloff>:/icon/typora_icon.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>32</width>
+                  <height>32</height>
+                 </size>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pushButton_sublime">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>36</width>
+                  <height>36</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>36</width>
+                  <height>36</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="resource.qrc">
+                  <normaloff>:/icon/sublime_icon.png</normaloff>:/icon/sublime_icon.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>32</width>
+                  <height>32</height>
+                 </size>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLineEdit" name="lineEdit_zen_text_search">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_zen_text_search">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>0</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
           </widget>
          </widget>
         </item>
@@ -410,9 +546,111 @@ p, li { white-space: pre-wrap; }
     <number>2</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_6">
-    <layout class="QVBoxLayout" name="verticalLayout_3">
+    <layout class="QVBoxLayout" name="verticalLayout_13">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <property name="leftMargin">
+      <number>10</number>
+     </property>
+     <property name="topMargin">
+      <number>10</number>
+     </property>
+     <property name="rightMargin">
+      <number>5</number>
+     </property>
+     <property name="bottomMargin">
+      <number>5</number>
+     </property>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_1">
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QWidget" name="verticalWidget_titlebar_diary" native="true">
+         <layout class="QVBoxLayout" name="verticalLayout_16">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>10</number>
+          </property>
+          <property name="topMargin">
+           <number>10</number>
+          </property>
+          <property name="rightMargin">
+           <number>5</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QWidget" name="horizontalWidget_titlebar_diary" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_titlebar_concept_2">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label_titlebar_diary">
+               <property name="text">
+                <string>Diary</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButton_diary_close">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="resource.qrc">
+                 <normaloff>:/icon/x-circle.svg</normaloff>:/icon/x-circle.svg</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
        <item>
         <widget class="QSplitter" name="splitter_text">
          <property name="orientation">
@@ -527,7 +765,7 @@ p, li { white-space: pre-wrap; }
            <enum>QFrame::Plain</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <property name="tabSpacing">
            <number>0</number>
@@ -537,8 +775,8 @@ p, li { white-space: pre-wrap; }
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>272</width>
-             <height>158</height>
+             <width>275</width>
+             <height>197</height>
             </rect>
            </property>
            <attribute name="icon">
@@ -549,6 +787,21 @@ p, li { white-space: pre-wrap; }
             <string>Text Related Concept</string>
            </attribute>
            <layout class="QHBoxLayout" name="horizontalLayout_8">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>5</number>
+            </property>
+            <property name="topMargin">
+             <number>5</number>
+            </property>
+            <property name="rightMargin">
+             <number>5</number>
+            </property>
+            <property name="bottomMargin">
+             <number>5</number>
+            </property>
             <item>
              <widget class="QListWidget" name="listWidget_text_related_concept">
               <property name="dragEnabled">
@@ -596,8 +849,8 @@ p, li { white-space: pre-wrap; }
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>272</width>
-             <height>158</height>
+             <width>275</width>
+             <height>197</height>
             </rect>
            </property>
            <attribute name="icon">
@@ -608,6 +861,21 @@ p, li { white-space: pre-wrap; }
             <string>Text Linked File</string>
            </attribute>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>5</number>
+            </property>
+            <property name="topMargin">
+             <number>5</number>
+            </property>
+            <property name="rightMargin">
+             <number>5</number>
+            </property>
+            <property name="bottomMargin">
+             <number>5</number>
+            </property>
             <item>
              <widget class="MyConceptLinkedFileList" name="listWidget_text_linked_file">
               <property name="minimumSize">
@@ -674,6 +942,53 @@ p, li { white-space: pre-wrap; }
          </widget>
         </widget>
        </item>
+       <item>
+        <widget class="QFrame" name="horizontalFrame_diary">
+         <layout class="QHBoxLayout" name="horizontalLayout_sizegrip_concept_2">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="label_sizegrip_diary">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="frame_sizegrip_diary">
+            <property name="minimumSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
       </layout>
      </item>
     </layout>
@@ -688,8 +1003,8 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="minimumSize">
     <size>
-     <width>290</width>
-     <height>751</height>
+     <width>292</width>
+     <height>823</height>
     </size>
    </property>
    <property name="features">
@@ -703,6 +1018,108 @@ p, li { white-space: pre-wrap; }
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_7">
     <layout class="QVBoxLayout" name="verticalLayout_4">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <property name="leftMargin">
+      <number>10</number>
+     </property>
+     <property name="topMargin">
+      <number>10</number>
+     </property>
+     <property name="rightMargin">
+      <number>5</number>
+     </property>
+     <property name="bottomMargin">
+      <number>5</number>
+     </property>
+     <item>
+      <widget class="QWidget" name="verticalWidget_titlebar_concept" native="true">
+       <layout class="QVBoxLayout" name="verticalLayout_15">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>10</number>
+        </property>
+        <property name="topMargin">
+         <number>10</number>
+        </property>
+        <property name="rightMargin">
+         <number>5</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QWidget" name="horizontalWidget_titlebar_concept" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_titlebar_concept">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="label_titlebar_concept">
+             <property name="text">
+              <string>Concept</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_concept_close">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="resource.qrc">
+               <normaloff>:/icon/x-circle.svg</normaloff>:/icon/x-circle.svg</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+             <property name="flat">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
      <item>
       <widget class="QSplitter" name="splitter_concept">
        <property name="orientation">
@@ -1011,7 +1428,7 @@ p, li { white-space: pre-wrap; }
        </widget>
        <widget class="QToolBox" name="toolBox_concept">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <property name="tabSpacing">
          <number>0</number>
@@ -1021,8 +1438,8 @@ p, li { white-space: pre-wrap; }
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>258</width>
-           <height>88</height>
+           <width>277</width>
+           <height>84</height>
           </rect>
          </property>
          <attribute name="icon">
@@ -1033,6 +1450,21 @@ p, li { white-space: pre-wrap; }
           <string>Concept Related Text</string>
          </attribute>
          <layout class="QHBoxLayout" name="horizontalLayout_9">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>5</number>
+          </property>
+          <property name="topMargin">
+           <number>5</number>
+          </property>
+          <property name="rightMargin">
+           <number>5</number>
+          </property>
+          <property name="bottomMargin">
+           <number>5</number>
+          </property>
           <item>
            <widget class="QListWidget" name="listWidget_concept_related_text">
             <property name="minimumSize">
@@ -1062,8 +1494,8 @@ p, li { white-space: pre-wrap; }
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>258</width>
-           <height>88</height>
+           <width>277</width>
+           <height>84</height>
           </rect>
          </property>
          <attribute name="icon">
@@ -1074,6 +1506,21 @@ p, li { white-space: pre-wrap; }
           <string>Concept Linked File</string>
          </attribute>
          <layout class="QHBoxLayout" name="horizontalLayout_10">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>5</number>
+          </property>
+          <property name="topMargin">
+           <number>5</number>
+          </property>
+          <property name="rightMargin">
+           <number>5</number>
+          </property>
+          <property name="bottomMargin">
+           <number>5</number>
+          </property>
           <item>
            <widget class="MyConceptLinkedFileList" name="listWidget_concept_linked_file">
             <property name="dragEnabled">
@@ -1116,12 +1563,59 @@ p, li { white-space: pre-wrap; }
        </widget>
       </widget>
      </item>
+     <item>
+      <widget class="QFrame" name="horizontalFrame_concept">
+       <layout class="QHBoxLayout" name="horizontalLayout_sizegrip_concept">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="label_sizegrip_concept">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="frame_sizegrip_concept">
+          <property name="minimumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
     </layout>
    </widget>
   </widget>
   <widget class="QDockWidget" name="dockWidget_library">
    <property name="floating">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="allowedAreas">
     <set>Qt::AllDockWidgetAreas</set>
@@ -1130,116 +1624,311 @@ p, li { white-space: pre-wrap; }
     <string>Library</string>
    </property>
    <attribute name="dockWidgetArea">
-    <number>4</number>
+    <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QVBoxLayout" name="verticalLayout_6">
+    <layout class="QVBoxLayout" name="verticalLayout_14">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <property name="leftMargin">
+      <number>10</number>
+     </property>
+     <property name="topMargin">
+      <number>10</number>
+     </property>
+     <property name="rightMargin">
+      <number>5</number>
+     </property>
+     <property name="bottomMargin">
+      <number>5</number>
+     </property>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_5">
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <property name="spacing">
+        <number>0</number>
+       </property>
        <item>
-        <widget class="QLineEdit" name="lineEdit_search_file">
-         <property name="minimumSize">
-          <size>
-           <width>270</width>
-           <height>0</height>
-          </size>
+        <widget class="QWidget" name="verticalWidget_titlebar_library" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
+         <layout class="QVBoxLayout" name="verticalLayout_17">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>10</number>
+          </property>
+          <property name="topMargin">
+           <number>10</number>
+          </property>
+          <property name="rightMargin">
+           <number>5</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QWidget" name="horizontalWidget_titlebar_library" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_titlebar_concept_3">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label_titlebar_library">
+               <property name="text">
+                <string>Library</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButton_library_close">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset resource="resource.qrc">
+                 <normaloff>:/icon/x-circle.svg</normaloff>:/icon/x-circle.svg</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>16</width>
+                 <height>16</height>
+                </size>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
        <item>
-        <widget class="QSplitter" name="splitter_file_manager">
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+        <layout class="QVBoxLayout" name="verticalLayout_5">
+         <property name="spacing">
+          <number>6</number>
          </property>
-         <property name="handleWidth">
-          <number>10</number>
-         </property>
-         <property name="childrenCollapsible">
-          <bool>false</bool>
-         </property>
-         <widget class="MyConceptLinkedFileList" name="listWidget_search_file">
-          <property name="dragEnabled">
-           <bool>true</bool>
-          </property>
-          <property name="dragDropOverwriteMode">
-           <bool>false</bool>
-          </property>
-          <property name="dragDropMode">
-           <enum>QAbstractItemView::InternalMove</enum>
-          </property>
-          <property name="defaultDropAction">
-           <enum>Qt::CopyAction</enum>
-          </property>
-          <property name="selectionMode">
-           <enum>QAbstractItemView::ExtendedSelection</enum>
-          </property>
+         <item>
+          <widget class="QLineEdit" name="lineEdit_search_file">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>270</width>
+             <height>0</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSplitter" name="splitter_file_manager">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="handleWidth">
+            <number>10</number>
+           </property>
+           <property name="childrenCollapsible">
+            <bool>false</bool>
+           </property>
+           <widget class="MyConceptLinkedFileList" name="listWidget_search_file">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="dragEnabled">
+             <bool>true</bool>
+            </property>
+            <property name="dragDropOverwriteMode">
+             <bool>false</bool>
+            </property>
+            <property name="dragDropMode">
+             <enum>QAbstractItemView::InternalMove</enum>
+            </property>
+            <property name="defaultDropAction">
+             <enum>Qt::CopyAction</enum>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::ExtendedSelection</enum>
+            </property>
+            <property name="spacing">
+             <number>5</number>
+            </property>
+            <property name="selectionRectVisible">
+             <bool>true</bool>
+            </property>
+           </widget>
+           <widget class="QWidget" name="layoutWidget2">
+            <layout class="QVBoxLayout" name="verticalLayout_7">
+             <item>
+              <widget class="QLineEdit" name="lineEdit_date">
+               <property name="enabled">
+                <bool>true</bool>
+               </property>
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>0</height>
+                </size>
+               </property>
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QListWidget" name="listWidget_file_related_concept">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="dragEnabled">
+                <bool>false</bool>
+               </property>
+               <property name="dragDropOverwriteMode">
+                <bool>false</bool>
+               </property>
+               <property name="dragDropMode">
+                <enum>QAbstractItemView::NoDragDrop</enum>
+               </property>
+               <property name="defaultDropAction">
+                <enum>Qt::IgnoreAction</enum>
+               </property>
+               <property name="selectionMode">
+                <enum>QAbstractItemView::ExtendedSelection</enum>
+               </property>
+               <property name="movement">
+                <enum>QListView::Static</enum>
+               </property>
+               <property name="flow">
+                <enum>QListView::LeftToRight</enum>
+               </property>
+               <property name="resizeMode">
+                <enum>QListView::Adjust</enum>
+               </property>
+               <property name="spacing">
+                <number>5</number>
+               </property>
+               <property name="viewMode">
+                <enum>QListView::IconMode</enum>
+               </property>
+               <property name="wordWrap">
+                <bool>false</bool>
+               </property>
+               <property name="selectionRectVisible">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QFrame" name="horizontalFrame_library">
+         <layout class="QHBoxLayout" name="horizontalLayout_sizegrip_concept_3">
           <property name="spacing">
-           <number>5</number>
+           <number>0</number>
           </property>
-          <property name="selectionRectVisible">
-           <bool>true</bool>
+          <property name="leftMargin">
+           <number>0</number>
           </property>
-         </widget>
-         <widget class="QWidget" name="layoutWidget2">
-          <layout class="QVBoxLayout" name="verticalLayout_7">
-           <item>
-            <widget class="QLineEdit" name="lineEdit_date">
-             <property name="enabled">
-              <bool>true</bool>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="readOnly">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QListWidget" name="listWidget_file_related_concept">
-             <property name="dragEnabled">
-              <bool>false</bool>
-             </property>
-             <property name="dragDropOverwriteMode">
-              <bool>false</bool>
-             </property>
-             <property name="dragDropMode">
-              <enum>QAbstractItemView::NoDragDrop</enum>
-             </property>
-             <property name="defaultDropAction">
-              <enum>Qt::IgnoreAction</enum>
-             </property>
-             <property name="selectionMode">
-              <enum>QAbstractItemView::ExtendedSelection</enum>
-             </property>
-             <property name="movement">
-              <enum>QListView::Static</enum>
-             </property>
-             <property name="flow">
-              <enum>QListView::LeftToRight</enum>
-             </property>
-             <property name="resizeMode">
-              <enum>QListView::Adjust</enum>
-             </property>
-             <property name="spacing">
-              <number>5</number>
-             </property>
-             <property name="viewMode">
-              <enum>QListView::IconMode</enum>
-             </property>
-             <property name="wordWrap">
-              <bool>false</bool>
-             </property>
-             <property name="selectionRectVisible">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="label_sizegrip_library">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="frame_sizegrip_library">
+            <property name="minimumSize">
+             <size>
+              <width>16</width>
+              <height>16</height>
+             </size>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::NoFrame</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>
@@ -1252,15 +1941,21 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1127</width>
+     <width>1079</width>
      <height>22</height>
     </rect>
+   </property>
+   <property name="layoutDirection">
+    <enum>Qt::LeftToRight</enum>
    </property>
    <widget class="QMenu" name="menuView">
     <property name="title">
      <string>View</string>
     </property>
     <addaction name="actionToggle_Fullscreen"/>
+    <addaction name="actionMaximize_Main_Window"/>
+    <addaction name="actionHide_Main_Window"/>
+    <addaction name="actionRestore_Main_Window"/>
     <addaction name="actionStay_on_Top"/>
    </widget>
    <widget class="QMenu" name="menuFile">
@@ -1333,7 +2028,6 @@ p, li { white-space: pre-wrap; }
        <normaloff>:/icon/inbox.svg</normaloff>:/icon/inbox.svg</iconset>
      </property>
      <addaction name="actionSearch_File_Library"/>
-     <addaction name="actionLocate_File_in_File_Library"/>
      <addaction name="actionFile_Check"/>
     </widget>
     <widget class="QMenu" name="menuRSS">
@@ -1367,6 +2061,7 @@ p, li { white-space: pre-wrap; }
     <addaction name="menuFile_2"/>
     <addaction name="menuRSS"/>
     <addaction name="menuZen"/>
+    <addaction name="actionLocate"/>
     <addaction name="actionEdit"/>
     <addaction name="actionDelete"/>
    </widget>
@@ -1391,20 +2086,173 @@ p, li { white-space: pre-wrap; }
    <addaction name="menuAbout"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget_sticker">
+   <property name="floating">
+    <bool>true</bool>
+   </property>
    <property name="windowTitle">
     <string>Sticker</string>
    </property>
    <attribute name="dockWidgetArea">
-    <number>4</number>
+    <number>2</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2">
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QVBoxLayout" name="verticalLayout_12">
+     <property name="spacing">
+      <number>0</number>
+     </property>
+     <property name="leftMargin">
+      <number>10</number>
+     </property>
+     <property name="topMargin">
+      <number>10</number>
+     </property>
+     <property name="rightMargin">
+      <number>5</number>
+     </property>
+     <property name="bottomMargin">
+      <number>5</number>
+     </property>
+     <item>
+      <widget class="QWidget" name="verticalWidget_titlebar_sticker" native="true">
+       <layout class="QVBoxLayout" name="verticalLayout_18">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>10</number>
+        </property>
+        <property name="topMargin">
+         <number>10</number>
+        </property>
+        <property name="rightMargin">
+         <number>5</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QWidget" name="horizontalWidget_titlebar_sticker" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_titlebar_concept_4">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="label_titlebar_sticker">
+             <property name="text">
+              <string>Sticker</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_sticker_close">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="resource.qrc">
+               <normaloff>:/icon/x-circle.svg</normaloff>:/icon/x-circle.svg</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
+             </property>
+             <property name="flat">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
      <item>
       <widget class="QPlainTextEdit" name="plainTextEdit_sticker"/>
+     </item>
+     <item>
+      <widget class="QFrame" name="horizontalFrame_sticker">
+       <layout class="QHBoxLayout" name="horizontalLayout_sizegrip_concept_4">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="label_sizegrip_sticker">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="frame_sizegrip_sticker">
+          <property name="minimumSize">
+           <size>
+            <width>16</width>
+            <height>16</height>
+           </size>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </item>
     </layout>
    </widget>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionCreate_Concept">
    <property name="icon">
     <iconset resource="resource.qrc">
@@ -1522,7 +2370,7 @@ p, li { white-space: pre-wrap; }
   <action name="actionToggle_Fullscreen">
    <property name="icon">
     <iconset resource="resource.qrc">
-     <normaloff>:/icon/maximize.svg</normaloff>:/icon/maximize.svg</iconset>
+     <normaloff>:/icon/monitor.svg</normaloff>:/icon/monitor.svg</iconset>
    </property>
    <property name="text">
     <string>Toggle Fullscreen</string>
@@ -1750,13 +2598,16 @@ p, li { white-space: pre-wrap; }
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="actionLocate_File_in_File_Library">
+  <action name="actionLocate">
    <property name="icon">
     <iconset resource="resource.qrc">
      <normaloff>:/icon/navigation.svg</normaloff>:/icon/navigation.svg</iconset>
    </property>
    <property name="text">
-    <string>Locate File in File Library</string>
+    <string>Locate</string>
+   </property>
+   <property name="toolTip">
+    <string>Locate</string>
    </property>
    <property name="shortcut">
     <string>F3</string>
@@ -1848,6 +2699,33 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Export Zen Tree Data to Json</string>
+   </property>
+  </action>
+  <action name="actionHide_Main_Window">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/minimize.svg</normaloff>:/icon/minimize.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Hide Main Window</string>
+   </property>
+  </action>
+  <action name="actionMaximize_Main_Window">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/maximize.svg</normaloff>:/icon/maximize.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Maximize Main Window</string>
+   </property>
+  </action>
+  <action name="actionRestore_Main_Window">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/umbrella.svg</normaloff>:/icon/umbrella.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Restore Main Window</string>
    </property>
   </action>
  </widget>

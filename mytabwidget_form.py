@@ -12,23 +12,23 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+from custom_widget import MyPlainTextEdit
 from custom_widget import MyConceptLinkedFileList
 from custom_widget import MyTabFileLeafList
-from custom_widget import MyPlainTextEdit
 
 
 class Ui_mytabwidget_form(object):
     def setupUi(self, mytabwidget_form):
         if not mytabwidget_form.objectName():
             mytabwidget_form.setObjectName(u"mytabwidget_form")
-        mytabwidget_form.resize(939, 664)
+        mytabwidget_form.resize(712, 565)
         self.horizontalLayout = QHBoxLayout(mytabwidget_form)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.splitter_2 = QSplitter(mytabwidget_form)
-        self.splitter_2.setObjectName(u"splitter_2")
-        self.splitter_2.setOrientation(Qt.Horizontal)
-        self.splitter_2.setHandleWidth(10)
-        self.treeWidget = QTreeWidget(self.splitter_2)
+        self.splitter_whole = QSplitter(mytabwidget_form)
+        self.splitter_whole.setObjectName(u"splitter_whole")
+        self.splitter_whole.setOrientation(Qt.Horizontal)
+        self.splitter_whole.setHandleWidth(10)
+        self.treeWidget = QTreeWidget(self.splitter_whole)
         self.treeWidget.setObjectName(u"treeWidget")
         self.treeWidget.setTabKeyNavigation(True)
         self.treeWidget.setDragEnabled(False)
@@ -41,13 +41,13 @@ class Ui_mytabwidget_form(object):
         self.treeWidget.setItemsExpandable(True)
         self.treeWidget.setSortingEnabled(False)
         self.treeWidget.setAnimated(True)
-        self.splitter_2.addWidget(self.treeWidget)
+        self.splitter_whole.addWidget(self.treeWidget)
         self.treeWidget.header().setVisible(False)
-        self.splitter = QSplitter(self.splitter_2)
-        self.splitter.setObjectName(u"splitter")
-        self.splitter.setOrientation(Qt.Vertical)
-        self.splitter.setHandleWidth(10)
-        self.splitter_top = QSplitter(self.splitter)
+        self.splitter_right = QSplitter(self.splitter_whole)
+        self.splitter_right.setObjectName(u"splitter_right")
+        self.splitter_right.setOrientation(Qt.Vertical)
+        self.splitter_right.setHandleWidth(10)
+        self.splitter_top = QSplitter(self.splitter_right)
         self.splitter_top.setObjectName(u"splitter_top")
         self.splitter_top.setOrientation(Qt.Horizontal)
         self.splitter_top.setHandleWidth(10)
@@ -103,18 +103,51 @@ class Ui_mytabwidget_form(object):
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.plainTextEdit_detail.sizePolicy().hasHeightForWidth())
         self.plainTextEdit_detail.setSizePolicy(sizePolicy1)
-        self.plainTextEdit_detail.setMinimumSize(QSize(0, 0))
+        self.plainTextEdit_detail.setMinimumSize(QSize(0, 150))
         self.plainTextEdit_detail.setMaximumSize(QSize(16777215, 16777215))
         self.plainTextEdit_detail.setReadOnly(False)
 
         self.formLayout.setWidget(2, QFormLayout.FieldRole, self.plainTextEdit_detail)
 
+        self.label_relative = QLabel(self.layoutWidget)
+        self.label_relative.setObjectName(u"label_relative")
+
+        self.formLayout.setWidget(3, QFormLayout.LabelRole, self.label_relative)
+
+        self.listWidget_relative = QListWidget(self.layoutWidget)
+        self.listWidget_relative.setObjectName(u"listWidget_relative")
+        sizePolicy2 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Maximum)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.listWidget_relative.sizePolicy().hasHeightForWidth())
+        self.listWidget_relative.setSizePolicy(sizePolicy2)
+        self.listWidget_relative.setMinimumSize(QSize(0, 0))
+        self.listWidget_relative.setProperty("showDropIndicator", False)
+        self.listWidget_relative.setDragDropMode(QAbstractItemView.NoDragDrop)
+        self.listWidget_relative.setDefaultDropAction(Qt.IgnoreAction)
+        self.listWidget_relative.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.listWidget_relative.setMovement(QListView.Static)
+        self.listWidget_relative.setFlow(QListView.LeftToRight)
+        self.listWidget_relative.setResizeMode(QListView.Adjust)
+        self.listWidget_relative.setLayoutMode(QListView.SinglePass)
+        self.listWidget_relative.setSpacing(5)
+        self.listWidget_relative.setViewMode(QListView.IconMode)
+        self.listWidget_relative.setWordWrap(False)
+        self.listWidget_relative.setSelectionRectVisible(False)
+
+        self.formLayout.setWidget(3, QFormLayout.FieldRole, self.listWidget_relative)
+
         self.splitter_top.addWidget(self.layoutWidget)
         self.pushButton = QPushButton(self.splitter_top)
         self.pushButton.setObjectName(u"pushButton")
+        sizePolicy3 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.pushButton.sizePolicy().hasHeightForWidth())
+        self.pushButton.setSizePolicy(sizePolicy3)
         self.splitter_top.addWidget(self.pushButton)
-        self.splitter.addWidget(self.splitter_top)
-        self.splitter_bottom = QSplitter(self.splitter)
+        self.splitter_right.addWidget(self.splitter_top)
+        self.splitter_bottom = QSplitter(self.splitter_right)
         self.splitter_bottom.setObjectName(u"splitter_bottom")
         self.splitter_bottom.setOrientation(Qt.Horizontal)
         self.splitter_bottom.setHandleWidth(10)
@@ -174,10 +207,10 @@ class Ui_mytabwidget_form(object):
         self.textEdit_viewer.setObjectName(u"textEdit_viewer")
         self.textEdit_viewer.setReadOnly(True)
         self.splitter_bottom.addWidget(self.textEdit_viewer)
-        self.splitter.addWidget(self.splitter_bottom)
-        self.splitter_2.addWidget(self.splitter)
+        self.splitter_right.addWidget(self.splitter_bottom)
+        self.splitter_whole.addWidget(self.splitter_right)
 
-        self.horizontalLayout.addWidget(self.splitter_2)
+        self.horizontalLayout.addWidget(self.splitter_whole)
 
 
         self.retranslateUi(mytabwidget_form)
@@ -196,6 +229,7 @@ class Ui_mytabwidget_form(object):
         self.label_name.setText(QCoreApplication.translate("mytabwidget_form", u"Name", None))
         self.label_detail.setText(QCoreApplication.translate("mytabwidget_form", u"Detail", None))
         self.plainTextEdit_detail.setPlainText("")
+        self.label_relative.setText(QCoreApplication.translate("mytabwidget_form", u"Relative", None))
         self.pushButton.setText(QCoreApplication.translate("mytabwidget_form", u"PushButton", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("mytabwidget_form", u"Root", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QCoreApplication.translate("mytabwidget_form", u"Leaf", None))

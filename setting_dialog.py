@@ -18,7 +18,7 @@ class Ui_setting_dialog(object):
     def setupUi(self, setting_dialog):
         if not setting_dialog.objectName():
             setting_dialog.setObjectName(u"setting_dialog")
-        setting_dialog.resize(562, 346)
+        setting_dialog.resize(642, 466)
         icon = QIcon()
         icon.addFile(u":/icon/holoico.ico", QSize(), QIcon.Normal, QIcon.Off)
         setting_dialog.setWindowIcon(icon)
@@ -63,12 +63,29 @@ class Ui_setting_dialog(object):
         self.stackedWidget.setStyleSheet(u"")
         self.page = QWidget()
         self.page.setObjectName(u"page")
+        self.page.setMaximumSize(QSize(16777215, 240))
         self.gridLayout = QGridLayout(self.page)
         self.gridLayout.setObjectName(u"gridLayout")
+        self.label_2 = QLabel(self.page)
+        self.label_2.setObjectName(u"label_2")
+
+        self.gridLayout.addWidget(self.label_2, 2, 0, 1, 1)
+
         self.label = QLabel(self.page)
         self.label.setObjectName(u"label")
 
         self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
+
+        self.label_6 = QLabel(self.page)
+        self.label_6.setObjectName(u"label_6")
+
+        self.gridLayout.addWidget(self.label_6, 4, 0, 1, 1)
+
+        self.lineEdit_sublime = QLineEdit(self.page)
+        self.lineEdit_sublime.setObjectName(u"lineEdit_sublime")
+        self.lineEdit_sublime.setEnabled(False)
+
+        self.gridLayout.addWidget(self.lineEdit_sublime, 7, 0, 1, 1)
 
         self.lineEdit_file_saving_base = QLineEdit(self.page)
         self.lineEdit_file_saving_base.setObjectName(u"lineEdit_file_saving_base")
@@ -76,15 +93,21 @@ class Ui_setting_dialog(object):
 
         self.gridLayout.addWidget(self.lineEdit_file_saving_base, 1, 0, 1, 1)
 
-        self.pushButtonfile_saving_base = QPushButton(self.page)
-        self.pushButtonfile_saving_base.setObjectName(u"pushButtonfile_saving_base")
+        self.pushButton_font = QPushButton(self.page)
+        self.pushButton_font.setObjectName(u"pushButton_font")
 
-        self.gridLayout.addWidget(self.pushButtonfile_saving_base, 1, 1, 1, 1)
+        self.gridLayout.addWidget(self.pushButton_font, 3, 1, 1, 1)
 
-        self.label_2 = QLabel(self.page)
-        self.label_2.setObjectName(u"label_2")
+        self.lineEdit_typora = QLineEdit(self.page)
+        self.lineEdit_typora.setObjectName(u"lineEdit_typora")
+        self.lineEdit_typora.setEnabled(False)
 
-        self.gridLayout.addWidget(self.label_2, 2, 0, 1, 1)
+        self.gridLayout.addWidget(self.lineEdit_typora, 5, 0, 1, 1)
+
+        self.pushButton_typora = QPushButton(self.page)
+        self.pushButton_typora.setObjectName(u"pushButton_typora")
+
+        self.gridLayout.addWidget(self.pushButton_typora, 5, 1, 1, 1)
 
         self.lineEdit_font = QLineEdit(self.page)
         self.lineEdit_font.setObjectName(u"lineEdit_font")
@@ -93,14 +116,25 @@ class Ui_setting_dialog(object):
 
         self.gridLayout.addWidget(self.lineEdit_font, 3, 0, 1, 1)
 
-        self.pushButton_font = QPushButton(self.page)
-        self.pushButton_font.setObjectName(u"pushButton_font")
+        self.pushButtonfile_saving_base = QPushButton(self.page)
+        self.pushButtonfile_saving_base.setObjectName(u"pushButtonfile_saving_base")
 
-        self.gridLayout.addWidget(self.pushButton_font, 3, 1, 1, 1)
+        self.gridLayout.addWidget(self.pushButtonfile_saving_base, 1, 1, 1, 1)
+
+        self.label_7 = QLabel(self.page)
+        self.label_7.setObjectName(u"label_7")
+
+        self.gridLayout.addWidget(self.label_7, 6, 0, 1, 1)
+
+        self.pushButton_sublime = QPushButton(self.page)
+        self.pushButton_sublime.setObjectName(u"pushButton_sublime")
+
+        self.gridLayout.addWidget(self.pushButton_sublime, 7, 1, 1, 1)
 
         self.stackedWidget.addWidget(self.page)
         self.page_2 = QWidget()
         self.page_2.setObjectName(u"page_2")
+        self.page_2.setMaximumSize(QSize(16777215, 120))
         self.gridLayout_2 = QGridLayout(self.page_2)
         self.gridLayout_2.setObjectName(u"gridLayout_2")
         self.label_3 = QLabel(self.page_2)
@@ -138,10 +172,6 @@ class Ui_setting_dialog(object):
 
         self.verticalLayout_3.addWidget(self.stackedWidget)
 
-        self.verticalSpacer = QSpacerItem(20, 200, QSizePolicy.Minimum, QSizePolicy.Fixed)
-
-        self.verticalLayout_3.addItem(self.verticalSpacer)
-
         self.buttonBox = QDialogButtonBox(setting_dialog)
         self.buttonBox.setObjectName(u"buttonBox")
         self.buttonBox.setOrientation(Qt.Horizontal)
@@ -170,10 +200,14 @@ class Ui_setting_dialog(object):
         setting_dialog.setWindowTitle(QCoreApplication.translate("setting_dialog", u"Setting", None))
         self.pushButton_general.setText("")
         self.pushButton_rss.setText("")
-        self.label.setText(QCoreApplication.translate("setting_dialog", u"File Saving Directory", None))
-        self.pushButtonfile_saving_base.setText(QCoreApplication.translate("setting_dialog", u"Open...", None))
         self.label_2.setText(QCoreApplication.translate("setting_dialog", u"Font", None))
+        self.label.setText(QCoreApplication.translate("setting_dialog", u"File Saving Directory", None))
+        self.label_6.setText(QCoreApplication.translate("setting_dialog", u"Typora Directory", None))
         self.pushButton_font.setText(QCoreApplication.translate("setting_dialog", u"Font...", None))
+        self.pushButton_typora.setText(QCoreApplication.translate("setting_dialog", u"Open...", None))
+        self.pushButtonfile_saving_base.setText(QCoreApplication.translate("setting_dialog", u"Open...", None))
+        self.label_7.setText(QCoreApplication.translate("setting_dialog", u"Sublime Directory", None))
+        self.pushButton_sublime.setText(QCoreApplication.translate("setting_dialog", u"Open...", None))
         self.label_3.setText(QCoreApplication.translate("setting_dialog", u"Pixiv Cookie\uff08\u4e00\u4e9b\u753b\u5e08\u7684\u9650\u5236\u6bd4\u8f83\u4e25\u683c\uff0c\u9700\u8981cookie\u624d\u80fd\u8bbf\u95ee\u5230\uff09", None))
         self.label_4.setText(QCoreApplication.translate("setting_dialog", u"Instagram Cookie\uff08Instagram\u662f\u4e0d\u5bf9\u5916\u5f00\u653e\u7684\uff09", None))
         self.label_5.setText(QCoreApplication.translate("setting_dialog", u"\u6bcf\u65e5\u81ea\u52a8\u66f4\u65b0", None))

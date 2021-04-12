@@ -29,9 +29,6 @@ class RSS_Updator_Threador(QThread):
 		self.parent=parent
 		self.updating_url_list=updating_url_list#需要更新的url_list
 		
-		self.tray=QSystemTrayIcon()
-		self.tray.setContextMenu(self.parent.qmenu)
-		self.tray.setIcon(QIcon(":/icon/holoico.ico"))
 		self.need_to_quit=False
 
 		#一个rss feed的新文章列表，每更新了一个就会emit一个带有rss_url的信号，回去了就对应rss_url，把new_article_list append进去
@@ -93,16 +90,12 @@ class RSS_Updator_Threador(QThread):
 		################################################################################
 
 		if Status=="Invalid":
-			self.tray.hide()
-			self.tray.show()
-			self.tray.showMessage("Infomation","RSS更新失败:\n%s"%self.parent.rss_data[rss_url]["feed_name"],QIcon(":/icon/holoico.ico"))
+			self.parent.trayIcon.showMessage("Infomation","RSS更新失败:\n%s"%self.parent.rss_data[rss_url]["feed_name"],QIcon(":/icon/holoico.ico"))
 			return
 
 		#超时了，或者
 		if Status=="Failed":
-			self.tray.hide()
-			self.tray.show()
-			self.tray.showMessage("Infomation","RSS更新失败:\n%s"%self.parent.rss_data[rss_url]["feed_name"],QIcon(":/icon/holoico.ico"))
+			self.parent.trayIcon.showMessage("Infomation","RSS更新失败:\n%s"%self.parent.rss_data[rss_url]["feed_name"],QIcon(":/icon/holoico.ico"))
 			return
 
 		################################################################################
@@ -133,9 +126,7 @@ class RSS_Updator_Threador(QThread):
 			self.progress.emit(rss_url,updated)
 
 			if updated==True:
-				self.tray.hide()
-				self.tray.show()
-				self.tray.showMessage("Infomation","RSS更新成功:\n%s"%self.parent.rss_data[rss_url]["feed_name"],QIcon(":/icon/holoico.ico"))
+				self.parent.trayIcon.showMessage("Infomation","RSS更新成功:\n%s"%self.parent.rss_data[rss_url]["feed_name"],QIcon(":/icon/holoico.ico"))
 
 			return
 
@@ -181,11 +172,6 @@ class RSS_Adding_Getor_Threador(QThread):
 		self.temp_tree_item_list=[]
 
 		self.update_type=update_type
-
-		self.tray=QSystemTrayIcon()
-		self.tray.setContextMenu(self.parent.qmenu)
-		self.tray.setIcon(QIcon(":/icon/holoico.ico"))
-		self.tray.show()
 
 
 		self.successed={}#临时存放成功解析到的rss_data，所有都弄完后再被主线程并入self.rss_data中去
@@ -254,18 +240,14 @@ class RSS_Adding_Getor_Threador(QThread):
 		#parse出来的是个怪物
 		if Status=="Invalid":
 			self.failed.append(rss_url)
-			self.tray.hide()
-			self.tray.show()
-			self.tray.showMessage("Infomation","RSS不符合标准:\n%s"%rss_url,QIcon(":/icon/holoico.ico"))
+			self.parent.trayIcon.showMessage("Infomation","RSS不符合标准:\n%s"%rss_url,QIcon(":/icon/holoico.ico"))
 			return Status
 			
 
 		#超时了，或者
 		if Status=="Failed":
 			self.failed.append(rss_url)
-			self.tray.hide()
-			self.tray.show()
-			self.tray.showMessage("Infomation","RSS解析失败:\n%s"%rss_url,QIcon(":/icon/holoico.ico"))
+			self.parent.trayIcon.showMessage("Infomation","RSS解析失败:\n%s"%rss_url,QIcon(":/icon/holoico.ico"))
 			return Status
 		
 		################################################################################
@@ -303,9 +285,7 @@ class RSS_Adding_Getor_Threador(QThread):
 			
 
 
-			self.tray.hide()
-			self.tray.show()
-			self.tray.showMessage("Infomation","RSS添加成功:\n%s"%rss_url,QIcon(":/icon/holoico.ico"))
+			self.parent.trayIcon.showMessage("Infomation","RSS添加成功:\n%s"%rss_url,QIcon(":/icon/holoico.ico"))
 			return Status
 	
 	def run(self):
@@ -379,6 +359,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		self.listWidget_file_root.itemDoubleClicked.connect(self.root_file_open)
 		self.listWidget_file_root.dropped.connect(self.concept_linked_file_add)
 		self.listWidget_file_leafs.itemDoubleClicked.connect(self.leafs_file_open)
+		self.listWidget_relative.itemDoubleClicked.connect(lambda:self.parent.concept_show(self.listWidget_relative.currentItem().text().split("|")[0]))
 		
 		
 		self.tab_update()
@@ -700,7 +681,12 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		self.lineEdit_name.setText(self.parent.concept_data[self.current_select_conceptID]["name"])
 		#Detail
 		self.plainTextEdit_detail.setPlainText(self.parent.concept_data[self.current_select_conceptID]["detail"])
-	
+
+		self.listWidget_relative.clear()
+		for related_ID in self.parent.concept_data[self.current_select_conceptID]["relative"]:
+			related_item=self.parent.concept_data[related_ID]
+			name=str(related_item["id"])+"|"+related_item["name"]
+			self.listWidget_relative.addItem(name)
 		
 
 		self.begin_date=None
@@ -867,12 +853,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 						title=result[1]
 					else:
 						title="Unkown Page"
-						tray=QSystemTrayIcon()
-						tray.setContextMenu(self.parent.qmenu)
-						tray.setIcon(QIcon(":/icon/holoico.ico"))
-						tray.hide()
-						tray.show()
-						tray.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
+						self.parent.trayIcon.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
 					
 					file_name=">"+title+"|"+i
 					self.parent.file_data[self.parent.y][self.parent.m][self.parent.d][file_name]=[]
@@ -1034,6 +1015,158 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 
 					# 	message.exec_()
 					# 	return
+
+	def concept_linked_file_rename(self):
+		"直接复制粘贴file_library_file_rename的了，懒得抽象了"
+		def check_validity(new_name_enter,buttonBox):
+			if should_not_change!="":
+				# ">Google|http://www.google.com"
+				new_file_name=new_name_enter.text()
+				#没有>了
+				if new_file_name[0]!=">":
+					buttonBox.setEnabled(0)
+					return
+				else:
+					buttonBox.setEnabled(1)
+				
+				#没有|http://www.google.com了
+				tail="|"+new_file_name.split("|")[-1]
+				if should_not_change!=tail:
+					buttonBox.button(QDialogButtonBox.Ok).setEnabled(0)
+				else:
+					buttonBox.button(QDialogButtonBox.Ok).setEnabled(1)
+		
+		for file_index in sorted([item.row() for item in self.listWidget_file_root.selectedIndexes()]):
+			
+			file_str=self.listWidget_file_root.item(file_index).toolTip()
+			old_file=file_str.replace(self.parent.file_saving_base,"")[1:].split("/")
+			
+			
+			old_y=int(old_file[0])
+			old_m=int(old_file[1])
+			old_d=int(old_file[2])
+
+			if "|" in file_str:
+				old_file_name=file_str[file_str.find(">"):]
+			else:
+				old_file_name=old_file[3]
+
+			old_file_linked_concept=self.parent.file_data[old_y][old_m][old_d][old_file_name]
+
+			dlg = QDialog(self)
+			dlg.setMinimumSize(400,200)
+			dlg.setWindowTitle("Rename")
+
+			old_name_label=QLabel("Old Name:")
+			old_name_enter=QLineEdit()
+			old_name_enter.setText(old_file_name)
+			old_name_enter.setReadOnly(1)
+
+			new_name_label=QLabel("New Name:")
+			new_name_enter=QLineEdit()
+			new_name_enter.setText(old_file_name)
+			
+			QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+			buttonBox = QDialogButtonBox(QBtn)
+			buttonBox.accepted.connect(dlg.accept)
+			buttonBox.rejected.connect(dlg.reject)
+
+			layout=QVBoxLayout()
+			layout.addWidget(old_name_label)
+			layout.addWidget(old_name_enter)
+			layout.addWidget(new_name_label)
+			layout.addWidget(new_name_enter)
+			layout.addWidget(buttonBox)
+			dlg.setLayout(layout)
+
+			new_name_enter.textEdited.connect(lambda:check_validity(new_name_enter,buttonBox))
+			#输入框自动定位
+			new_name_enter.setFocus()
+
+			#should_not_change用来防止乱修改网址link
+			if "|" in old_file_name:
+				# ">Google|http://www.google.com"
+				should_not_change="|"+old_file_name.split("|")[-1]
+				old_file_extension=old_file_name.split("|")[-1]
+				new_name_enter.setSelection(1,len(old_file_name)-len(old_file_extension)-2)
+			else:
+				should_not_change=""
+				old_file_extension=old_file_name.split(".")[-1]
+				new_name_enter.setSelection(0,len(old_file_name)-len(old_file_extension)-1)
+
+			if dlg.exec_():
+				new_file_name=new_name_enter.text()
+				
+				if new_file_name==old_file_name:
+					continue
+
+
+				old_file_url=self.parent.file_saving_base+"/"+str(old_y)+"/"+str(old_m)+"/"+str(old_d)+"/"+old_file_name
+				new_file_url=self.parent.file_saving_base+"/"+str(old_y)+"/"+str(old_m)+"/"+str(old_d)+"/"+new_file_name
+				
+				if should_not_change=="":
+					try:
+						os.rename(old_file_url,new_file_url)
+					except Exception as e:
+						# dont_allow=["?","*","/","\\","<",">",":","\"","|"]
+						#出错，继续下一个文件
+						QMessageBox.critical(self,"Error","重命名%s出错：\n\n%s"%(old_file_url,e))
+						continue
+
+				if should_not_change=="":
+					new_file_icon=which_icon(new_file_name)
+				else:
+					new_file_icon=which_icon(new_file_name+".url")
+
+				# replace concept data中的old data，增加file data中的new data
+				self.parent.file_data[old_y][old_m][old_d][new_file_name]=[]
+				for ID in old_file_linked_concept:
+
+					#file data中的linked id顺便改了
+					self.parent.file_data[old_y][old_m][old_d][new_file_name].append(ID)
+
+					#replace old file中linked id中的linked file的信息
+					for ff_index in range(len(self.parent.concept_data[ID]["file"])):
+						
+						ff=self.parent.concept_data[ID]["file"][ff_index]
+						if ff["y"]==old_y and ff["m"]==old_m and ff["d"]==old_d and ff["file_name"]==old_file_name:
+							self.parent.concept_data[ID]["file"][ff_index]["file_name"]=new_file_name
+							self.parent.concept_data[ID]["file"][ff_index]["file_icon"]=new_file_icon
+
+							break
+					
+				
+				# 删除file data中的old data
+				del self.parent.file_data[old_y][old_m][old_d][old_file_name]
+
+				# replace diary data中的old data
+				for year_index in range(1970-1970,2170-1970):
+					for month_index in range(0,12):
+						for day_index in range(len(self.parent.diary_data[year_index]["date"][month_index])):
+							for line_index in range(len(self.parent.diary_data[year_index]["date"][month_index][day_index]["text"])):
+								for ff_index in range(len(self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"])):
+									ff=self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]
+									if ff["y"]==old_y and ff["m"]==old_m and ff["d"]==old_d and ff["file_name"]==old_file_name:
+										
+										self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["file_name"]=new_file_name
+										self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["file_icon"]=new_file_icon
+
+										break
+				self.parent.diary_data_save_out()
+				
+			else:
+				#一个文件取消重命名，进行下一个
+				continue
+		
+		self.parent.file_library_list_update()
+		try:
+			self.parent.concept_show(int(self.parent.lineEdit_id.text()))
+		except:
+			pass
+		self.parent.diary_line_file_show()
+
+		for tab in self.parent.custom_tabs_shown:
+			tab.tab_update()
 
 
 	def tree_deep_check_expand(self,depth,current_root):
@@ -1310,12 +1443,16 @@ class SettingDialog(QDialog,Ui_setting_dialog):
 		self.pushButton_general.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
 		self.pushButton_rss.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(1))
 
-		self.pushButtonfile_saving_base.clicked.connect(self.dir_dialog)
+		self.pushButtonfile_saving_base.clicked.connect(self.file_dir_dialog)
+		self.pushButton_typora.clicked.connect(self.typora_dir_dialog)
+		self.pushButton_sublime.clicked.connect(self.sublime_dir_dialog)
 		self.pushButton_font.clicked.connect(self.font_dialog)
 
 	
-	def set_option(self,file_saving_base,font,font_size,pixiv_cookie,instagram_cookie,rss_auto_update):
+	def set_option(self,file_saving_base,font,font_size,typora_directory,sublime_directory,pixiv_cookie,instagram_cookie,rss_auto_update):
 		self.lineEdit_file_saving_base.setText(file_saving_base)
+		self.lineEdit_typora.setText(typora_directory)
+		self.lineEdit_sublime.setText(sublime_directory)
 
 		self.font=font
 		self.font_size=font_size
@@ -1340,11 +1477,21 @@ class SettingDialog(QDialog,Ui_setting_dialog):
 		except:
 			pass
 		
-	def dir_dialog(self):
+	def file_dir_dialog(self):
 		dlg=QFileDialog(self)
 		file_saving_base=dlg.getExistingDirectory()
 		self.lineEdit_file_saving_base.setText(file_saving_base)
-
+	
+	def typora_dir_dialog(self):
+		dlg=QFileDialog(self)
+		typora_directory=dlg.getOpenFileUrl()[0].url().replace("file:///","")
+		self.lineEdit_typora.setText(typora_directory)
+	
+	def sublime_dir_dialog(self):
+		dlg=QFileDialog(self)
+		sublime_directory=dlg.getOpenFileUrl()[0].url().replace("file:///","")
+		self.lineEdit_sublime.setText(sublime_directory)
+	
 	def font_dialog(self):
 		dlg=QFontDialog(self)
 
