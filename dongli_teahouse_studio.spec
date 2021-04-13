@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['D:\\program\\茶屋工作室\\DongliTeahouse\\dongli_teahouse_studio.py'],
+a = Analysis(['D:\\program\\茶屋工作室\\DongliTeahouse\\main.py'],
              pathex=['D:\\DongliTeahouse'],
              binaries=[],
              datas=[],

@@ -20,7 +20,7 @@ class Ui_diary_search_dialog(object):
             diary_search_dialog.setObjectName(u"diary_search_dialog")
         diary_search_dialog.resize(778, 589)
         icon = QIcon()
-        icon.addFile(u":/icon/holoico.ico", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u":/icon/holoico_trans.ico", QSize(), QIcon.Normal, QIcon.Off)
         diary_search_dialog.setWindowIcon(icon)
         self.verticalLayout_3 = QVBoxLayout(diary_search_dialog)
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
@@ -42,18 +42,18 @@ class Ui_diary_search_dialog(object):
         self.listWidget.setSpacing(10)
         self.listWidget.setWordWrap(True)
         self.splitter.addWidget(self.listWidget)
-        self.widget = QWidget(self.splitter)
-        self.widget.setObjectName(u"widget")
-        self.verticalLayout_2 = QVBoxLayout(self.widget)
+        self.layoutWidget = QWidget(self.splitter)
+        self.layoutWidget.setObjectName(u"layoutWidget")
+        self.verticalLayout_2 = QVBoxLayout(self.layoutWidget)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.lineEdit_date = QLineEdit(self.widget)
+        self.lineEdit_date = QLineEdit(self.layoutWidget)
         self.lineEdit_date.setObjectName(u"lineEdit_date")
         self.lineEdit_date.setEnabled(False)
 
         self.verticalLayout_2.addWidget(self.lineEdit_date)
 
-        self.listWidget_concept = QListWidget(self.widget)
+        self.listWidget_concept = QListWidget(self.layoutWidget)
         self.listWidget_concept.setObjectName(u"listWidget_concept")
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -76,7 +76,7 @@ class Ui_diary_search_dialog(object):
 
         self.verticalLayout_2.addWidget(self.listWidget_concept)
 
-        self.textEdit = QTextEdit(self.widget)
+        self.textEdit = QTextEdit(self.layoutWidget)
         self.textEdit.setObjectName(u"textEdit")
         sizePolicy1 = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
         sizePolicy1.setHorizontalStretch(0)
@@ -87,7 +87,7 @@ class Ui_diary_search_dialog(object):
 
         self.verticalLayout_2.addWidget(self.textEdit)
 
-        self.splitter.addWidget(self.widget)
+        self.splitter.addWidget(self.layoutWidget)
 
         self.verticalLayout.addWidget(self.splitter)
 

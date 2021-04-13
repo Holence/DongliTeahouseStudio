@@ -20,7 +20,7 @@ class Ui_diary_analyze_dialog(object):
             diary_analyze_dialog.setObjectName(u"diary_analyze_dialog")
         diary_analyze_dialog.resize(983, 719)
         icon = QIcon()
-        icon.addFile(u":/icon/holoico.ico", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u":/icon/holoico_trans.ico", QSize(), QIcon.Normal, QIcon.Off)
         diary_analyze_dialog.setWindowIcon(icon)
         self.verticalLayout_2 = QVBoxLayout(diary_analyze_dialog)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")

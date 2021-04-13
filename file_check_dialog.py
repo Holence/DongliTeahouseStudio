@@ -20,7 +20,7 @@ class Ui_file_check_dialog(object):
             file_check_dialog.setObjectName(u"file_check_dialog")
         file_check_dialog.resize(949, 685)
         icon = QIcon()
-        icon.addFile(u":/icon/holoico.ico", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u":/icon/holoico_trans.ico", QSize(), QIcon.Normal, QIcon.Off)
         file_check_dialog.setWindowIcon(icon)
         self.horizontalLayout_12 = QHBoxLayout(file_check_dialog)
         self.horizontalLayout_12.setObjectName(u"horizontalLayout_12")

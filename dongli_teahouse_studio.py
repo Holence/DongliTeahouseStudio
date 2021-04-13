@@ -26,8 +26,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.__press_pos = QPoint()
 
 	def mouseMoveEvent(self, event):
-		if not self.__press_pos.isNull():  
-			self.move(self.pos() + (event.pos() - self.__press_pos))
+		if not self.__press_pos.isNull():
+			#全屏还移动就会出问题
+			if not self.isFullScreen():
+				self.move(self.pos() + (event.pos() - self.__press_pos))
 
 	def __init__(self):
 		super().__init__()
@@ -36,81 +38,22 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.qlock=QMutex(QMutex.NonRecursive)
 		setdefaulttimeout(3.0)
 
-		self.__press_pos = QPoint()
-		self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.CustomizeWindowHint)
-		
-		# self.setWindowOpacity(0.95)
-
-		# QCoreApplication.setApplicationName("Teahouse Studio")
-		# QCoreApplication.setOrganizationName("Dongli Teahouse")
-
-		#初始化concept、diary、file、rss、zen的数据
-		self.initialize_data()
-		#初始化信号
-		self.initialize_signal()
 		#这个一定得放在初始化窗体之前，貌似对dock的设置会被其中某个步骤重置掉
 		self.initialize_dockwidget()
 		#初始化窗体
 		self.initialize_window()
-		#初始化system tray
-		self.initialize_tray()
+
+		#初始化concept、diary、file、rss、zen的数据
+		self.initialize_data()
 		#初始化tab
 		self.initialize_custom_tab()
 
-	def initialize_data(self):
-		#初始化diary、concept、file、rss的data
-		if self.data_validity_check()==1:
-			self.data_load()
-			
-			#####################################################################################################################
-			self.easter_egg_deleting_universe=0
-			
-			self.concept_search_list_update()
-
-			#####################################################################################################################
-			self.current_year_index=0
-			self.current_month_index=0
-			self.current_day_index=0
-			self.current_day=0#记录这个，用来找那些不存在当前日的，重排序后的index
-			self.is_new_diary=0#标记新日记，增添容器、新建新日记时要用
-			self.is_first_arrived=0#增添、删除、列出链接物的时候要用
-			self.new_diary={}#临时存储还没重排序找到day索引值的新日记
-			self.current_line_index=0
-
-			self.diary_show(QDate_transform(self.calendarWidget.selectedDate()))
-
-			#####################################################################################################################
-			
-
-			ymd=time.localtime(time.time())
-			self.y=ymd[0]
-			self.m=ymd[1]
-			self.d=ymd[2]
-			#当日存文件的地方
-			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.y)+"/"+str(self.m)+"/"+str(self.d)
-			self.searching_file=[]
-			self.file_library_list_update()
-			
-			self.file_saving_today_dst_exist=False
-			self.file_saving_today_dst_exist_check()
-
-			#####################################################################################################################
-
-			self.current_rss_showing=None#如果点开的是rss，那么放的是rss_url；如果点开的是folder，那么存所有文章结构体的列表，
-			self.browser=QWebEngineView()
-			self.splitter_rss.addWidget(self.browser)
-			self.splitter_rss.setStretchFactor(0,1)
-			self.splitter_rss.setStretchFactor(1,1)
-			self.splitter_rss.setStretchFactor(2,1)
-			self.rss_tree_build()
-
-			self.rss_feed_daily_update()
-			self.manually_updateing=False
-			#####################################################################################################################
-
-			self.zen_tree_build()
-		else:
-			QCoreApplication.exit()
+		#初始化system tray
+		self.initialize_tray()
+		#初始化自定义menu
+		self.initialize_menu()
+		#初始化信号
+		self.initialize_signal()
 
 	def initialize_signal(self):
 		
@@ -290,7 +233,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#置顶Action
 		self.actionStay_on_Top.triggered.connect(self.window_toggle_stay_on_top)
 
-		self.actionMaximize_Main_Window.triggered.connect(self.showMaximized)
 		self.actionRestore_Main_Window.triggered.connect(self.showNormal)
 		self.actionHide_Main_Window.triggered.connect(self.hide)
 		#牛逼疯了！我要的就是这个！
@@ -326,7 +268,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.actionAbout.triggered.connect(self.about)
 
 	def initialize_dockwidget(self):
-		
 		self.dockWidget_concept.setTitleBarWidget(self.verticalWidget_titlebar_concept)
 		self.pushButton_concept_close.clicked.connect(lambda:self.dockWidget_concept.hide())
 		QSizeGrip(self.frame_sizegrip_concept)
@@ -369,11 +310,15 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.frame_sizegrip_sticker.hide()
 
 	def initialize_window(self):
+
+		self.__press_pos = QPoint()
+		self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.CustomizeWindowHint)
 		
-		self.menubar.setVisible(False)
+		self.browser=QWebEngineView()
+		self.splitter_rss.addWidget(self.browser)
+
 		#恢复界面设置
 		try:
-			
 			self.restoreGeometry(self.user_settings.value("geometry"))
 			self.restoreState(self.user_settings.value("windowState"))
 			self.resize(self.user_settings.value("size"))
@@ -389,31 +334,72 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			sticker_text=decrypt(self.user_settings.value("sticker"))
 			self.plainTextEdit_sticker.setPlainText(sticker_text)
 			
-			
 			# settings_list=self.user_settings.allKeys()
 			# print(settings_list)
 		except:
 			pass
-
-	def initialize_tray(self):
-		self.trayIconMenu=QMenu(self)
-
-		self.trayIcon=QSystemTrayIcon(self)
-		self.trayIcon.setIcon(QIcon("holoico.ico"))
 		
-		#################################################################
-
-
-		# self.trayIconMenu.addSeparator()
-
+		if self.isFullScreen():
+			self.btn_maximize.hide()
+			self.btn_minimize.hide()
 		
-		self.trayIconMenu.addAction(self.actionSetting)
-		self.trayIconMenu.addMenu(self.menuView)
-		self.trayIconMenu.addAction(self.actionExit)
+		# self.setWindowOpacity(0.95)
 
+		# QCoreApplication.setApplicationName("Teahouse Studio")
+		# QCoreApplication.setOrganizationName("Dongli Teahouse")
 
-		self.trayIcon.setContextMenu(self.trayIconMenu)
-		self.trayIcon.show()
+	def initialize_data(self):
+		#初始化diary、concept、file、rss的data
+		if self.data_validity_check()==1:
+			
+			self.data_load()
+			
+			#####################################################################################################################
+			self.easter_egg_deleting_universe=0
+			
+			self.concept_search_list_update()
+
+			#####################################################################################################################
+			self.current_year_index=0
+			self.current_month_index=0
+			self.current_day_index=0
+			self.current_day=0#记录这个，用来找那些不存在当前日的，重排序后的index
+			self.is_new_diary=0#标记新日记，增添容器、新建新日记时要用
+			self.is_first_arrived=0#增添、删除、列出链接物的时候要用
+			self.new_diary={}#临时存储还没重排序找到day索引值的新日记
+			self.current_line_index=0
+
+			self.diary_show(QDate_transform(self.calendarWidget.selectedDate()))
+
+			#####################################################################################################################
+
+			ymd=time.localtime(time.time())
+			self.y=ymd[0]
+			self.m=ymd[1]
+			self.d=ymd[2]
+			#当日存文件的地方
+			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.y)+"/"+str(self.m)+"/"+str(self.d)
+			self.searching_file=[]
+			self.file_saving_today_dst_exist=False
+			self.file_saving_today_dst_exist_check()
+
+			self.file_library_list_update()
+
+			#####################################################################################################################
+
+			self.current_rss_showing=None#如果点开的是rss，那么放的是rss_url；如果点开的是folder，那么存所有文章结构体的列表，
+			self.manually_updateing=False
+
+			self.rss_tree_build()
+			self.rss_feed_daily_update()
+
+			#####################################################################################################################
+			
+			self.zen_tree_build()
+			
+			#####################################################################################################################
+		else:
+			QCoreApplication.exit()
 
 	def initialize_custom_tab(self):
 		#custom_tabs_shown存储正在界面上展示的tabs，这些是用来实时与concept data同步更新的
@@ -463,6 +449,64 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		
 		#Home页
 		self.tabWidget.setCurrentIndex(0)
+
+	def initialize_tray(self):
+		self.trayIconMenu=QMenu(self)
+
+		self.trayIcon=QSystemTrayIcon(self)
+		self.trayIcon.setIcon(QIcon(":/icon/holoico_trans.ico"))
+		
+		#################################################################
+
+		self.trayIconMenu.addAction(self.actionSetting)
+		self.trayIconMenu.addSeparator()
+		self.trayIconMenu.addAction(self.actionToggle_Fullscreen)
+		self.trayIconMenu.addAction(self.actionHide_Main_Window)
+		self.trayIconMenu.addAction(self.actionRestore_Main_Window)
+		self.trayIconMenu.addAction(self.actionStay_on_Top)
+		self.trayIconMenu.addSeparator()
+		self.trayIconMenu.addAction(self.actionExit)
+
+		self.trayIcon.setContextMenu(self.trayIconMenu)
+		self.trayIcon.show()
+
+	def initialize_menu(self):
+		
+		def show_context_menu():
+			btn_pos=self.btn_menu.pos()
+			icon_height=self.btn_menu.width()
+			btn_pos+=QPoint(0,icon_height)
+			self.Menu.exec_(self.btn_menu.mapToGlobal(btn_pos))
+		
+		self.Menu=QMenu(self)
+		self.menubar.setVisible(False)
+
+		self.menuFile.addMenu(self.menuExport)
+		
+		for menu in [self.menuConcept,self.menuDiary,self.menuLibrary,self.menuRSS,self.menuZen]:
+			self.menuTool.insertMenu(self.actionEdit,menu)
+			for action in menu.actions():
+				self.addAction(action)
+		
+		menu_list=[self.menuFile,self.menuTool,self.menuTab,self.menuView,self.menuHelp]
+		for menu in menu_list:
+			self.Menu.addMenu(menu)
+			for action in menu.actions():
+				self.addAction(action)
+		
+		for action in self.menuOther.actions():
+			self.Menu.addAction(action)
+			self.addAction(action)
+		
+		#点击title icon展示menu
+		self.btn_menu.clicked.connect(show_context_menu)
+
+		#右上角的三个按钮
+		self.btn_minimize.clicked.connect(self.showMinimized)
+		self.btn_maximize.clicked.connect(lambda: self.showNormal() if self.isMaximized() else self.showMaximized())
+		self.btn_close.clicked.connect(self.close)
+
+
 
 	def closeEvent(self,event):
 		super(DongliTeahouseStudio,self).closeEvent(event)
@@ -605,7 +649,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				#这样就可以不用每时每刻记录Zen data，每时每刻修改Zen data
 				#只用在最后遍历整棵树，存储Zen树就行了！
 				temp=QTreeWidgetItem([segment_name,"Segment"])
-				temp.setIcon(0,QIcon(":/icon/rss.svg"))
+				temp.setIcon(0,QIcon(":/icon/feather.svg"))
 
 				self.treeWidget_zen.addTopLevelItem(temp)
 				self.zen_data[segment_name]=""
@@ -656,7 +700,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 						for segment_name in top_level["Segment"]:
 							
 							temp=QTreeWidgetItem(temp_root,[segment_name,"Segment"])
-							temp.setIcon(0,QIcon(":/icon/rss.svg"))
+							temp.setIcon(0,QIcon(":/icon/feather.svg"))
 
 						try:
 							temp_root.setExpanded(tree_expand[folder_name])
@@ -684,7 +728,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 								has=True
 								
 								temp=QTreeWidgetItem(temp_root,[segment_name,"Segment"])
-								temp.setIcon(0,QIcon(":/icon/rss.svg"))
+								temp.setIcon(0,QIcon(":/icon/feather.svg"))
 						
 						if has==True:
 							self.treeWidget_zen.addTopLevelItem(temp_root)
@@ -701,7 +745,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 						if search_name in self.zen_data[segment_name] or search_name in convert_to_az(self.zen_data[segment_name]):
 							
 							temp=QTreeWidgetItem([segment_name,"Segment"])
-							temp.setIcon(0,QIcon(":/icon/rss.svg"))
+							temp.setIcon(0,QIcon(":/icon/feather.svg"))
 
 							self.treeWidget_zen.addTopLevelItem(temp)
 
@@ -726,7 +770,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 								has=True
 								
 								temp=QTreeWidgetItem(temp_root,[segment_name,"Segment"])
-								temp.setIcon(0,QIcon(":/icon/rss.svg"))
+								temp.setIcon(0,QIcon(":/icon/feather.svg"))
 						
 						if has==True:
 							self.treeWidget_zen.addTopLevelItem(temp_root)
@@ -743,7 +787,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 						if search_name in segment_name or search_name in convert_to_az(segment_name):
 
 							temp=QTreeWidgetItem([segment_name,"Segment"])
-							temp.setIcon(0,QIcon(":/icon/rss.svg"))
+							temp.setIcon(0,QIcon(":/icon/feather.svg"))
 
 							self.treeWidget_zen.addTopLevelItem(temp)
 		
@@ -766,7 +810,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					for segment_name in top_level["Segment"]:
 						
 						temp=QTreeWidgetItem(temp_root,[segment_name,"Segment"])
-						temp.setIcon(0,QIcon(":/icon/rss.svg"))
+						temp.setIcon(0,QIcon(":/icon/feather.svg"))
 
 					try:
 						temp_root.setExpanded(tree_expand[folder_name])
@@ -778,7 +822,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					segment_name=top_level
 
 					temp=QTreeWidgetItem([segment_name,"Segment"])
-					temp.setIcon(0,QIcon(":/icon/rss.svg"))
+					temp.setIcon(0,QIcon(":/icon/feather.svg"))
 
 					self.treeWidget_zen.addTopLevelItem(temp)
 	
@@ -862,7 +906,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			return
 		
 		segment_name=self.treeWidget_zen.currentItem().text(0)
-		self.stackedWidget_zen.setCurrentIndex(0)
+		
+		# self.stackedWidget_zen.setCurrentIndex(0)
 		text=self.zen_data[segment_name]
 
 		self.textEdit_viewer_zen.setMarkdown(text)
@@ -884,9 +929,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		# 	self.textEdit_viewer_zen.setTextCursor(cursor)
 	
 	def zen_segment_save(self):
-		
-		segment_name=self.treeWidget_zen.currentItem().text(0)
-		self.zen_data[segment_name]=self.plainTextEdit_zen.toPlainText()
+		try:
+			segment_name=self.treeWidget_zen.currentItem().text(0)
+			self.zen_data[segment_name]=self.plainTextEdit_zen.toPlainText()
+		except:
+			pass
 	
 	def zen_switch_mode(self):
 		# self.stackedWidget_zen的第0个是textEdit_viewer_zen
@@ -2194,10 +2241,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#咋就没想到传参函数呢？
 		def update_window_title(rss_url):
 			"实时显示正在更新的RSS名称"
-			window_title=self.windowTitle()
+			window_title=self.label_title_bar_top.text()
 			if ">" in window_title:
 				window_title=window_title.split(">")[0][:-1]
-			self.setWindowTitle(window_title+" > Updating RSS Feed: "+self.rss_data[rss_url]["feed_name"])
+			self.label_title_bar_top.setText(window_title+" > Updating RSS Feed: "+self.rss_data[rss_url]["feed_name"])
 
 		def partial_work_done(rss_url,updated):
 
@@ -2225,10 +2272,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.treeWidget_rss.setDragEnabled(1)
 			self.treeWidget_rss.setDragDropMode(QAbstractItemView.InternalMove)
 			
-			window_title=self.windowTitle()
+			window_title=self.label_title_bar_top.text()
 			if ">" in window_title:
 				window_title=window_title.split(">")[0][:-1]
-			self.setWindowTitle(window_title)
+			self.label_title_bar_top.setText(window_title)
 		
 		
 		if manually==False:
@@ -2271,10 +2318,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		
 		def update_window_title(rss_url):
 			"实时显示正在更新的RSS名称"
-			window_title=self.windowTitle()
+			window_title=self.label_title_bar_top.text()
 			if ">" in window_title:
 				window_title=window_title.split(">")[0][:-1]
-			self.setWindowTitle(window_title+" > Updating RSS Feed: "+self.rss_data[rss_url]["feed_name"])
+			self.label_title_bar_top.setText(window_title+" > Updating RSS Feed: "+self.rss_data[rss_url]["feed_name"])
 		
 		def partial_work_done(rss_url,updated):
 			
@@ -2302,10 +2349,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.treeWidget_rss.setDragDropMode(QAbstractItemView.InternalMove)
 			self.manually_updateing=False
 
-			window_title=self.windowTitle()
+			window_title=self.label_title_bar_top.text()
 			if ">" in window_title:
 				window_title=window_title.split(">")[0][:-1]
-			self.setWindowTitle(window_title)
+			self.label_title_bar_top.setText(window_title)
 		
 		# 只允许一个手动更新存在
 		if self.manually_updateing==True:
@@ -3624,10 +3671,33 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		############################################################################
 
 	def about(self):
-		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 0.1.9.3\nAuthor: 鍵山狐\nContact: Holence08@gmail.com")
+		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 0.1.9.4\nAuthor: 鍵山狐\nContact: Holence08@gmail.com")
 
 	def font_set(self,font,font_size):
 		font_size=int(font_size)
+
+		#设置icon size
+		icon_size_big=(font_size//2)*2
+		if icon_size_big<24:
+			icon_size_big=24
+		self.btn_menu.setFixedSize(QSize(icon_size_big,icon_size_big))
+		self.btn_menu.setIconSize(QSize(icon_size_big,icon_size_big))
+		
+		#title的字体是固定的Segoe UI，不能与其他混为一谈
+		title_font=self.label_title_bar_top.font()
+		title_font.setPointSize(int(icon_size_big*0.5))
+		self.label_title_bar_top.setFont(title_font)
+		
+		icon_size_small=int(icon_size_big*0.66)
+		if icon_size_small<16:
+			icon_size_small=16
+		self.btn_close.setFixedSize(QSize(icon_size_big,icon_size_big))
+		self.btn_close.setIconSize(QSize(icon_size_small,icon_size_small))
+		self.btn_maximize.setFixedSize(QSize(icon_size_big,icon_size_big))
+		self.btn_maximize.setIconSize(QSize(icon_size_small,icon_size_small))
+		self.btn_minimize.setFixedSize(QSize(icon_size_big,icon_size_big))
+		self.btn_minimize.setIconSize(QSize(icon_size_small,icon_size_small))
+		
 
 		#正常字体大小
 		self.plainTextEdit_single_line.setFont(font)
@@ -3656,7 +3726,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.listWidget_text_linked_file.setFont(font)
 		
 		#展示区偏大
-		font.setPointSize(int(font_size*1.4))
+		font.setPointSize(int(font_size*1.2))
 		self.textEdit_viewer.setFont(font)
 		self.textEdit_viewer_zen.setFont(font)
 		self.plainTextEdit_zen.setFont(font)
@@ -3664,8 +3734,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		#头文字偏小
 		font.setPointSize(int(font_size*0.8))
 		# QApplication.setFont(font)
-		self.menubar.setFont(font)
+		# self.menubar.setFont(font)
 		self.tabWidget.setFont(font)
+		
 		self.dockWidget_diary.setFont(font)
 		self.toolBox_text.setFont(font)
 		self.dockWidget_concept.setFont(font)
@@ -3674,6 +3745,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.dockWidget_library.setFont(font)
 		self.dockWidget_sticker.setFont(font)
 
+		#dock上的icon要和旁边的文字差不多大，就得比0.8大，1倍刚好
+		self.label_concept_icon.setFixedSize(QSize(font_size,font_size))
+		self.label_diary_icon.setFixedSize(QSize(font_size,font_size))
+		self.label_library_icon.setFixedSize(QSize(font_size,font_size))
+		self.label_sticker_icon.setFixedSize(QSize(font_size,font_size))
+
+		#日历区不变
 		font.setPointSize(10)
 		self.calendarWidget.setFont(font)
 
@@ -3827,10 +3905,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 	def window_toggle_fullscreen(self):
 		
 		if self.isFullScreen():
-			
 			self.showNormal()
+			self.btn_maximize.show()
+			self.btn_minimize.show()
 		else:
 			self.showFullScreen()
+			self.btn_maximize.hide()
+			self.btn_minimize.hide()
 
 	def window_is_stay_on_top(self):
 		"Mainwindow是否正在置顶"
@@ -3854,8 +3935,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			self.dockWidget_library.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 			self.dockWidget_sticker.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 		
-		#很奇怪，设置WindowStaysOnTopHint后，所有漂浮的窗口都会被最小化
-		#所以还得一个一个恢复显示状态
+		# #很奇怪，设置WindowStaysOnTopHint后，所有漂浮的窗口都会被最小化
+		# #所以还得一个一个恢复显示状态
 		if self.isFullScreen():
 			self.showFullScreen()
 		else:
@@ -3869,6 +3950,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			self.dockWidget_library.showNormal()
 		if not self.dockWidget_sticker.isHidden():
 			self.dockWidget_sticker.showNormal()
+		
 
 	def data_validity_check(self):
 		"检查diary concept file rss的data"
@@ -4228,9 +4310,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 	def window_title_update(self):
 		
 		if self.origin_diary_data!=self.diary_data:
-			self.setWindowTitle("Dongli Teahouse Studio *Unsaved Change*")
+			self.label_title_bar_top.setText("Dongli Teahouse Studio *Unsaved Change*")
 		else:
-			self.setWindowTitle("Dongli Teahouse Studio")
+			self.label_title_bar_top.setText("Dongli Teahouse Studio")
 
 	def concept_search_focus(self):
 		self.lineEdit_search_concept.setFocus()

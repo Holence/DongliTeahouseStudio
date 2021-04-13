@@ -20,7 +20,7 @@ class Ui_setting_dialog(object):
             setting_dialog.setObjectName(u"setting_dialog")
         setting_dialog.resize(642, 466)
         icon = QIcon()
-        icon.addFile(u":/icon/holoico.ico", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u":/icon/holoico_trans.ico", QSize(), QIcon.Normal, QIcon.Off)
         setting_dialog.setWindowIcon(icon)
         self.verticalLayout_5 = QVBoxLayout(setting_dialog)
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")

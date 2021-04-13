@@ -20,7 +20,7 @@ class Ui_concept_related_text_dialog(object):
             concept_related_text_dialog.setObjectName(u"concept_related_text_dialog")
         concept_related_text_dialog.resize(678, 515)
         icon = QIcon()
-        icon.addFile(u":/icon/holoico.ico", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u":/icon/holoico_trans.ico", QSize(), QIcon.Normal, QIcon.Off)
         concept_related_text_dialog.setWindowIcon(icon)
         self.horizontalLayout = QHBoxLayout(concept_related_text_dialog)
         self.horizontalLayout.setObjectName(u"horizontalLayout")

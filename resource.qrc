@@ -290,5 +290,12 @@
         <file>icon/holoico.jpg</file>
         <file>icon/sublime_icon.png</file>
         <file>icon/typora_icon.png</file>
+        <file>icon/holoico_trans.ico</file>
+        <file>icon/holoico_trans.png</file>
+        <file>icon/cil-tag.png</file>
+        <file>icon/cil-window-maximize.png</file>
+        <file>icon/cil-window-minimize.png</file>
+        <file>icon/cil-window-restore.png</file>
+        <file>icon/cil-x.png</file>
     </qresource>
 </RCC>

@@ -20,7 +20,7 @@ class Ui_rss_feed_edit_dialog(object):
             rss_feed_edit_dialog.setObjectName(u"rss_feed_edit_dialog")
         rss_feed_edit_dialog.resize(636, 454)
         icon = QIcon()
-        icon.addFile(u":/icon/holoico.ico", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(u":/icon/holoico_trans.ico", QSize(), QIcon.Normal, QIcon.Off)
         rss_feed_edit_dialog.setWindowIcon(icon)
         self.horizontalLayout_2 = QHBoxLayout(rss_feed_edit_dialog)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")

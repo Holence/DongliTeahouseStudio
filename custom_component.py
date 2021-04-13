@@ -90,12 +90,12 @@ class RSS_Updator_Threador(QThread):
 		################################################################################
 
 		if Status=="Invalid":
-			self.parent.trayIcon.showMessage("Infomation","RSS更新失败:\n%s"%self.parent.rss_data[rss_url]["feed_name"],QIcon(":/icon/holoico.ico"))
+			self.parent.trayIcon.showMessage("Infomation","RSS更新失败:\n%s"%self.parent.rss_data[rss_url]["feed_name"],QIcon(":/icon/holoico_trans.ico"))
 			return
 
 		#超时了，或者
 		if Status=="Failed":
-			self.parent.trayIcon.showMessage("Infomation","RSS更新失败:\n%s"%self.parent.rss_data[rss_url]["feed_name"],QIcon(":/icon/holoico.ico"))
+			self.parent.trayIcon.showMessage("Infomation","RSS更新失败:\n%s"%self.parent.rss_data[rss_url]["feed_name"],QIcon(":/icon/holoico_trans.ico"))
 			return
 
 		################################################################################
@@ -126,7 +126,7 @@ class RSS_Updator_Threador(QThread):
 			self.progress.emit(rss_url,updated)
 
 			if updated==True:
-				self.parent.trayIcon.showMessage("Infomation","RSS更新成功:\n%s"%self.parent.rss_data[rss_url]["feed_name"],QIcon(":/icon/holoico.ico"))
+				self.parent.trayIcon.showMessage("Infomation","RSS更新成功:\n%s"%self.parent.rss_data[rss_url]["feed_name"],QIcon(":/icon/holoico_trans.ico"))
 
 			return
 
@@ -240,14 +240,14 @@ class RSS_Adding_Getor_Threador(QThread):
 		#parse出来的是个怪物
 		if Status=="Invalid":
 			self.failed.append(rss_url)
-			self.parent.trayIcon.showMessage("Infomation","RSS不符合标准:\n%s"%rss_url,QIcon(":/icon/holoico.ico"))
+			self.parent.trayIcon.showMessage("Infomation","RSS不符合标准:\n%s"%rss_url,QIcon(":/icon/holoico_trans.ico"))
 			return Status
 			
 
 		#超时了，或者
 		if Status=="Failed":
 			self.failed.append(rss_url)
-			self.parent.trayIcon.showMessage("Infomation","RSS解析失败:\n%s"%rss_url,QIcon(":/icon/holoico.ico"))
+			self.parent.trayIcon.showMessage("Infomation","RSS解析失败:\n%s"%rss_url,QIcon(":/icon/holoico_trans.ico"))
 			return Status
 		
 		################################################################################
@@ -285,7 +285,7 @@ class RSS_Adding_Getor_Threador(QThread):
 			
 
 
-			self.parent.trayIcon.showMessage("Infomation","RSS添加成功:\n%s"%rss_url,QIcon(":/icon/holoico.ico"))
+			self.parent.trayIcon.showMessage("Infomation","RSS添加成功:\n%s"%rss_url,QIcon(":/icon/holoico_trans.ico"))
 			return Status
 	
 	def run(self):
@@ -2952,4 +2952,3 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 			
 			draw_spline_chart()
 			draw_pie_chart()
-

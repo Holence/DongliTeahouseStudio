@@ -474,7 +474,7 @@ class MyImageViewer(QMainWindow):
 		super().__init__()
 
 		self.setWindowTitle("Dongli Teahouse Image Viewer")
-		self.setWindowIcon(QIcon(":/icon/holoico.ico"))
+		self.setWindowIcon(QIcon(":/icon/holoico_trans.ico"))
 
 		self.pic_list=pic_list
 		self.index=index
