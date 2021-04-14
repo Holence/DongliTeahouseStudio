@@ -17,19 +17,19 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 
 	# Mainwindow无边框的移动方法
-	def mousePressEvent(self, event):
-		if event.button() == Qt.LeftButton:
-			self.__press_pos = event.pos()  
+	# def mousePressEvent(self, event):
+	# 	if event.button() == Qt.LeftButton:
+	# 		self.__press_pos = event.pos()
 
-	def mouseReleaseEvent(self, event):
-		if event.button() == Qt.LeftButton:
-			self.__press_pos = QPoint()
+	# def mouseReleaseEvent(self, event):
+	# 	if event.button() == Qt.LeftButton:
+	# 		self.__press_pos = QPoint()
 
-	def mouseMoveEvent(self, event):
-		if not self.__press_pos.isNull():
-			#全屏还移动就会出问题
-			if not self.isFullScreen():
-				self.move(self.pos() + (event.pos() - self.__press_pos))
+	# def mouseMoveEvent(self, event):
+	# 	if not self.__press_pos.isNull():
+	# 		#全屏还移动就会出问题
+	# 		if not self.isFullScreen() and not self.isMaximized():
+	# 			self.move(self.pos() + (event.pos() - self.__press_pos))
 
 	def __init__(self):
 		super().__init__()
@@ -48,15 +48,21 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#初始化tab
 		self.initialize_custom_tab()
 
+		#初始化信号
+		self.initialize_signal()
 		#初始化system tray
 		self.initialize_tray()
 		#初始化自定义menu
 		self.initialize_menu()
-		#初始化信号
-		self.initialize_signal()
 
 	def initialize_signal(self):
 		
+		self.btn_stack_home.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
+		self.btn_stack_rss.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(1))
+		self.btn_stack_diary.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(2))
+		self.btn_stack_zen.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(3))
+		self.btn_stack_tab.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(4))
+
 		#########################################################################################################
 		#File
 		#导出
@@ -268,11 +274,42 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.actionAbout.triggered.connect(self.about)
 
 	def initialize_dockwidget(self):
+		def dock_change_location(dockWidget):
+			if dockWidget==self.dockWidget_concept:
+				if self.dockWidget_concept.isFloating():
+					self.frame_sizegrip_concept.show()
+					self.pushButton_concept_close.show()
+				else:
+					self.frame_sizegrip_concept.hide()
+					self.pushButton_concept_close.hide()
+			if dockWidget==self.dockWidget_diary:
+				if self.dockWidget_diary.isFloating():
+					self.frame_sizegrip_diary.show()
+					self.pushButton_diary_close.show()
+				else:
+					self.frame_sizegrip_diary.hide()
+					self.pushButton_diary_close.hide()
+			if dockWidget==self.dockWidget_library:
+				if self.dockWidget_library.isFloating():
+					self.frame_sizegrip_library.show()
+					self.pushButton_library_close.show()
+				else:
+					self.frame_sizegrip_library.hide()
+					self.pushButton_library_close.hide()
+			if dockWidget==self.dockWidget_sticker:
+				if self.dockWidget_sticker.isFloating():
+					self.frame_sizegrip_sticker.show()
+					self.pushButton_sticker_close.show()
+				else:
+					self.frame_sizegrip_sticker.hide()
+					self.pushButton_sticker_close.hide()
+		
+
 		self.dockWidget_concept.setTitleBarWidget(self.verticalWidget_titlebar_concept)
 		self.pushButton_concept_close.clicked.connect(lambda:self.dockWidget_concept.hide())
 		QSizeGrip(self.frame_sizegrip_concept)
 		
-		self.dockWidget_concept.dockLocationChanged.connect(lambda:self.frame_sizegrip_concept.show() if self.dockWidget_concept.isFloating() else self.frame_sizegrip_concept.hide())
+		self.dockWidget_concept.dockLocationChanged.connect(lambda:dock_change_location(self.dockWidget_concept))
 		if self.dockWidget_concept.isFloating():
 			self.frame_sizegrip_concept.show()
 		else:
@@ -283,7 +320,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.pushButton_diary_close.clicked.connect(lambda:self.dockWidget_diary.hide())
 		QSizeGrip(self.frame_sizegrip_diary)
 
-		self.dockWidget_diary.dockLocationChanged.connect(lambda:self.frame_sizegrip_diary.show() if self.dockWidget_diary.isFloating() else self.frame_sizegrip_diary.hide())
+		self.dockWidget_diary.dockLocationChanged.connect(lambda:dock_change_location(self.dockWidget_diary))
 		if self.dockWidget_diary.isFloating():
 			self.frame_sizegrip_diary.show()
 		else:
@@ -293,7 +330,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.pushButton_library_close.clicked.connect(lambda:self.dockWidget_library.hide())
 		QSizeGrip(self.frame_sizegrip_library)
 
-		self.dockWidget_library.dockLocationChanged.connect(lambda:self.frame_sizegrip_library.show() if self.dockWidget_library.isFloating() else self.frame_sizegrip_library.hide())
+		self.dockWidget_library.dockLocationChanged.connect(lambda:dock_change_location(self.dockWidget_library))
 		if self.dockWidget_library.isFloating():
 			self.frame_sizegrip_library.show()
 		else:
@@ -303,7 +340,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.pushButton_sticker_close.clicked.connect(lambda:self.dockWidget_sticker.hide())
 		QSizeGrip(self.frame_sizegrip_sticker)
 
-		self.dockWidget_sticker.dockLocationChanged.connect(lambda:self.frame_sizegrip_sticker.show() if self.dockWidget_sticker.isFloating() else self.frame_sizegrip_sticker.hide())
+		self.dockWidget_sticker.dockLocationChanged.connect(lambda:dock_change_location(self.dockWidget_sticker))
 		if self.dockWidget_sticker.isFloating():
 			self.frame_sizegrip_sticker.show()
 		else:
@@ -311,7 +348,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 	def initialize_window(self):
 
-		self.__press_pos = QPoint()
+		#设置拖动坐标和控件
+		self.label_title_bar_top.set_drag_papa(self)
+
+		#无边框
 		self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.CustomizeWindowHint)
 		
 		self.browser=QWebEngineView()
@@ -339,11 +379,22 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		except:
 			pass
 		
+		#右上角的三个按钮
+		self.btn_minimize.clicked.connect(self.showMinimized)
+		self.btn_maximize.clicked.connect(self.window_toggle_maximun)
+		self.btn_close.clicked.connect(self.close)
+
 		if self.isFullScreen():
 			self.btn_maximize.hide()
 			self.btn_minimize.hide()
 		
 		# self.setWindowOpacity(0.95)
+		# self.shadow = QGraphicsDropShadowEffect(self)
+		# self.shadow.setBlurRadius(17)
+		# self.shadow.setXOffset(0)
+		# self.shadow.setYOffset(0)
+		# self.shadow.setColor(QColor(0, 0, 0, 150))
+		# self.dockWidget_concept.setGraphicsEffect(self.shadow)
 
 		# QCoreApplication.setApplicationName("Teahouse Studio")
 		# QCoreApplication.setOrganizationName("Dongli Teahouse")
@@ -472,41 +523,107 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 	def initialize_menu(self):
 		
-		def show_context_menu():
-			btn_pos=self.btn_menu.pos()
-			icon_height=self.btn_menu.width()
+		def show_context_menu_beneath(menu,btn):
+			btn_pos=btn.pos()
+			icon_height=btn.width()
 			btn_pos+=QPoint(0,icon_height)
-			self.Menu.exec_(self.btn_menu.mapToGlobal(btn_pos))
+			true_pos=btn.parentWidget().mapToGlobal(btn_pos)
+			menu.exec_(true_pos)
 		
-		self.Menu=QMenu(self)
+		def show_context_menu_right(menu,btn):
+			btn_pos=btn.pos()
+			icon_height=btn.width()
+			btn_pos+=QPoint(icon_height,0)
+			true_pos=btn.parentWidget().mapToGlobal(btn_pos)
+			menu.exec_(true_pos)
+		
+		def generate_WholeMenu():
+			"生成全总Menu，并且给Mainwindow添加所有的快捷键（ self.addAction(action)"
+			WholeMenu=QMenu(self)
+
+			self.menuFile.addMenu(self.menuExport)
+			
+			#五个分tool menu放到总tool menu中
+			for menu in [self.menuConcept,self.menuDiary,self.menuLibrary,self.menuRSS,self.menuZen,self.menuTab]:
+				self.menuTool.insertMenu(self.actionEdit,menu)
+				for action in menu.actions():
+					self.addAction(action)
+			
+			menu_list=[self.menuFile,self.menuTool,self.menuView,self.menuHelp]
+			for menu in menu_list:
+				WholeMenu.addMenu(menu)
+				for action in menu.actions():
+					self.addAction(action)
+			
+			for action in self.menuOther.actions():
+				WholeMenu.addAction(action)
+				self.addAction(action)
+			
+			return WholeMenu
+		
+		def generate_ConceptMenu():
+			ConceptMenu=QMenu(self)
+			for action in self.menuConcept.actions():
+					ConceptMenu.addAction(action)
+			return ConceptMenu
+		
+		def generate_DiaryMenu():
+			DiaryMenu=QMenu(self)
+			for action in self.menuDiary.actions():
+					DiaryMenu.addAction(action)
+			return DiaryMenu
+		
+		def generate_LibraryMenu():
+			LibraryMenu=QMenu(self)
+			for action in self.menuLibrary.actions():
+					LibraryMenu.addAction(action)
+			return LibraryMenu
+		
+		def generate_RSSMenu():
+			RSSMenu=QMenu(self)
+			for action in self.menuRSS.actions():
+					RSSMenu.addAction(action)
+			return RSSMenu
+		
+		def generate_ZenMenu():
+			ZenMenu=QMenu(self)
+			for action in self.menuZen.actions():
+					ZenMenu.addAction(action)
+			return ZenMenu
+		
+		def generate_TabMenu():
+			TabMenu=QMenu(self)
+			for action in self.menuTab.actions():
+					TabMenu.addAction(action)
+			return TabMenu
+
+		#自带的隐藏掉
 		self.menubar.setVisible(False)
 
-		self.menuFile.addMenu(self.menuExport)
 		
-		for menu in [self.menuConcept,self.menuDiary,self.menuLibrary,self.menuRSS,self.menuZen]:
-			self.menuTool.insertMenu(self.actionEdit,menu)
-			for action in menu.actions():
-				self.addAction(action)
-		
-		menu_list=[self.menuFile,self.menuTool,self.menuTab,self.menuView,self.menuHelp]
-		for menu in menu_list:
-			self.Menu.addMenu(menu)
-			for action in menu.actions():
-				self.addAction(action)
-		
-		for action in self.menuOther.actions():
-			self.Menu.addAction(action)
-			self.addAction(action)
-		
-		#点击title icon展示menu
-		self.btn_menu.clicked.connect(show_context_menu)
+		#点击title icon和下面的三个点展示WholeMenu
+		WholeMenu=generate_WholeMenu()
+		ConceptMenu=generate_ConceptMenu()
+		DiaryMenu=generate_DiaryMenu()
+		LibraryMenu=generate_LibraryMenu()
+		RSSMenu=generate_RSSMenu()
+		ZenMenu=generate_ZenMenu()
+		TabMenu=generate_TabMenu()
 
-		#右上角的三个按钮
-		self.btn_minimize.clicked.connect(self.showMinimized)
-		self.btn_maximize.clicked.connect(lambda: self.showNormal() if self.isMaximized() else self.showMaximized())
-		self.btn_close.clicked.connect(self.close)
+		self.btn_menu.clicked.connect(lambda:show_context_menu_beneath(WholeMenu,self.btn_menu))
 
+		#
+		self.btn_stack_rss.rightclicked.connect(lambda:show_context_menu_right(RSSMenu,self.btn_stack_rss))
+		self.btn_stack_diary.rightclicked.connect(lambda:show_context_menu_right(DiaryMenu,self.btn_stack_diary))
+		self.btn_stack_zen.rightclicked.connect(lambda:show_context_menu_right(ZenMenu,self.btn_stack_zen))
+		self.btn_stack_tab.rightclicked.connect(lambda:show_context_menu_right(TabMenu,self.btn_stack_tab))
+		self.btn_stack_menu.clicked.connect(lambda:show_context_menu_right(WholeMenu,self.btn_stack_menu))
 
+		#
+		self.label_concept_icon.clicked.connect(lambda:show_context_menu_right(ConceptMenu,self.label_concept_icon))
+		self.label_diary_icon.clicked.connect(lambda:show_context_menu_right(DiaryMenu,self.label_diary_icon))
+		self.label_library_icon.clicked.connect(lambda:show_context_menu_right(LibraryMenu,self.label_library_icon))
+		
 
 	def closeEvent(self,event):
 		super(DongliTeahouseStudio,self).closeEvent(event)
@@ -524,11 +641,22 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			pass
 		
 		try:
+			self.manually_update_thread.need_to_quit=True
+
+			if not self.manually_update_thread.wait(1.0):
+				self.manually_update_thread.terminate()
+				self.manually_update_thread.wait()
+			
+			del self.manually_update_thread
+		except:
+			pass
+		
+		try:
 			self.adding_feed_thread.need_to_quit=True
 			
 			if not self.adding_feed_thread.wait(1.0):
 				self.adding_feed_thread.terminate()
-				self.adding_feed_thread.wait()
+				self.adding_feed_thread.wait(1.0)
 			
 			del self.adding_feed_thread
 		except:
@@ -2241,10 +2369,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#咋就没想到传参函数呢？
 		def update_window_title(rss_url):
 			"实时显示正在更新的RSS名称"
-			window_title=self.label_title_bar_top.text()
-			if ">" in window_title:
-				window_title=window_title.split(">")[0][:-1]
-			self.label_title_bar_top.setText(window_title+" > Updating RSS Feed: "+self.rss_data[rss_url]["feed_name"])
+			self.statusBar.showMessage("Updating RSS Feed: "+self.rss_data[rss_url]["feed_name"])
 
 		def partial_work_done(rss_url,updated):
 
@@ -2272,10 +2397,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.treeWidget_rss.setDragEnabled(1)
 			self.treeWidget_rss.setDragDropMode(QAbstractItemView.InternalMove)
 			
-			window_title=self.label_title_bar_top.text()
-			if ">" in window_title:
-				window_title=window_title.split(">")[0][:-1]
-			self.label_title_bar_top.setText(window_title)
+			self.statusBar.clearMessage()
 		
 		
 		if manually==False:
@@ -2318,10 +2440,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		
 		def update_window_title(rss_url):
 			"实时显示正在更新的RSS名称"
-			window_title=self.label_title_bar_top.text()
-			if ">" in window_title:
-				window_title=window_title.split(">")[0][:-1]
-			self.label_title_bar_top.setText(window_title+" > Updating RSS Feed: "+self.rss_data[rss_url]["feed_name"])
+			self.statusBar.showMessage("Updating RSS Feed: "+self.rss_data[rss_url]["feed_name"])
 		
 		def partial_work_done(rss_url,updated):
 			
@@ -2349,10 +2468,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.treeWidget_rss.setDragDropMode(QAbstractItemView.InternalMove)
 			self.manually_updateing=False
 
-			window_title=self.label_title_bar_top.text()
-			if ">" in window_title:
-				window_title=window_title.split(">")[0][:-1]
-			self.label_title_bar_top.setText(window_title)
+			self.statusBar.clearMessage()
 		
 		# 只允许一个手动更新存在
 		if self.manually_updateing==True:
@@ -2548,6 +2664,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 				self.progress=QProgressDialog("Adding RSS Feed...","Cancel",0,progress_max,self)
 				self.progress.setWindowTitle("Adding RSS Feed...")
+				#禁止cancel和close
+				btn=QPushButton("Cancel")
+				btn.setDisabled(True)
+				self.progress.setCancelButton(btn)
+				self.progress.setWindowFlag(Qt.WindowCloseButtonHint,False)
 				self.progress.setWindowModality(Qt.WindowModal)
 				self.progress.setMinimumDuration(0)
 				self.progress.setValue(1)
@@ -2932,6 +3053,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 							return
 		
 		self.rss_tree_data_update()
+		#这里需要重新计算文件夹包含的未读数，所以还得去更新一下
 		self.rss_tree_build()
 
 	def rss_tree_data_update(self):
@@ -3230,6 +3352,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 					self.treeWidget_rss.addTopLevelItem(temp)
 
+		# 为什么只有rss_tree_drop_update来的会导致scrollbar移到最顶上，其他情况就好好的？
+		# 你大爷的我不鸟你了，鸡儿卡就卡着吧
+		# self.treeWidget_rss.verticalScrollBar().setValue(24)
+		# self.treeWidget_rss.verticalScrollBar().value()
+
 	def rss_feed_article_list_show(self):
 		"""
 		因为自动更新rss时会同时刷新tree和刷新文章列表，所以会捕获不到treeWidget_rss.currentItem()，
@@ -3491,8 +3618,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			return
 
 	def tab_custom_hide(self):
-		
 		tab_index=self.tabWidget.currentIndex()
+		
+		if tab_index==-1:
+			return
+
 		tab_name=self.tabWidget.tabText(tab_index)
 		
 		if tab_name not in ["Home","Diary","RSS"]:
@@ -3541,6 +3671,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 	def tab_custom_delete(self):
 		tab_index=self.tabWidget.currentIndex()
+		if tab_index==-1:
+			return
 		tab_name=self.tabWidget.tabText(tab_index)
 		
 		if tab_name not in ["Home","Diary","RSS"]:
@@ -3678,10 +3810,23 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 		#设置icon size
 		icon_size_big=(font_size//2)*2
-		if icon_size_big<24:
-			icon_size_big=24
+		if icon_size_big<36:
+			icon_size_big=36
 		self.btn_menu.setFixedSize(QSize(icon_size_big,icon_size_big))
 		self.btn_menu.setIconSize(QSize(icon_size_big,icon_size_big))
+
+		self.btn_stack_home.setFixedSize(QSize(icon_size_big,icon_size_big))
+		self.btn_stack_home.setIconSize(QSize(icon_size_big,icon_size_big))
+		self.btn_stack_rss.setFixedSize(QSize(icon_size_big,icon_size_big))
+		self.btn_stack_rss.setIconSize(QSize(icon_size_big,icon_size_big))
+		self.btn_stack_diary.setFixedSize(QSize(icon_size_big,icon_size_big))
+		self.btn_stack_diary.setIconSize(QSize(icon_size_big,icon_size_big))
+		self.btn_stack_zen.setFixedSize(QSize(icon_size_big,icon_size_big))
+		self.btn_stack_zen.setIconSize(QSize(icon_size_big,icon_size_big))
+		self.btn_stack_tab.setFixedSize(QSize(icon_size_big,icon_size_big))
+		self.btn_stack_tab.setIconSize(QSize(icon_size_big,icon_size_big))
+		self.btn_stack_menu.setFixedSize(QSize(icon_size_big,icon_size_big))
+		self.btn_stack_menu.setIconSize(QSize(icon_size_big,icon_size_big))
 		
 		#title的字体是固定的Segoe UI，不能与其他混为一谈
 		title_font=self.label_title_bar_top.font()
@@ -3689,14 +3834,24 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.label_title_bar_top.setFont(title_font)
 		
 		icon_size_small=int(icon_size_big*0.66)
-		if icon_size_small<16:
-			icon_size_small=16
+		if icon_size_small<24:
+			icon_size_small=24
 		self.btn_close.setFixedSize(QSize(icon_size_big,icon_size_big))
 		self.btn_close.setIconSize(QSize(icon_size_small,icon_size_small))
 		self.btn_maximize.setFixedSize(QSize(icon_size_big,icon_size_big))
 		self.btn_maximize.setIconSize(QSize(icon_size_small,icon_size_small))
 		self.btn_minimize.setFixedSize(QSize(icon_size_big,icon_size_big))
 		self.btn_minimize.setIconSize(QSize(icon_size_small,icon_size_small))
+
+		#hide dock的小叉叉
+		self.pushButton_concept_close.setFixedSize(QSize(icon_size_small,icon_size_small))
+		self.pushButton_concept_close.setIconSize(QSize(icon_size_small,icon_size_small))
+		self.pushButton_diary_close.setFixedSize(QSize(icon_size_small,icon_size_small))
+		self.pushButton_diary_close.setIconSize(QSize(icon_size_small,icon_size_small))
+		self.pushButton_library_close.setFixedSize(QSize(icon_size_small,icon_size_small))
+		self.pushButton_library_close.setIconSize(QSize(icon_size_small,icon_size_small))
+		self.pushButton_sticker_close.setFixedSize(QSize(icon_size_small,icon_size_small))
+		self.pushButton_sticker_close.setIconSize(QSize(icon_size_small,icon_size_small))
 		
 
 		#正常字体大小
@@ -3731,24 +3886,27 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.textEdit_viewer_zen.setFont(font)
 		self.plainTextEdit_zen.setFont(font)
 
-		#头文字偏小
+		#头文字以及头icon偏小
+		#其他的icon要和旁边的文字差不多大，就得比0.8大，1倍刚好
 		font.setPointSize(int(font_size*0.8))
 		# QApplication.setFont(font)
 		# self.menubar.setFont(font)
 		self.tabWidget.setFont(font)
+		self.tabWidget.setIconSize(QSize(font_size,font_size))
 		
-		self.dockWidget_diary.setFont(font)
-		self.toolBox_text.setFont(font)
+		#toolbox竟然没有iconsize选项，那我就不管啦
 		self.dockWidget_concept.setFont(font)
 		self.toolBox_concept.setFont(font)
+		self.label_concept_icon.setFixedSize(QSize(font_size,font_size))
+
+		self.dockWidget_diary.setFont(font)
+		self.toolBox_text.setFont(font)
+		self.label_diary_icon.setFixedSize(QSize(font_size,font_size))
 
 		self.dockWidget_library.setFont(font)
-		self.dockWidget_sticker.setFont(font)
-
-		#dock上的icon要和旁边的文字差不多大，就得比0.8大，1倍刚好
-		self.label_concept_icon.setFixedSize(QSize(font_size,font_size))
-		self.label_diary_icon.setFixedSize(QSize(font_size,font_size))
 		self.label_library_icon.setFixedSize(QSize(font_size,font_size))
+
+		self.dockWidget_sticker.setFont(font)
 		self.label_sticker_icon.setFixedSize(QSize(font_size,font_size))
 
 		#日历区不变
@@ -3901,6 +4059,12 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				if tab.listWidget_file_root.hasFocus():
 					tab.concept_linked_file_rename()
 					break
+
+	def window_toggle_maximun(self):
+		if self.isMaximized():
+			self.showNormal()
+		else:
+			self.showMaximized()
 
 	def window_toggle_fullscreen(self):
 		

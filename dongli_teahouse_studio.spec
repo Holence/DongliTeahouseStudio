@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['D:\\program\\茶屋工作室\\DongliTeahouse\\main.py'],
-             pathex=['D:\\DongliTeahouse'],
+             pathex=['D:\\茶屋工作室\\DongliTeahouse'],
              binaries=[],
              datas=[],
              hiddenimports=[],

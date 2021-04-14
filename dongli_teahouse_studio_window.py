@@ -16,6 +16,9 @@ from custom_widget import MyPlainTextEdit
 from custom_widget import MyConceptLinkedFileList
 from custom_widget import MyTreeWidget
 from custom_widget import MyLineEditList
+from custom_widget import MyTitleLabel
+from custom_widget import MyStackButton
+from custom_widget import MyDockTitleLabel
 
 import resource_rc
 
@@ -23,10 +26,11 @@ class Ui_dongli_teahouse_studio_window(object):
     def setupUi(self, dongli_teahouse_studio_window):
         if not dongli_teahouse_studio_window.objectName():
             dongli_teahouse_studio_window.setObjectName(u"dongli_teahouse_studio_window")
-        dongli_teahouse_studio_window.resize(1227, 1080)
+        dongli_teahouse_studio_window.resize(1264, 1052)
         icon = QIcon()
         icon.addFile(u":/icon/holoico_trans.ico", QSize(), QIcon.Normal, QIcon.Off)
         dongli_teahouse_studio_window.setWindowIcon(icon)
+        dongli_teahouse_studio_window.setStyleSheet(u"")
         self.actionCreate_Concept = QAction(dongli_teahouse_studio_window)
         self.actionCreate_Concept.setObjectName(u"actionCreate_Concept")
         icon1 = QIcon()
@@ -216,11 +220,19 @@ class Ui_dongli_teahouse_studio_window(object):
         self.actionRestore_Main_Window.setIcon(icon29)
         self.centralwidget = QWidget(dongli_teahouse_studio_window)
         self.centralwidget.setObjectName(u"centralwidget")
-        self.verticalLayout_8 = QVBoxLayout(self.centralwidget)
-        self.verticalLayout_8.setSpacing(5)
-        self.verticalLayout_8.setObjectName(u"verticalLayout_8")
-        self.verticalLayout_8.setContentsMargins(5, 5, 5, 5)
-        self.horizontalFrame = QFrame(self.centralwidget)
+        self.centralwidget.setStyleSheet(u"")
+        self.verticalLayout_4 = QVBoxLayout(self.centralwidget)
+        self.verticalLayout_4.setSpacing(0)
+        self.verticalLayout_4.setObjectName(u"verticalLayout_4")
+        self.verticalLayout_4.setContentsMargins(5, 8, 5, 0)
+        self.central_frame = QFrame(self.centralwidget)
+        self.central_frame.setObjectName(u"central_frame")
+        self.central_frame.setStyleSheet(u"")
+        self.verticalLayout_2 = QVBoxLayout(self.central_frame)
+        self.verticalLayout_2.setSpacing(0)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.horizontalFrame = QFrame(self.central_frame)
         self.horizontalFrame.setObjectName(u"horizontalFrame")
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
@@ -229,9 +241,9 @@ class Ui_dongli_teahouse_studio_window(object):
         self.horizontalFrame.setSizePolicy(sizePolicy)
         self.horizontalFrame.setStyleSheet(u"")
         self.horizontalLayout = QHBoxLayout(self.horizontalFrame)
-        self.horizontalLayout.setSpacing(8)
+        self.horizontalLayout.setSpacing(10)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.horizontalLayout.setContentsMargins(3, 0, 0, 0)
+        self.horizontalLayout.setContentsMargins(5, 0, 5, 0)
         self.btn_menu = QPushButton(self.horizontalFrame)
         self.btn_menu.setObjectName(u"btn_menu")
         sizePolicy1 = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -239,17 +251,17 @@ class Ui_dongli_teahouse_studio_window(object):
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.btn_menu.sizePolicy().hasHeightForWidth())
         self.btn_menu.setSizePolicy(sizePolicy1)
-        self.btn_menu.setMinimumSize(QSize(24, 24))
-        self.btn_menu.setMaximumSize(QSize(24, 24))
+        self.btn_menu.setMinimumSize(QSize(36, 36))
+        self.btn_menu.setMaximumSize(QSize(36, 36))
         self.btn_menu.setStyleSheet(u"QPushButton {	\n"
 "	border: none;\n"
 "}")
         self.btn_menu.setIcon(icon)
-        self.btn_menu.setIconSize(QSize(24, 24))
+        self.btn_menu.setIconSize(QSize(36, 36))
 
         self.horizontalLayout.addWidget(self.btn_menu)
 
-        self.label_title_bar_top = QLabel(self.horizontalFrame)
+        self.label_title_bar_top = MyTitleLabel(self.horizontalFrame)
         self.label_title_bar_top.setObjectName(u"label_title_bar_top")
         sizePolicy2 = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed)
         sizePolicy2.setHorizontalStretch(0)
@@ -258,7 +270,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.label_title_bar_top.setSizePolicy(sizePolicy2)
         font = QFont()
         font.setFamily(u"Segoe UI")
-        font.setPointSize(11)
+        font.setPointSize(12)
         font.setBold(True)
         font.setItalic(False)
         font.setWeight(75)
@@ -273,10 +285,11 @@ class Ui_dongli_teahouse_studio_window(object):
         self.btn_minimize.setObjectName(u"btn_minimize")
         sizePolicy1.setHeightForWidth(self.btn_minimize.sizePolicy().hasHeightForWidth())
         self.btn_minimize.setSizePolicy(sizePolicy1)
-        self.btn_minimize.setMinimumSize(QSize(16, 16))
-        self.btn_minimize.setMaximumSize(QSize(16, 16))
+        self.btn_minimize.setMinimumSize(QSize(24, 24))
+        self.btn_minimize.setMaximumSize(QSize(24, 24))
         self.btn_minimize.setStyleSheet(u"QPushButton {	\n"
 "	border: none;\n"
+"	background-color: transparent;\n"
 "}\n"
 "QPushButton:hover {\n"
 "	background-color: rgb(62,62,62);\n"
@@ -287,7 +300,7 @@ class Ui_dongli_teahouse_studio_window(object):
         icon30 = QIcon()
         icon30.addFile(u":/icon/cil-window-minimize.png", QSize(), QIcon.Normal, QIcon.Off)
         self.btn_minimize.setIcon(icon30)
-        self.btn_minimize.setIconSize(QSize(16, 16))
+        self.btn_minimize.setIconSize(QSize(24, 24))
 
         self.horizontalLayout.addWidget(self.btn_minimize)
 
@@ -295,10 +308,11 @@ class Ui_dongli_teahouse_studio_window(object):
         self.btn_maximize.setObjectName(u"btn_maximize")
         sizePolicy1.setHeightForWidth(self.btn_maximize.sizePolicy().hasHeightForWidth())
         self.btn_maximize.setSizePolicy(sizePolicy1)
-        self.btn_maximize.setMinimumSize(QSize(16, 16))
-        self.btn_maximize.setMaximumSize(QSize(16, 16))
+        self.btn_maximize.setMinimumSize(QSize(24, 24))
+        self.btn_maximize.setMaximumSize(QSize(24, 24))
         self.btn_maximize.setStyleSheet(u"QPushButton {	\n"
 "	border: none;\n"
+"	background-color: transparent;\n"
 "}\n"
 "QPushButton:hover {\n"
 "	background-color: rgb(62,62,62);\n"
@@ -309,7 +323,7 @@ class Ui_dongli_teahouse_studio_window(object):
         icon31 = QIcon()
         icon31.addFile(u":/icon/cil-window-maximize.png", QSize(), QIcon.Normal, QIcon.Off)
         self.btn_maximize.setIcon(icon31)
-        self.btn_maximize.setIconSize(QSize(16, 16))
+        self.btn_maximize.setIconSize(QSize(24, 24))
 
         self.horizontalLayout.addWidget(self.btn_maximize)
 
@@ -317,10 +331,11 @@ class Ui_dongli_teahouse_studio_window(object):
         self.btn_close.setObjectName(u"btn_close")
         sizePolicy1.setHeightForWidth(self.btn_close.sizePolicy().hasHeightForWidth())
         self.btn_close.setSizePolicy(sizePolicy1)
-        self.btn_close.setMinimumSize(QSize(16, 16))
-        self.btn_close.setMaximumSize(QSize(16, 16))
+        self.btn_close.setMinimumSize(QSize(24, 24))
+        self.btn_close.setMaximumSize(QSize(24, 24))
         self.btn_close.setStyleSheet(u"QPushButton {	\n"
 "	border: none;\n"
+"	background-color: transparent;\n"
 "}\n"
 "QPushButton:hover {\n"
 "	background-color: rgb(62,62,62);\n"
@@ -331,29 +346,176 @@ class Ui_dongli_teahouse_studio_window(object):
         icon32 = QIcon()
         icon32.addFile(u":/icon/cil-x.png", QSize(), QIcon.Normal, QIcon.Off)
         self.btn_close.setIcon(icon32)
-        self.btn_close.setIconSize(QSize(16, 16))
+        self.btn_close.setIconSize(QSize(24, 24))
 
         self.horizontalLayout.addWidget(self.btn_close)
 
 
-        self.verticalLayout_8.addWidget(self.horizontalFrame)
+        self.verticalLayout_2.addWidget(self.horizontalFrame)
 
-        self.tabWidget = QTabWidget(self.centralwidget)
-        self.tabWidget.setObjectName(u"tabWidget")
-        self.tabWidget.setMinimumSize(QSize(600, 600))
-        self.tabWidget.setTabShape(QTabWidget.Rounded)
-        self.tabWidget.setIconSize(QSize(16, 16))
-        self.tabWidget.setDocumentMode(False)
-        self.tabWidget.setTabsClosable(False)
-        self.tabWidget.setMovable(True)
-        self.tabWidget.setTabBarAutoHide(False)
-        self.tabWidgetPage_home = QWidget()
-        self.tabWidgetPage_home.setObjectName(u"tabWidgetPage_home")
-        self.verticalLayout_10 = QVBoxLayout(self.tabWidgetPage_home)
+        self.horizontalLayout_10 = QHBoxLayout()
+        self.horizontalLayout_10.setSpacing(0)
+        self.horizontalLayout_10.setObjectName(u"horizontalLayout_10")
+        self.stack_btn_frame = QFrame(self.central_frame)
+        self.stack_btn_frame.setObjectName(u"stack_btn_frame")
+        self.stack_btn_frame.setStyleSheet(u"")
+        self.stack_btn_layout = QVBoxLayout(self.stack_btn_frame)
+        self.stack_btn_layout.setSpacing(15)
+        self.stack_btn_layout.setObjectName(u"stack_btn_layout")
+        self.stack_btn_layout.setContentsMargins(5, 15, 5, 15)
+        self.btn_stack_home = MyStackButton(self.stack_btn_frame)
+        self.btn_stack_home.setObjectName(u"btn_stack_home")
+        sizePolicy1.setHeightForWidth(self.btn_stack_home.sizePolicy().hasHeightForWidth())
+        self.btn_stack_home.setSizePolicy(sizePolicy1)
+        self.btn_stack_home.setMinimumSize(QSize(36, 36))
+        self.btn_stack_home.setMaximumSize(QSize(36, 36))
+        self.btn_stack_home.setStyleSheet(u"QPushButton {	\n"
+"	border: none;\n"
+"}\n"
+"QPushButton:hover {\n"
+"	background-color: rgb(62,62,62);\n"
+"}\n"
+"QPushButton:pressed {	\n"
+"	background-color: rgb(70,70,70);\n"
+"}")
+        icon33 = QIcon()
+        icon33.addFile(u":/icon/home.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.btn_stack_home.setIcon(icon33)
+        self.btn_stack_home.setIconSize(QSize(36, 36))
+        self.btn_stack_home.setFlat(False)
+
+        self.stack_btn_layout.addWidget(self.btn_stack_home)
+
+        self.btn_stack_rss = MyStackButton(self.stack_btn_frame)
+        self.btn_stack_rss.setObjectName(u"btn_stack_rss")
+        sizePolicy1.setHeightForWidth(self.btn_stack_rss.sizePolicy().hasHeightForWidth())
+        self.btn_stack_rss.setSizePolicy(sizePolicy1)
+        self.btn_stack_rss.setMinimumSize(QSize(36, 36))
+        self.btn_stack_rss.setMaximumSize(QSize(36, 36))
+        self.btn_stack_rss.setStyleSheet(u"QPushButton {	\n"
+"	border: none;\n"
+"}\n"
+"QPushButton:hover {\n"
+"	background-color: rgb(62,62,62);\n"
+"}\n"
+"QPushButton:pressed {	\n"
+"	background-color: rgb(70,70,70);\n"
+"}")
+        self.btn_stack_rss.setIcon(icon16)
+        self.btn_stack_rss.setIconSize(QSize(36, 36))
+        self.btn_stack_rss.setFlat(False)
+
+        self.stack_btn_layout.addWidget(self.btn_stack_rss)
+
+        self.btn_stack_diary = MyStackButton(self.stack_btn_frame)
+        self.btn_stack_diary.setObjectName(u"btn_stack_diary")
+        sizePolicy1.setHeightForWidth(self.btn_stack_diary.sizePolicy().hasHeightForWidth())
+        self.btn_stack_diary.setSizePolicy(sizePolicy1)
+        self.btn_stack_diary.setMinimumSize(QSize(36, 36))
+        self.btn_stack_diary.setMaximumSize(QSize(36, 36))
+        self.btn_stack_diary.setStyleSheet(u"QPushButton {	\n"
+"	border: none;\n"
+"}\n"
+"QPushButton:hover {\n"
+"	background-color: rgb(62,62,62);\n"
+"}\n"
+"QPushButton:pressed {	\n"
+"	background-color: rgb(70,70,70);\n"
+"}")
+        icon34 = QIcon()
+        icon34.addFile(u":/icon/book-open.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.btn_stack_diary.setIcon(icon34)
+        self.btn_stack_diary.setIconSize(QSize(36, 36))
+        self.btn_stack_diary.setFlat(False)
+
+        self.stack_btn_layout.addWidget(self.btn_stack_diary)
+
+        self.btn_stack_zen = MyStackButton(self.stack_btn_frame)
+        self.btn_stack_zen.setObjectName(u"btn_stack_zen")
+        sizePolicy1.setHeightForWidth(self.btn_stack_zen.sizePolicy().hasHeightForWidth())
+        self.btn_stack_zen.setSizePolicy(sizePolicy1)
+        self.btn_stack_zen.setMinimumSize(QSize(36, 36))
+        self.btn_stack_zen.setMaximumSize(QSize(36, 36))
+        self.btn_stack_zen.setStyleSheet(u"QPushButton {	\n"
+"	border: none;\n"
+"}\n"
+"QPushButton:hover {\n"
+"	background-color: rgb(62,62,62);\n"
+"}\n"
+"QPushButton:pressed {	\n"
+"	background-color: rgb(70,70,70);\n"
+"}")
+        icon35 = QIcon()
+        icon35.addFile(u":/icon/moon.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.btn_stack_zen.setIcon(icon35)
+        self.btn_stack_zen.setIconSize(QSize(36, 36))
+        self.btn_stack_zen.setFlat(False)
+
+        self.stack_btn_layout.addWidget(self.btn_stack_zen)
+
+        self.btn_stack_tab = MyStackButton(self.stack_btn_frame)
+        self.btn_stack_tab.setObjectName(u"btn_stack_tab")
+        sizePolicy1.setHeightForWidth(self.btn_stack_tab.sizePolicy().hasHeightForWidth())
+        self.btn_stack_tab.setSizePolicy(sizePolicy1)
+        self.btn_stack_tab.setMinimumSize(QSize(36, 36))
+        self.btn_stack_tab.setMaximumSize(QSize(36, 36))
+        self.btn_stack_tab.setStyleSheet(u"QPushButton {	\n"
+"	border: none;\n"
+"}\n"
+"QPushButton:hover {\n"
+"	background-color: rgb(62,62,62);\n"
+"}\n"
+"QPushButton:pressed {	\n"
+"	background-color: rgb(70,70,70);\n"
+"}")
+        icon36 = QIcon()
+        icon36.addFile(u":/icon/layout.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.btn_stack_tab.setIcon(icon36)
+        self.btn_stack_tab.setIconSize(QSize(36, 36))
+        self.btn_stack_tab.setFlat(False)
+
+        self.stack_btn_layout.addWidget(self.btn_stack_tab)
+
+        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        self.stack_btn_layout.addItem(self.verticalSpacer)
+
+        self.btn_stack_menu = QPushButton(self.stack_btn_frame)
+        self.btn_stack_menu.setObjectName(u"btn_stack_menu")
+        sizePolicy1.setHeightForWidth(self.btn_stack_menu.sizePolicy().hasHeightForWidth())
+        self.btn_stack_menu.setSizePolicy(sizePolicy1)
+        self.btn_stack_menu.setMinimumSize(QSize(36, 36))
+        self.btn_stack_menu.setMaximumSize(QSize(36, 36))
+        self.btn_stack_menu.setStyleSheet(u"QPushButton {	\n"
+"	border: none;\n"
+"}\n"
+"QPushButton:hover {\n"
+"	background-color: rgb(62,62,62);\n"
+"}\n"
+"QPushButton:pressed {	\n"
+"	background-color: rgb(70,70,70);\n"
+"}")
+        icon37 = QIcon()
+        icon37.addFile(u":/icon/more-vertical.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.btn_stack_menu.setIcon(icon37)
+        self.btn_stack_menu.setIconSize(QSize(36, 36))
+        self.btn_stack_menu.setFlat(False)
+
+        self.stack_btn_layout.addWidget(self.btn_stack_menu)
+
+
+        self.horizontalLayout_10.addWidget(self.stack_btn_frame)
+
+        self.stackedWidget = QStackedWidget(self.central_frame)
+        self.stackedWidget.setObjectName(u"stackedWidget")
+        self.stackedWidget.setMinimumSize(QSize(600, 800))
+        self.stackedWidgetPage_home = QWidget()
+        self.stackedWidgetPage_home.setObjectName(u"stackedWidgetPage_home")
+        self.verticalLayout_10 = QVBoxLayout(self.stackedWidgetPage_home)
         self.verticalLayout_10.setSpacing(0)
         self.verticalLayout_10.setObjectName(u"verticalLayout_10")
         self.verticalLayout_10.setContentsMargins(0, 0, 0, 0)
-        self.label_home = QLabel(self.tabWidgetPage_home)
+        self.label_home = QLabel(self.stackedWidgetPage_home)
         self.label_home.setObjectName(u"label_home")
         sizePolicy3 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         sizePolicy3.setHorizontalStretch(0)
@@ -362,33 +524,34 @@ class Ui_dongli_teahouse_studio_window(object):
         self.label_home.setSizePolicy(sizePolicy3)
         self.label_home.setMinimumSize(QSize(0, 0))
         font1 = QFont()
-        font1.setFamily(u"1529 Champ Fleury Pro")
+        font1.setFamily(u"Segoe UI")
         font1.setPointSize(52)
+        font1.setBold(True)
+        font1.setWeight(75)
         self.label_home.setFont(font1)
         self.label_home.setAlignment(Qt.AlignBottom|Qt.AlignHCenter)
 
         self.verticalLayout_10.addWidget(self.label_home)
 
-        self.label = QLabel(self.tabWidgetPage_home)
-        self.label.setObjectName(u"label")
+        self.label_hello = QLabel(self.stackedWidgetPage_home)
+        self.label_hello.setObjectName(u"label_hello")
         font2 = QFont()
-        font2.setFamily(u"1529 Champ Fleury Pro")
+        font2.setFamily(u"Segoe UI")
         font2.setPointSize(24)
-        font2.setBold(False)
-        font2.setWeight(50)
-        self.label.setFont(font2)
-        self.label.setAlignment(Qt.AlignHCenter|Qt.AlignTop)
+        font2.setBold(True)
+        font2.setWeight(75)
+        self.label_hello.setFont(font2)
+        self.label_hello.setAlignment(Qt.AlignHCenter|Qt.AlignTop)
 
-        self.verticalLayout_10.addWidget(self.label)
+        self.verticalLayout_10.addWidget(self.label_hello)
 
-        icon33 = QIcon()
-        icon33.addFile(u":/icon/home.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.tabWidget.addTab(self.tabWidgetPage_home, icon33, "")
-        self.tabWidgetPage_rss = QWidget()
-        self.tabWidgetPage_rss.setObjectName(u"tabWidgetPage_rss")
-        self.horizontalLayout_3 = QHBoxLayout(self.tabWidgetPage_rss)
+        self.stackedWidget.addWidget(self.stackedWidgetPage_home)
+        self.stackedWidgetPage_rss = QWidget()
+        self.stackedWidgetPage_rss.setObjectName(u"stackedWidgetPage_rss")
+        self.horizontalLayout_3 = QHBoxLayout(self.stackedWidgetPage_rss)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
-        self.splitter_rss = QSplitter(self.tabWidgetPage_rss)
+        self.horizontalLayout_3.setContentsMargins(9, -1, -1, -1)
+        self.splitter_rss = QSplitter(self.stackedWidgetPage_rss)
         self.splitter_rss.setObjectName(u"splitter_rss")
         self.splitter_rss.setOrientation(Qt.Horizontal)
         self.splitter_rss.setHandleWidth(10)
@@ -431,25 +594,23 @@ class Ui_dongli_teahouse_studio_window(object):
 
         self.horizontalLayout_3.addWidget(self.splitter_rss)
 
-        self.tabWidget.addTab(self.tabWidgetPage_rss, icon16, "")
-        self.tabWidgetPage_text = QWidget()
-        self.tabWidgetPage_text.setObjectName(u"tabWidgetPage_text")
-        self.horizontalLayout_2 = QHBoxLayout(self.tabWidgetPage_text)
+        self.stackedWidget.addWidget(self.stackedWidgetPage_rss)
+        self.stackedWidgetPage_diary = QWidget()
+        self.stackedWidgetPage_diary.setObjectName(u"stackedWidgetPage_diary")
+        self.horizontalLayout_2 = QHBoxLayout(self.stackedWidgetPage_diary)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.textEdit_viewer = QTextEdit(self.tabWidgetPage_text)
+        self.textEdit_viewer = QTextEdit(self.stackedWidgetPage_diary)
         self.textEdit_viewer.setObjectName(u"textEdit_viewer")
         self.textEdit_viewer.setReadOnly(True)
 
         self.horizontalLayout_2.addWidget(self.textEdit_viewer)
 
-        icon34 = QIcon()
-        icon34.addFile(u":/icon/book-open.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.tabWidget.addTab(self.tabWidgetPage_text, icon34, "")
-        self.tabWidgetPage_zen = QWidget()
-        self.tabWidgetPage_zen.setObjectName(u"tabWidgetPage_zen")
-        self.horizontalLayout_6 = QHBoxLayout(self.tabWidgetPage_zen)
+        self.stackedWidget.addWidget(self.stackedWidgetPage_diary)
+        self.stackedWidgetPage_zen = QWidget()
+        self.stackedWidgetPage_zen.setObjectName(u"stackedWidgetPage_zen")
+        self.horizontalLayout_6 = QHBoxLayout(self.stackedWidgetPage_zen)
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
-        self.splitter_zen = QSplitter(self.tabWidgetPage_zen)
+        self.splitter_zen = QSplitter(self.stackedWidgetPage_zen)
         self.splitter_zen.setObjectName(u"splitter_zen")
         self.splitter_zen.setOrientation(Qt.Horizontal)
         self.splitter_zen.setHandleWidth(10)
@@ -529,9 +690,9 @@ class Ui_dongli_teahouse_studio_window(object):
         self.pushButton_typora.setSizePolicy(sizePolicy1)
         self.pushButton_typora.setMinimumSize(QSize(36, 36))
         self.pushButton_typora.setMaximumSize(QSize(36, 36))
-        icon35 = QIcon()
-        icon35.addFile(u":/icon/typora_icon.png", QSize(), QIcon.Normal, QIcon.Off)
-        self.pushButton_typora.setIcon(icon35)
+        icon38 = QIcon()
+        icon38.addFile(u":/icon/typora_icon.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.pushButton_typora.setIcon(icon38)
         self.pushButton_typora.setIconSize(QSize(32, 32))
         self.pushButton_typora.setFlat(True)
 
@@ -543,9 +704,9 @@ class Ui_dongli_teahouse_studio_window(object):
         self.pushButton_sublime.setSizePolicy(sizePolicy1)
         self.pushButton_sublime.setMinimumSize(QSize(36, 36))
         self.pushButton_sublime.setMaximumSize(QSize(36, 36))
-        icon36 = QIcon()
-        icon36.addFile(u":/icon/sublime_icon.png", QSize(), QIcon.Normal, QIcon.Off)
-        self.pushButton_sublime.setIcon(icon36)
+        icon39 = QIcon()
+        icon39.addFile(u":/icon/sublime_icon.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.pushButton_sublime.setIcon(icon39)
         self.pushButton_sublime.setIconSize(QSize(32, 32))
         self.pushButton_sublime.setFlat(True)
 
@@ -577,16 +738,31 @@ class Ui_dongli_teahouse_studio_window(object):
 
         self.horizontalLayout_6.addWidget(self.splitter_zen)
 
-        icon37 = QIcon()
-        icon37.addFile(u":/icon/moon.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.tabWidget.addTab(self.tabWidgetPage_zen, icon37, "")
+        self.stackedWidget.addWidget(self.stackedWidgetPage_zen)
+        self.stackedWidgetPage_tab = QWidget()
+        self.stackedWidgetPage_tab.setObjectName(u"stackedWidgetPage_tab")
+        self.horizontalLayout_9 = QHBoxLayout(self.stackedWidgetPage_tab)
+        self.horizontalLayout_9.setObjectName(u"horizontalLayout_9")
+        self.tabWidget = QTabWidget(self.stackedWidgetPage_tab)
+        self.tabWidget.setObjectName(u"tabWidget")
 
-        self.verticalLayout_8.addWidget(self.tabWidget)
+        self.horizontalLayout_9.addWidget(self.tabWidget)
+
+        self.stackedWidget.addWidget(self.stackedWidgetPage_tab)
+
+        self.horizontalLayout_10.addWidget(self.stackedWidget)
+
+
+        self.verticalLayout_2.addLayout(self.horizontalLayout_10)
+
+
+        self.verticalLayout_4.addWidget(self.central_frame)
 
         dongli_teahouse_studio_window.setCentralWidget(self.centralwidget)
         self.dockWidget_diary = QDockWidget(dongli_teahouse_studio_window)
         self.dockWidget_diary.setObjectName(u"dockWidget_diary")
         self.dockWidget_diary.setMinimumSize(QSize(292, 593))
+        self.dockWidget_diary.setStyleSheet(u"")
         self.dockWidget_diary.setFeatures(QDockWidget.AllDockWidgetFeatures)
         self.dockWidgetContents_6 = QWidget()
         self.dockWidgetContents_6.setObjectName(u"dockWidgetContents_6")
@@ -608,12 +784,12 @@ class Ui_dongli_teahouse_studio_window(object):
         self.horizontalLayout_titlebar_concept_2.setSpacing(4)
         self.horizontalLayout_titlebar_concept_2.setObjectName(u"horizontalLayout_titlebar_concept_2")
         self.horizontalLayout_titlebar_concept_2.setContentsMargins(0, 0, 0, 0)
-        self.label_diary_icon = QLabel(self.horizontalWidget_titlebar_diary)
+        self.label_diary_icon = MyDockTitleLabel(self.horizontalWidget_titlebar_diary)
         self.label_diary_icon.setObjectName(u"label_diary_icon")
         sizePolicy1.setHeightForWidth(self.label_diary_icon.sizePolicy().hasHeightForWidth())
         self.label_diary_icon.setSizePolicy(sizePolicy1)
         self.label_diary_icon.setMaximumSize(QSize(16, 16))
-        self.label_diary_icon.setPixmap(QPixmap(u":/icon/holoico_trans.ico"))
+        self.label_diary_icon.setPixmap(QPixmap(u":/icon/feather.svg"))
         self.label_diary_icon.setScaledContents(True)
 
         self.horizontalLayout_titlebar_concept_2.addWidget(self.label_diary_icon)
@@ -632,11 +808,20 @@ class Ui_dongli_teahouse_studio_window(object):
         self.pushButton_diary_close.setSizePolicy(sizePolicy5)
         self.pushButton_diary_close.setMinimumSize(QSize(16, 16))
         self.pushButton_diary_close.setMaximumSize(QSize(16, 16))
-        icon38 = QIcon()
-        icon38.addFile(u":/icon/x-circle.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.pushButton_diary_close.setIcon(icon38)
+        self.pushButton_diary_close.setStyleSheet(u"QPushButton {	\n"
+"	border: none;\n"
+"}\n"
+"QPushButton:hover {\n"
+"	background-color: rgb(62,62,62);\n"
+"}\n"
+"QPushButton:pressed {	\n"
+"	background-color: rgb(70,70,70);\n"
+"}")
+        icon40 = QIcon()
+        icon40.addFile(u":/icon/x-circle.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.pushButton_diary_close.setIcon(icon40)
         self.pushButton_diary_close.setIconSize(QSize(16, 16))
-        self.pushButton_diary_close.setFlat(True)
+        self.pushButton_diary_close.setFlat(False)
 
         self.horizontalLayout_titlebar_concept_2.addWidget(self.pushButton_diary_close)
 
@@ -689,7 +874,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.toolBox_text.setFrameShadow(QFrame.Plain)
         self.page_text_related_concept = QWidget()
         self.page_text_related_concept.setObjectName(u"page_text_related_concept")
-        self.page_text_related_concept.setGeometry(QRect(0, 0, 277, 127))
+        self.page_text_related_concept.setGeometry(QRect(0, 0, 277, 153))
         self.horizontalLayout_8 = QHBoxLayout(self.page_text_related_concept)
         self.horizontalLayout_8.setSpacing(0)
         self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
@@ -711,12 +896,12 @@ class Ui_dongli_teahouse_studio_window(object):
 
         self.horizontalLayout_8.addWidget(self.listWidget_text_related_concept)
 
-        icon39 = QIcon()
-        icon39.addFile(u":/icon/bookmark.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.toolBox_text.addItem(self.page_text_related_concept, icon39, u"Text Related Concept")
+        icon41 = QIcon()
+        icon41.addFile(u":/icon/bookmark.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.toolBox_text.addItem(self.page_text_related_concept, icon41, u"Text Related Concept")
         self.page_text_linked_file = QWidget()
         self.page_text_linked_file.setObjectName(u"page_text_linked_file")
-        self.page_text_linked_file.setGeometry(QRect(0, 0, 277, 127))
+        self.page_text_linked_file.setGeometry(QRect(0, 0, 277, 153))
         self.horizontalLayout_7 = QHBoxLayout(self.page_text_linked_file)
         self.horizontalLayout_7.setSpacing(0)
         self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
@@ -742,9 +927,9 @@ class Ui_dongli_teahouse_studio_window(object):
 
         self.horizontalLayout_7.addWidget(self.listWidget_text_linked_file)
 
-        icon40 = QIcon()
-        icon40.addFile(u":/icon/file.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.toolBox_text.addItem(self.page_text_linked_file, icon40, u"Text Linked File")
+        icon42 = QIcon()
+        icon42.addFile(u":/icon/file.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.toolBox_text.addItem(self.page_text_linked_file, icon42, u"Text Linked File")
         self.splitter_text.addWidget(self.toolBox_text)
 
         self.verticalLayout_3.addWidget(self.splitter_text)
@@ -807,12 +992,12 @@ class Ui_dongli_teahouse_studio_window(object):
         self.horizontalLayout_titlebar_concept_3.setSpacing(4)
         self.horizontalLayout_titlebar_concept_3.setObjectName(u"horizontalLayout_titlebar_concept_3")
         self.horizontalLayout_titlebar_concept_3.setContentsMargins(0, 0, 0, 0)
-        self.label_library_icon = QLabel(self.horizontalWidget_titlebar_library)
+        self.label_library_icon = MyDockTitleLabel(self.horizontalWidget_titlebar_library)
         self.label_library_icon.setObjectName(u"label_library_icon")
         sizePolicy1.setHeightForWidth(self.label_library_icon.sizePolicy().hasHeightForWidth())
         self.label_library_icon.setSizePolicy(sizePolicy1)
         self.label_library_icon.setMaximumSize(QSize(16, 16))
-        self.label_library_icon.setPixmap(QPixmap(u":/icon/holoico_trans.ico"))
+        self.label_library_icon.setPixmap(QPixmap(u":/icon/hard-drive.svg"))
         self.label_library_icon.setScaledContents(True)
 
         self.horizontalLayout_titlebar_concept_3.addWidget(self.label_library_icon)
@@ -828,9 +1013,18 @@ class Ui_dongli_teahouse_studio_window(object):
         self.pushButton_library_close.setSizePolicy(sizePolicy5)
         self.pushButton_library_close.setMinimumSize(QSize(16, 16))
         self.pushButton_library_close.setMaximumSize(QSize(16, 16))
-        self.pushButton_library_close.setIcon(icon38)
+        self.pushButton_library_close.setStyleSheet(u"QPushButton {	\n"
+"	border: none;\n"
+"}\n"
+"QPushButton:hover {\n"
+"	background-color: rgb(62,62,62);\n"
+"}\n"
+"QPushButton:pressed {	\n"
+"	background-color: rgb(70,70,70);\n"
+"}")
+        self.pushButton_library_close.setIcon(icon40)
         self.pushButton_library_close.setIconSize(QSize(16, 16))
-        self.pushButton_library_close.setFlat(True)
+        self.pushButton_library_close.setFlat(False)
 
         self.horizontalLayout_titlebar_concept_3.addWidget(self.pushButton_library_close)
 
@@ -944,55 +1138,53 @@ class Ui_dongli_teahouse_studio_window(object):
         dongli_teahouse_studio_window.addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget_library)
         self.menubar = QMenuBar(dongli_teahouse_studio_window)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1227, 22))
+        self.menubar.setGeometry(QRect(0, 0, 1264, 22))
         self.menubar.setLayoutDirection(Qt.LeftToRight)
         self.menuView = QMenu(self.menubar)
         self.menuView.setObjectName(u"menuView")
-        icon41 = QIcon()
-        icon41.addFile(u":/icon/eye.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.menuView.setIcon(icon41)
+        icon43 = QIcon()
+        icon43.addFile(u":/icon/eye.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.menuView.setIcon(icon43)
         self.menuFile = QMenu(self.menubar)
         self.menuFile.setObjectName(u"menuFile")
-        icon42 = QIcon()
-        icon42.addFile(u":/icon/codesandbox.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.menuFile.setIcon(icon42)
+        icon44 = QIcon()
+        icon44.addFile(u":/icon/codesandbox.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.menuFile.setIcon(icon44)
         self.menuExport = QMenu(self.menuFile)
         self.menuExport.setObjectName(u"menuExport")
         self.menuExport.setIcon(icon18)
         self.menuTool = QMenu(self.menubar)
         self.menuTool.setObjectName(u"menuTool")
-        icon43 = QIcon()
-        icon43.addFile(u":/icon/scissors.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.menuTool.setIcon(icon43)
+        icon45 = QIcon()
+        icon45.addFile(u":/icon/scissors.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.menuTool.setIcon(icon45)
         self.menuDiary = QMenu(self.menuTool)
         self.menuDiary.setObjectName(u"menuDiary")
         self.menuDiary.setIcon(icon34)
         self.menuConcept = QMenu(self.menuTool)
         self.menuConcept.setObjectName(u"menuConcept")
-        icon44 = QIcon()
-        icon44.addFile(u":/icon/hash.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.menuConcept.setIcon(icon44)
+        icon46 = QIcon()
+        icon46.addFile(u":/icon/hash.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.menuConcept.setIcon(icon46)
         self.menuLibrary = QMenu(self.menuTool)
         self.menuLibrary.setObjectName(u"menuLibrary")
-        icon45 = QIcon()
-        icon45.addFile(u":/icon/inbox.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.menuLibrary.setIcon(icon45)
+        icon47 = QIcon()
+        icon47.addFile(u":/icon/inbox.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.menuLibrary.setIcon(icon47)
         self.menuRSS = QMenu(self.menuTool)
         self.menuRSS.setObjectName(u"menuRSS")
         self.menuRSS.setIcon(icon16)
         self.menuZen = QMenu(self.menuTool)
         self.menuZen.setObjectName(u"menuZen")
-        self.menuZen.setIcon(icon37)
+        self.menuZen.setIcon(icon35)
         self.menuHelp = QMenu(self.menubar)
         self.menuHelp.setObjectName(u"menuHelp")
-        icon46 = QIcon()
-        icon46.addFile(u":/icon/help-circle.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.menuHelp.setIcon(icon46)
+        icon48 = QIcon()
+        icon48.addFile(u":/icon/help-circle.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.menuHelp.setIcon(icon48)
         self.menuTab = QMenu(self.menubar)
         self.menuTab.setObjectName(u"menuTab")
-        icon47 = QIcon()
-        icon47.addFile(u":/icon/layout.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.menuTab.setIcon(icon47)
+        self.menuTab.setIcon(icon36)
         self.menuOther = QMenu(self.menubar)
         self.menuOther.setObjectName(u"menuOther")
         dongli_teahouse_studio_window.setMenuBar(self.menubar)
@@ -1017,12 +1209,12 @@ class Ui_dongli_teahouse_studio_window(object):
         self.horizontalLayout_titlebar_concept_4.setSpacing(4)
         self.horizontalLayout_titlebar_concept_4.setObjectName(u"horizontalLayout_titlebar_concept_4")
         self.horizontalLayout_titlebar_concept_4.setContentsMargins(0, 0, 0, 0)
-        self.label_sticker_icon = QLabel(self.horizontalWidget_titlebar_sticker)
+        self.label_sticker_icon = MyDockTitleLabel(self.horizontalWidget_titlebar_sticker)
         self.label_sticker_icon.setObjectName(u"label_sticker_icon")
         sizePolicy1.setHeightForWidth(self.label_sticker_icon.sizePolicy().hasHeightForWidth())
         self.label_sticker_icon.setSizePolicy(sizePolicy1)
         self.label_sticker_icon.setMaximumSize(QSize(16, 16))
-        self.label_sticker_icon.setPixmap(QPixmap(u":/icon/holoico_trans.ico"))
+        self.label_sticker_icon.setPixmap(QPixmap(u":/icon/coffee.svg"))
         self.label_sticker_icon.setScaledContents(True)
 
         self.horizontalLayout_titlebar_concept_4.addWidget(self.label_sticker_icon)
@@ -1038,9 +1230,18 @@ class Ui_dongli_teahouse_studio_window(object):
         self.pushButton_sticker_close.setSizePolicy(sizePolicy5)
         self.pushButton_sticker_close.setMinimumSize(QSize(16, 16))
         self.pushButton_sticker_close.setMaximumSize(QSize(16, 16))
-        self.pushButton_sticker_close.setIcon(icon38)
+        self.pushButton_sticker_close.setStyleSheet(u"QPushButton {	\n"
+"	border: none;\n"
+"}\n"
+"QPushButton:hover {\n"
+"	background-color: rgb(62,62,62);\n"
+"}\n"
+"QPushButton:pressed {	\n"
+"	background-color: rgb(70,70,70);\n"
+"}")
+        self.pushButton_sticker_close.setIcon(icon40)
         self.pushButton_sticker_close.setIconSize(QSize(16, 16))
-        self.pushButton_sticker_close.setFlat(True)
+        self.pushButton_sticker_close.setFlat(False)
 
         self.horizontalLayout_titlebar_concept_4.addWidget(self.pushButton_sticker_close)
 
@@ -1082,6 +1283,11 @@ class Ui_dongli_teahouse_studio_window(object):
         dongli_teahouse_studio_window.addDockWidget(Qt.RightDockWidgetArea, self.dockWidget_sticker)
         self.statusBar = QStatusBar(dongli_teahouse_studio_window)
         self.statusBar.setObjectName(u"statusBar")
+        font3 = QFont()
+        font3.setFamily(u"Segoe UI")
+        font3.setBold(True)
+        font3.setWeight(75)
+        self.statusBar.setFont(font3)
         dongli_teahouse_studio_window.setStatusBar(self.statusBar)
         self.dockWidget_concept = QDockWidget(dongli_teahouse_studio_window)
         self.dockWidget_concept.setObjectName(u"dockWidget_concept")
@@ -1101,12 +1307,12 @@ class Ui_dongli_teahouse_studio_window(object):
         self.horizontalLayout_titlebar_concept_5.setSpacing(4)
         self.horizontalLayout_titlebar_concept_5.setObjectName(u"horizontalLayout_titlebar_concept_5")
         self.horizontalLayout_titlebar_concept_5.setContentsMargins(0, 0, 0, 0)
-        self.label_concept_icon = QLabel(self.horizontalWidget_titlebar_concept)
+        self.label_concept_icon = MyDockTitleLabel(self.horizontalWidget_titlebar_concept)
         self.label_concept_icon.setObjectName(u"label_concept_icon")
         sizePolicy1.setHeightForWidth(self.label_concept_icon.sizePolicy().hasHeightForWidth())
         self.label_concept_icon.setSizePolicy(sizePolicy1)
         self.label_concept_icon.setMaximumSize(QSize(16, 16))
-        self.label_concept_icon.setPixmap(QPixmap(u":/icon/holoico_trans.ico"))
+        self.label_concept_icon.setPixmap(QPixmap(u":/icon/hash.svg"))
         self.label_concept_icon.setScaledContents(True)
 
         self.horizontalLayout_titlebar_concept_5.addWidget(self.label_concept_icon)
@@ -1122,9 +1328,18 @@ class Ui_dongli_teahouse_studio_window(object):
         self.pushButton_concept_close.setSizePolicy(sizePolicy5)
         self.pushButton_concept_close.setMinimumSize(QSize(16, 16))
         self.pushButton_concept_close.setMaximumSize(QSize(16, 16))
-        self.pushButton_concept_close.setIcon(icon38)
+        self.pushButton_concept_close.setStyleSheet(u"QPushButton {	\n"
+"	border: none;\n"
+"}\n"
+"QPushButton:hover {\n"
+"	background-color: rgb(62,62,62);\n"
+"}\n"
+"QPushButton:pressed {	\n"
+"	background-color: rgb(70,70,70);\n"
+"}")
+        self.pushButton_concept_close.setIcon(icon40)
         self.pushButton_concept_close.setIconSize(QSize(16, 16))
-        self.pushButton_concept_close.setFlat(True)
+        self.pushButton_concept_close.setFlat(False)
 
         self.horizontalLayout_titlebar_concept_5.addWidget(self.pushButton_concept_close)
 
@@ -1287,7 +1502,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.toolBox_concept.setMaximumSize(QSize(16777215, 200))
         self.page_concept_related_text = QWidget()
         self.page_concept_related_text.setObjectName(u"page_concept_related_text")
-        self.page_concept_related_text.setGeometry(QRect(0, 0, 305, 80))
+        self.page_concept_related_text.setGeometry(QRect(0, 0, 258, 80))
         self.horizontalLayout_12 = QHBoxLayout(self.page_concept_related_text)
         self.horizontalLayout_12.setSpacing(0)
         self.horizontalLayout_12.setObjectName(u"horizontalLayout_12")
@@ -1302,12 +1517,12 @@ class Ui_dongli_teahouse_studio_window(object):
 
         self.horizontalLayout_12.addWidget(self.listWidget_concept_related_text)
 
-        icon48 = QIcon()
-        icon48.addFile(u":/icon/file-text.svg", QSize(), QIcon.Normal, QIcon.Off)
-        self.toolBox_concept.addItem(self.page_concept_related_text, icon48, u"Concept Related Text")
+        icon49 = QIcon()
+        icon49.addFile(u":/icon/file-text.svg", QSize(), QIcon.Normal, QIcon.Off)
+        self.toolBox_concept.addItem(self.page_concept_related_text, icon49, u"Concept Related Text")
         self.page_concept_linked_file = QWidget()
         self.page_concept_linked_file.setObjectName(u"page_concept_linked_file")
-        self.page_concept_linked_file.setGeometry(QRect(0, 0, 305, 80))
+        self.page_concept_linked_file.setGeometry(QRect(0, 0, 258, 80))
         self.horizontalLayout_13 = QHBoxLayout(self.page_concept_linked_file)
         self.horizontalLayout_13.setSpacing(0)
         self.horizontalLayout_13.setObjectName(u"horizontalLayout_13")
@@ -1326,7 +1541,7 @@ class Ui_dongli_teahouse_studio_window(object):
 
         self.horizontalLayout_13.addWidget(self.listWidget_concept_linked_file)
 
-        self.toolBox_concept.addItem(self.page_concept_linked_file, icon40, u"Concept Linked File")
+        self.toolBox_concept.addItem(self.page_concept_linked_file, icon42, u"Concept Linked File")
         self.splitter_concept.addWidget(self.toolBox_concept)
 
         self.verticalLayout_21.addWidget(self.splitter_concept)
@@ -1415,11 +1630,11 @@ class Ui_dongli_teahouse_studio_window(object):
 
         self.retranslateUi(dongli_teahouse_studio_window)
 
-        self.tabWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(0)
         self.stackedWidget_zen.setCurrentIndex(0)
         self.toolBox_text.setCurrentIndex(0)
         self.toolBox_text.layout().setSpacing(0)
-        self.toolBox_concept.setCurrentIndex(1)
+        self.toolBox_concept.setCurrentIndex(0)
         self.toolBox_concept.layout().setSpacing(0)
 
 
@@ -1570,21 +1785,24 @@ class Ui_dongli_teahouse_studio_window(object):
         self.btn_minimize.setText("")
         self.btn_maximize.setText("")
         self.btn_close.setText("")
+        self.btn_stack_home.setText("")
+        self.btn_stack_rss.setText("")
+        self.btn_stack_diary.setText("")
+        self.btn_stack_zen.setText("")
+        self.btn_stack_tab.setText("")
+        self.btn_stack_menu.setText("")
         self.label_home.setText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Home", None))
-        self.label.setText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Welcome", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage_home), QCoreApplication.translate("dongli_teahouse_studio_window", u"Home", None))
+        self.label_hello.setText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Welcome", None))
         ___qtreewidgetitem = self.treeWidget_rss.headerItem()
         ___qtreewidgetitem.setText(0, QCoreApplication.translate("dongli_teahouse_studio_window", u"1", None));
 #if QT_CONFIG(statustip)
         self.treeWidget_rss.setStatusTip("")
 #endif // QT_CONFIG(statustip)
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage_rss), QCoreApplication.translate("dongli_teahouse_studio_window", u"RSS", None))
         self.textEdit_viewer.setHtml(QCoreApplication.translate("dongli_teahouse_studio_window", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:'SimSun'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:18pt;\"><br /></p></body></html>", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage_text), QCoreApplication.translate("dongli_teahouse_studio_window", u"Text", None))
         ___qtreewidgetitem1 = self.treeWidget_zen.headerItem()
         ___qtreewidgetitem1.setText(0, QCoreApplication.translate("dongli_teahouse_studio_window", u"1", None));
 #if QT_CONFIG(statustip)
@@ -1598,7 +1816,6 @@ class Ui_dongli_teahouse_studio_window(object):
         self.pushButton_typora.setText("")
         self.pushButton_sublime.setText("")
         self.label_zen_text_search.setText(QCoreApplication.translate("dongli_teahouse_studio_window", u"0", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabWidgetPage_zen), QCoreApplication.translate("dongli_teahouse_studio_window", u"Zen", None))
         self.dockWidget_diary.setWindowTitle(QCoreApplication.translate("dongli_teahouse_studio_window", u"Diary", None))
         self.label_diary_icon.setText("")
         self.label_titlebar_diary.setText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Diary", None))

@@ -154,8 +154,6 @@ class MyChartView(QtCharts.QChartView):
 			self.chart().scroll(-dx, dy)
 			self.__press_pos = event.pos()
 
-
-
 class MyTreeWidget(QTreeWidget):
 	"RSS Tree用了这个"
 	dropped=Signal()
@@ -339,7 +337,6 @@ class MyTabFileLeafList(QListWidget):
 		if event.key()==Qt.Key_Alt:
 			self.alt_pressed=False
 
-
 class MyConceptLinkedFileList(QListWidget):
 	"包括concept linked file区、tab root file区、file manager区"
 	dropped=Signal(list)
@@ -467,7 +464,6 @@ class MyConceptLinkedFileList(QListWidget):
 		if event.key()==Qt.Key_Alt:
 			self.alt_pressed=False
 
-
 class MyImageViewer(QMainWindow):
 	"MyImageViewer(pic_list,index)，传入包含所有url的pic_list，以及双击打开时的index"
 	def __init__(self,pic_list,index,maxw,maxh):
@@ -581,16 +577,63 @@ class MyImageViewer(QMainWindow):
 				self.index+=1
 				self.set_pic(self.pic_list[self.index])
 
+class MyTitleLabel(QLabel):
+	def  __init__(self,parent):
+		super(MyTitleLabel,self).__init__(parent)
+		self.__press_pos = QPoint()
+		
+		#原理不明，重定义事件函数吗？
+		self.mouseDoubleClickEvent = self.dobleClickMaximizeRestore
 
+	def set_drag_papa(self,parent):
+		self.parent=parent
+	
+	def mousePressEvent(self, event):
+		super(MyTitleLabel, self).mousePressEvent( event )
+		if event.button() == Qt.LeftButton:
+			self.__press_pos = event.pos()
 
+	def mouseReleaseEvent(self, event):
+		super(MyTitleLabel, self).mouseReleaseEvent( event )
+		if event.button() == Qt.LeftButton:
+			self.__press_pos = QPoint()
 
+	def mouseMoveEvent(self, event):
+		super(MyTitleLabel, self).mouseMoveEvent( event )
+		if not self.__press_pos.isNull():
+			#全屏还移动就会出问题
+			if not self.parent.isFullScreen() and not self.parent.isMaximized():
+				self.parent.move(self.parent.pos() + (event.pos() - self.__press_pos))
+		
+	def dobleClickMaximizeRestore(self,event):
+		"双击事件"
+		if event.type() == QEvent.MouseButtonDblClick:
+			QTimer.singleShot(50, self.parent.window_toggle_maximun)
 
+class MyStackButton(QPushButton):
+	rightclicked=Signal()
+	def __init__(self,parent):
+		super(MyStackButton,self).__init__(parent)
+	
+	def mouseReleaseEvent(self, event):
+		super(MyStackButton, self).mouseReleaseEvent( event )
+		if event.button()==Qt.RightButton:
+			self.rightclicked.emit()
 
-
+class MyDockTitleLabel(QLabel):
+	clicked=Signal()
+	def __init__(self,parent):
+		super(MyDockTitleLabel,self).__init__(parent)
+	
+	def mousePressEvent(self, event):
+		super(MyDockTitleLabel, self).mousePressEvent( event )
+		if event.button()==Qt.LeftButton:
+			self.clicked.emit()
 
 ###############################################################################################
 ###############################################################################################
 ###############################################################################################
+#########################################阿伟乱葬场##############################################
 ###############################################################################################
 ###############################################################################################
 ###############################################################################################
@@ -709,3 +752,82 @@ class MyImageViewer(QMainWindow):
 # 			self.dropped.emit(links)
 # 		else:
 # 			super(MyFileSearchTab,self).dropEvent(event)
+
+
+#############################################################################
+#呵呵呵还想着把tab的title横过来呢，没想到全部转成stackwidget这么方便……
+# class CustomTabStyle(QProxyStyle):
+# 	def __init__(self):
+# 		super().__init__()
+# 		QProxyStyle().sizeFromContents()
+
+# 	def sizeFromContents(self,type,option,size,widget):
+# 		QSize s = QProxyStyle::sizeFromContents(type, option, size, widget);
+# 		if type == QStyle.CT_TabBarTab:
+# 			s.transpose();
+# 		return s;
+
+
+# 	def drawControl(self,element,option,painter,widget):
+#     if element == QStyle.CE_TabBarTabLabel:
+# 		tab=QStyleOptionTab()
+# 		tab.
+#       if (const QStyleOptionTab* tab = qstyleoption_cast<const QStyleOptionTab*>(option)) {
+# 	  	opt=QStyleOptionTab(tab)
+#         # QStyleOptionTab opt(*tab);
+#         opt.shape = QTabBar.RoundedNorth;
+#         QProxyStyle::drawControl(element, &opt, painter, widget);
+#         return;
+#       }
+#     }
+#     QProxyStyle::drawControl(element, option, painter, widget);
+#   }
+# };
+
+# class TestTabBar(QTabBar):
+# 	def __init__(self,parent):
+# 		super(TestTabBar,self).__init__(parent)
+		
+# 		pass
+# 		# self.setIconSize(QSize(80, 80));
+
+# 	def paintEvent(self,event):
+# 		# QStylePainter()
+# 		p=QStylePainter(self)
+# 		for index in range(self.count()):
+# 			tab=QStyleOptionTab(3)
+# 			QModelIndex()
+# 			QStyledItemDelegate().initStyleOption(tab,() index)
+
+# 			tempIcon = tab.icon;
+# 			tempText = tab.text;
+# 			tab.icon = QIcon();
+# 			tab.text = QString();
+
+# 			p.drawControl(QStyle.CE_TabBarTab, tab);
+
+# 			painter=QPainter();
+# 			painter.begin(self);
+
+# 			tabrect = self.tabRect(index)
+# 			tabrect.adjust(0, 8, 0, -8)
+# 			painter.drawText(tabrect, Qt.AlignBottom | Qt.AlignHCenter, tempText);
+# 			tempIcon.paint(painter, 0, tabrect.top(), tab.iconSize.width(), tab.iconSize.height(), Qt.AlignTop | Qt.AlignHCenter);    
+# 			painter.end()
+
+# import sys
+# app = QApplication(sys.argv)
+# tabs = QTabWidget()
+
+# tool_bar=TestTabBar(tabs)
+# tabs.setTabBar(tool_bar)
+
+# widget1 =  QWidget()
+# widget2 =  QWidget()
+# tabs.addTab(widget1, "Widget1")
+# tabs.addTab(widget2, "Widget2")
+# tabs.setTabPosition(QTabWidget.West)
+
+
+# tabs.show()
+# sys.exit(app.exec_())
