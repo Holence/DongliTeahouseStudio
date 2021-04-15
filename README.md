@@ -16,9 +16,11 @@ Examples
 
 ![Example1](./Manual/Example1.jpg)
 
-![Example1](./Manual/Example2.jpg)
+![Example2](./Manual/Example2.jpg)
 
-![Example1](./Manual/Example3.jpg)
+![Example3](./Manual/Example3.jpg)
+
+![Example4](./Manual/Example4.jpg)
 
 ---
 
