@@ -221,15 +221,21 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 		self.pushButton_sublime.clicked.connect(self.zen_open_sublime)
 		self.pushButton_typora.clicked.connect(self.zen_open_typora)
-
-		self.lineEdit_zen_text_search.textEdited.connect(self.zen_text_search)
-		self.lineEdit_zen_text_search.returnPressed.connect(self.zen_text_search)
+		
+		#QPlainTextEdit没有textEdited，自制的MyPlainTextEdit侦测keypress放出edited信号
+		self.plainTextEdit_zen.edited.connect(self.zen_text_search_or_count)
+		self.lineEdit_zen_text_search.textEdited.connect(self.zen_text_search_or_count)
+		self.lineEdit_zen_text_search.returnPressed.connect(self.zen_text_search_or_count)
 
 		#########################################################################################################
 		#Tab
 		self.actionCreate_New_Tab.triggered.connect(self.tab_custom_create)
 		self.actionHide_Current_Tab.triggered.connect(self.tab_custom_hide)
 		self.actionDelete_Current_Tab.triggered.connect(self.tab_custom_delete)
+
+		#其他地方改变了并不是实时更新所有的tab，只有当正在tab页时去更新正在显示的那个tab，所以每次点进来时候就要更新正在显示的那个
+		self.tabWidget.currentChanged.connect(self.tab_refresh_current_tab)
+		self.btn_stack_tab.clicked.connect(self.tab_refresh_current_tab)
 
 
 		#########################################################################################################
@@ -1041,7 +1047,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.textEdit_viewer_zen.setMarkdown(text)
 		self.plainTextEdit_zen.setPlainText(text)
 
-		self.zen_text_search()
+		self.zen_text_search_or_count()
 
 		# 奶奶的 《老 子》 不干了
 		# zen_searching=self.lineEdit_zen_search.text()
@@ -1792,8 +1798,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			pass
 		self.diary_line_file_show()
 
-		for tab in self.custom_tabs_shown:
-			tab.tab_update()
+		self.tab_refresh_current_tab()
 
 	def file_library_file_rename(self):
 		def check_validity(new_name_enter,buttonBox):
@@ -1936,8 +1941,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			pass
 		self.diary_line_file_show()
 
-		for tab in self.custom_tabs_shown:
-			tab.tab_update()
+		self.tab_refresh_current_tab()
 
 	def concept_linked_file_rename(self):
 		"直接复制粘贴file_library_file_rename的了，懒得抽象了"
@@ -2088,8 +2092,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			pass
 		self.diary_line_file_show()
 
-		for tab in self.custom_tabs_shown:
-			tab.tab_update()
+		self.tab_refresh_current_tab()
 
 	def diary_line_file_rename(self):
 		"直接复制粘贴file_library_file_rename的了，懒得抽象了"
@@ -2240,8 +2243,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			pass
 		self.diary_line_file_show()
 
-		for tab in self.custom_tabs_shown:
-			tab.tab_update()
+		self.tab_refresh_current_tab()
 
 	def file_saving_today_dst_exist_check(self):
 		#这个判断是为了不要每次都去侦测硬盘路径，如果打开程序后侦测过一次后，就不要侦测第二次了
@@ -3708,6 +3710,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				#tab窗删除这个tab
 				self.tabWidget.removeTab(tab_index)
 
+	def tab_refresh_current_tab(self):
+		if self.stackedWidget.currentIndex()==4:
+			tab=self.custom_tabs_shown[self.tabWidget.currentIndex()]
+			tab.tab_update()
+		
 	####
 		############################################################################
 		# 要摒弃树就彻底一点，这个就别用了哈~
@@ -3798,8 +3805,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		# 	self.concept_search_list_update()
 		# 	self.window_title_update()
 
-		# 	for tab in self.custom_tabs_shown:
-		# 		tab.tab_update()
+		# 	self.tab_refresh_current_tab()
 		############################################################################
 
 	def about(self):
@@ -4414,8 +4420,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			self.diary_line_concept_list_update()
 			self.concept_search_list_update()
 
-			for tab in self.custom_tabs_shown:
-				tab.tab_update()
+			self.tab_refresh_current_tab()
 			return
 		except:
 			pass
@@ -4638,8 +4643,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.diary_line_concept_list_update()
 		self.concept_search_list_update()
 
-		for tab in self.custom_tabs_shown:
-			tab.tab_update()
+		self.tab_refresh_current_tab()
 
 	def diary_markdown_view_update(self):
 		full_text=""
@@ -4830,8 +4834,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.concept_search_list_update()
 		self.concept_show(ID)
 
-		for tab in self.custom_tabs_shown:
-			tab.tab_update()
+		self.tab_refresh_current_tab()
 
 	def concept_delete(self):
 		try:
@@ -5009,8 +5012,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				self.diary_line_concept_list_update()
 				self.concept_search_list_update()
 
-				for tab in self.custom_tabs_shown:
-					tab.tab_update()
+				self.tab_refresh_current_tab()
 
 
 		
@@ -5086,8 +5088,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			#更新事物界面
 			self.concept_show(item_ID)
 
-			for tab in self.custom_tabs_shown:
-				tab.tab_update()
+			self.tab_refresh_current_tab()
 		except:
 			pass
 
@@ -5173,8 +5174,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			#更新事物界面
 			self.concept_show(item_ID)
 
-			for tab in self.custom_tabs_shown:
-				tab.tab_update()
+			self.tab_refresh_current_tab()
 		except:
 			pass
 
@@ -5705,8 +5705,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.concept_show(ID)
 		self.file_library_list_update()
 
-		for tab in self.custom_tabs_shown:
-			tab.tab_update()
+
+		self.tab_refresh_current_tab()
 
 	def concept_linked_file_open(self):
 		#######################################
@@ -5811,8 +5811,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			#更新事物界面
 			self.concept_show(ID)
 
-			for tab in self.custom_tabs_shown:
-				tab.tab_update()
+			self.tab_refresh_current_tab()
 			
 			#如果没有选中，返回的是-1，这样下标索引会到倒数第一个
 			# if file_index!=-1:
@@ -6279,11 +6278,37 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			QMessageBox.warning(self,"Warning","请先设置Sublime启动路径！")
 			return
 
-	def zen_text_search(self):
+	def zen_text_search_or_count(self):
+		
+		def zen_count():
+			count=len(text)
+			self.label_zen_text_search.setText(str(count))
+		
+		def zen_search():
+			#上色
+			fmt.setBackground(QColor(107,114,74))
+			
+			#正则搜索
+			try:
+				l=re.finditer(searching,text)
+			except:
+				return
+			l=[m.span() for m in l]
+			#出来的是形如[(0, 1), (2, 4), (5, 6)]的下表列表，(起始位置,终止位置的后一位)
+			for i in l:
+				begin=i[0]
+				end=i[1]
+				cursor.setPosition(begin, QTextCursor.MoveAnchor)
+				cursor.setPosition(end, QTextCursor.KeepAnchor)
+				cursor.setCharFormat(fmt)
 
+			count=len(l)
+			self.label_zen_text_search.setText(str(count))
+		
+		
 		searching=self.lineEdit_zen_text_search.text()
 		text=self.plainTextEdit_zen.toPlainText()
-		
+
 		#恢复初始颜色
 		fmt=QTextCharFormat()
 		cursor=QTextCursor(self.plainTextEdit_zen.document())
@@ -6291,25 +6316,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		cursor.setPosition(0, QTextCursor.MoveAnchor)
 		cursor.setPosition(len(text), QTextCursor.KeepAnchor)
 		cursor.setCharFormat(fmt)
-
-		#上色
-		fmt.setBackground(QColor(107,114,74))
-
-		begin=0
-		start=0
-		count=-1
-		while begin!=-1:
-			begin=text.find(searching,start)
-			end=begin+len(searching)
-			start=begin+1
-
-			if begin!=-1:
-				count+=1
-				cursor.setPosition(begin, QTextCursor.MoveAnchor)
-				cursor.setPosition(end, QTextCursor.KeepAnchor)
-				cursor.setCharFormat(fmt)
 		
-		self.label_zen_text_search.setText(str(count))
+
+		if searching=="":
+			zen_count()
+		else:
+			zen_search()
+
 
 
 "无框窗口！！！self.setWindowFlags(Qt.CustomizeWindowHint|Qt.FramelessWindowHint)"

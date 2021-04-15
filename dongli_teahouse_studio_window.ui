@@ -646,7 +646,7 @@ QPushButton:pressed {
            <property name="currentIndex">
             <number>0</number>
            </property>
-           <widget class="QWidget" name="stackedWidgetPage_home" native="true">
+           <widget class="QWidget" name="stackedWidgetPage_home">
             <layout class="QVBoxLayout" name="verticalLayout_10">
              <property name="spacing">
               <number>0</number>
@@ -713,7 +713,7 @@ QPushButton:pressed {
              </item>
             </layout>
            </widget>
-           <widget class="QWidget" name="stackedWidgetPage_rss" native="true">
+           <widget class="QWidget" name="stackedWidgetPage_rss">
             <layout class="QHBoxLayout" name="horizontalLayout_3">
              <property name="leftMargin">
               <number>9</number>
@@ -802,7 +802,7 @@ QPushButton:pressed {
              </item>
             </layout>
            </widget>
-           <widget class="QWidget" name="stackedWidgetPage_diary" native="true">
+           <widget class="QWidget" name="stackedWidgetPage_diary">
             <layout class="QHBoxLayout" name="horizontalLayout_2">
              <item>
               <widget class="QTextEdit" name="textEdit_viewer">
@@ -820,7 +820,7 @@ p, li { white-space: pre-wrap; }
              </item>
             </layout>
            </widget>
-           <widget class="QWidget" name="stackedWidgetPage_zen" native="true">
+           <widget class="QWidget" name="stackedWidgetPage_zen">
             <layout class="QHBoxLayout" name="horizontalLayout_6">
              <item>
               <widget class="QSplitter" name="splitter_zen">
@@ -1039,6 +1039,13 @@ p, li { white-space: pre-wrap; }
                      </property>
                      <property name="flat">
                       <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="Line" name="line">
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
                      </property>
                     </widget>
                    </item>
@@ -1384,7 +1391,7 @@ QPushButton:pressed {
              <x>0</x>
              <y>0</y>
              <width>277</width>
-             <height>153</height>
+             <height>145</height>
             </rect>
            </property>
            <attribute name="icon">
@@ -1458,7 +1465,7 @@ QPushButton:pressed {
              <x>0</x>
              <y>0</y>
              <width>277</width>
-             <height>153</height>
+             <height>145</height>
             </rect>
            </property>
            <attribute name="icon">
@@ -2801,7 +2808,7 @@ QPushButton:pressed {
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>258</width>
+           <width>280</width>
            <height>80</height>
           </rect>
          </property>
@@ -2857,7 +2864,7 @@ QPushButton:pressed {
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>258</width>
+           <width>280</width>
            <height>80</height>
           </rect>
          </property>

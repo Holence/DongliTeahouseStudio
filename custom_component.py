@@ -753,8 +753,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 				#更新事物界面
 				self.parent.concept_show(self.current_select_conceptID)
 
-			for tab in self.parent.custom_tabs_shown:
-				tab.tab_update()
+			self.parent.tab_refresh_current_tab()
 			return
 
 	def concept_linked_file_add(self,links):
@@ -916,8 +915,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		
 		self.parent.file_library_list_update()
 
-		for tab in self.parent.custom_tabs_shown:
-			tab.tab_update()
+		self.parent.tab_refresh_current_tab()
 
 	def concept_linked_file_remove(self):
 		
@@ -965,8 +963,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 				#更新事物界面
 				self.parent.concept_show(self.current_select_conceptID)
 
-			for tab in self.parent.custom_tabs_shown:
-				tab.tab_update()
+			self.parent.tab_refresh_current_tab()
 
 			#如果没有选中，返回的是-1，这样下标索引会到倒数第一个
 			# if file_index!=-1:
@@ -1165,8 +1162,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			pass
 		self.parent.diary_line_file_show()
 
-		for tab in self.parent.custom_tabs_shown:
-			tab.tab_update()
+		self.parent.tab_refresh_current_tab()
 
 
 	def tree_deep_check_expand(self,depth,current_root):

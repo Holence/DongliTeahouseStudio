@@ -197,6 +197,7 @@ class MyPlainTextEdit(QPlainTextEdit):
 
 	editingFinished = Signal()
 	receivedFocus = Signal()
+	edited=Signal()
 	def __init__(self, parent):
 		super(MyPlainTextEdit, self).__init__(parent)
 		self._changed = False
@@ -239,6 +240,10 @@ class MyPlainTextEdit(QPlainTextEdit):
 	def setHtml(self, html):
 		QPlainTextEdit.setHtml(self, html)
 		self._changed = False
+	
+	def keyPressEvent(self,event):
+		super(MyPlainTextEdit, self).keyPressEvent( event )
+		self.edited.emit()
 
 class MyTextEdit(QTextEdit):
 	"""
