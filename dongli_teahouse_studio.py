@@ -12,7 +12,6 @@ from PySide2.QtWebEngineWidgets import *
 
 from dongli_teahouse_studio_window import Ui_dongli_teahouse_studio_window
 
-
 class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 	def __init__(self,password):
@@ -24,7 +23,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		setdefaulttimeout(3.0)
 
 		#开始跑炫酷的splash screen
-		splash_screen=SplashScreen(7)
+		splash_screen=SplashScreen(7,speed=10)
 		splash_screen.label_stastus.setText("loading...")
 
 		#1
@@ -72,7 +71,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		splash_screen.progress()
 		splash_screen.progressBar.setValue(splash_screen.progressBar.maximum())
 
-		delay_msecs(1200)
+		delay_msecs(800)
 		splash_screen.close()
 
 		self.show()
@@ -688,8 +687,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 	def closeEvent(self,event):
 		super(DongliTeahouseStudio,self).closeEvent(event)
 		
+		self.hide()
+		
 		#开始跑炫酷的splash screen
-		splash_screen=SplashScreen(4,5)
+		splash_screen=SplashScreen(4,speed=5)
 		splash_screen.label_stastus.setText("closing...")
 
 		#1
@@ -754,10 +755,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		splash_screen.progressBar.setValue(splash_screen.progressBar.maximum())
 
 
-		delay_msecs(1200)
+		delay_msecs(800)
 		splash_screen.close()
-
-		self.close()
 
 
 		####
@@ -3909,12 +3908,12 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.plainTextEdit_sticker.setFont(font)
 		self.listWidget_lines.setFont(font)
 		self.listWidget_concept_related_text.setFont(font)
-		self.treeWidget_rss.setFont(font)
-		self.listWidget_rss.setFont(font)
-		self.treeWidget_zen.setFont(font)
 
 		#偏小
 		font.setPointSize(int(font_size*0.8))
+		self.treeWidget_zen.setFont(font)
+		self.listWidget_rss.setFont(font)
+		self.treeWidget_rss.setFont(font)
 		self.lineEdit_search_concept.setFont(font)
 		self.listWidget_search_concept.setFont(font)
 		self.lineEdit_id.setFont(font)
@@ -3964,26 +3963,37 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.calendarWidget.setFont(font)
 
 		#文件列表的icon与间距大小
-		font_size=font_size*2
-		self.listWidget_text_linked_file.setIconSize(QSize(font_size,font_size))
-		self.listWidget_text_linked_file.setGridSize(QSize(font_size*3,font_size*3))
-		self.listWidget_text_linked_file.setSpacing(font_size)
+		self.listWidget_text_linked_file.setIconSize(QSize(font_size*2,font_size*2))
+		self.listWidget_text_linked_file.setGridSize(QSize(font_size*6,font_size*6))
+		self.listWidget_text_linked_file.setSpacing(font_size*2)
 		self.listWidget_text_linked_file.setWordWrap(1)
 
-		self.listWidget_concept_linked_file.setIconSize(QSize(font_size,font_size))
-		self.listWidget_concept_linked_file.setGridSize(QSize(font_size*3,font_size*3))
-		self.listWidget_concept_linked_file.setSpacing(font_size)
+		self.listWidget_concept_linked_file.setIconSize(QSize(font_size*2,font_size*2))
+		self.listWidget_concept_linked_file.setGridSize(QSize(font_size*6,font_size*6))
+		self.listWidget_concept_linked_file.setSpacing(font_size*2)
 		self.listWidget_concept_linked_file.setWordWrap(1)
 
 		for tab in self.custom_tabs_shown:
-			tab.listWidget_file_root.setIconSize(QSize(font_size,font_size))
-			tab.listWidget_file_root.setGridSize(QSize(font_size*3,font_size*3))
-			tab.listWidget_file_root.setSpacing(font_size)
+			font.setPointSize(int(font_size*0.8))
+			tab.lineEdit_id.setFont(font)
+			tab.lineEdit_name.setFont(font)
+			tab.plainTextEdit_detail.setFont(font)
+			tab.listWidget_file_root.setFont(font)
+			tab.listWidget_file_leafs.setFont(font)
+			tab.treeWidget.setFont(font)
+			tab.tabWidget.setFont(font)
+			
+			font.setPointSize(font_size)
+			tab.textEdit_viewer.setFont(font)
+
+			tab.listWidget_file_root.setIconSize(QSize(font_size*2,font_size*2))
+			tab.listWidget_file_root.setGridSize(QSize(font_size*6,font_size*6))
+			tab.listWidget_file_root.setSpacing(font_size*2)
 			tab.listWidget_file_root.setWordWrap(1)
 			
-			tab.listWidget_file_leafs.setIconSize(QSize(font_size,font_size))
-			tab.listWidget_file_leafs.setGridSize(QSize(font_size*3,font_size*3))
-			tab.listWidget_file_leafs.setSpacing(font_size)
+			tab.listWidget_file_leafs.setIconSize(QSize(font_size*2,font_size*2))
+			tab.listWidget_file_leafs.setGridSize(QSize(font_size*6,font_size*6))
+			tab.listWidget_file_leafs.setSpacing(font_size*2)
 			tab.listWidget_file_leafs.setWordWrap(1)
 	
 	def file_library_locate_from_other_place(self,listwidget):

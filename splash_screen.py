@@ -65,10 +65,7 @@ class Ui_SplashScreen(object):
         font2 = QFont()
         font2.setFamily(u"Segoe UI")
         font2.setPointSize(8)
-        font2.setBold(False)
-        font2.setItalic(True)
         font2.setUnderline(False)
-        font2.setWeight(50)
         self.progressBar.setFont(font2)
         self.progressBar.setStyleSheet(u"QProgressBar {\n"
 "	background-color: rgb(54,0,0);\n"

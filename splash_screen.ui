@@ -118,9 +118,6 @@ QLabel{
         <font>
          <family>Segoe UI</family>
          <pointsize>8</pointsize>
-         <weight>50</weight>
-         <italic>true</italic>
-         <bold>false</bold>
          <underline>false</underline>
         </font>
        </property>
