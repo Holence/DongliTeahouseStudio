@@ -4,6 +4,10 @@ import pypinyin
 import re
 import pickle
 import base64
+from cryptography.fernet import Fernet
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import os,shutil
 from subprocess import Popen
 from functools import partial
@@ -17,8 +21,82 @@ from win32com.shell import shell,shellcon
 from lxml import etree
 import chardet
 
-from PySide2.QtCore import QDate
-from PySide2.QtGui import QColor
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
+
+
+def generate_key(password):
+	"""
+	根据password生成一个固定的salt，用salt生成一个PBKDF2，用PBKDF2和password生成key
+	所以给定一个固定的password，将返回那个固定的key。
+	"""
+	salt=password.encode()[::-1]
+	password=password.encode()
+	kdf=PBKDF2HMAC(algorithm=hashes.SHA256(),length=32,salt=salt,iterations=100000,backend=default_backend())
+	key=base64.urlsafe_b64encode(kdf.derive(password))
+	return key
+
+def Fernet_Encrypt_Save(password,data,file_path):
+	try:
+		data=pickle.dumps(data)
+		key=generate_key(password)
+
+		fer=Fernet(key)
+		encrypt_data=fer.encrypt(data)
+
+		with open(file_path,"wb") as f:
+			f.write(encrypt_data)
+		
+		return True
+	except:
+		return False
+
+def Fernet_Decrypt_Load(password,file_path):
+	try:
+		key=generate_key(password)
+	
+		with open(file_path,"rb") as f:
+			data=f.read()
+		
+		fer=Fernet(key)
+		decrypt_data=fer.decrypt(data)
+		decrypt_data=pickle.loads(decrypt_data)
+
+		return decrypt_data
+	except:
+		return False
+
+def Fernet_Encrypt(password,data):
+	try:
+		data=pickle.dumps(data)
+		key=generate_key(password)
+
+		fer=Fernet(key)
+		encrypt_data=fer.encrypt(data)
+		
+		return encrypt_data
+	except:
+		return False
+
+def Fernet_Decrypt(password,data):
+	try:
+		key=generate_key(password)
+		
+		fer=Fernet(key)
+		decrypt_data=fer.decrypt(data)
+		decrypt_data=pickle.loads(decrypt_data)
+
+		return decrypt_data
+	except:
+		return False
+
+def delay_msecs(msecs):
+	"传入int类型的延迟毫秒数msecs"
+	dieTime= QTime.currentTime().addMSecs(msecs)
+	while QTime.currentTime() < dieTime:
+		QCoreApplication.processEvents(QEventLoop.AllEvents, 100)
+
 
 def generate_color():
 	return QColor(randint(50,256),randint(50,256),randint(50,256))
@@ -101,8 +179,6 @@ def creat_net_url_file(net_url):
 	else:
 		return (True,DST,error)
 
-
-
 def list_difference(a,b):
 	#返回两个列表的差异的合集
 	c=[]
@@ -127,11 +203,11 @@ def decrypt_load(file_path):
 	return data
 
 def encrypt(data):
-	data_base64 = base64.b64encode(pickle.dumps(data)).decode()
+	data_base64 = base64.b64encode(pickle.dumps(data)).decode()  # 加密，出来是个str
 	return data_base64
 
 def decrypt(data_base64):
-	data = pickle.loads(base64.b64decode(data_base64.encode())) 
+	data = pickle.loads(base64.b64decode(data_base64.encode()))  # 解密
 	return data
 
 def save_to_json(data,file_path):
@@ -146,8 +222,8 @@ def load_from_json(file_path):
 def QDate_transform(Date):
 	return (QDate.year(Date),QDate.month(Date),QDate.day(Date))
 
-
-def convert_to_az(c):#用unicode划分语言区
+def convert_to_az(c):
+	#用unicode划分语言区
 	def hanzi_to_pinyin(last_name):
 		"""
 		功能说明：将姓名转换为拼音首字母缩写
@@ -184,9 +260,6 @@ def convert_to_az(c):#用unicode划分语言区
 		# if re.match(r"[\uAC00-\uD7FF]",c)#韩
 	# s+="$"#结尾标识符
 	return s
-
-
-
 
 def what_day_is_today():
 	"周一到周日返回1-7"
@@ -245,8 +318,6 @@ def which_file_type(file_name):
 	else:
 		return "unknown"
 
-
-
 def find_dict_in_string(s,name):
 	"尝试在字符串中找出格式为 name:\{  \}的字典，返回一个字典，若找不到返回False"
 
@@ -298,6 +369,8 @@ def find_dict_in_string(s,name):
 	find="{\""+s[index_head:index_tail]+"}"
 	
 	return json.loads(find)
+
+
 
 
 class RSS_Parser():

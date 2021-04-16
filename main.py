@@ -1,4 +1,5 @@
-from dongli_teahouse_studio import DongliTeahouseStudio
+from dongli_teahouse_studio import PasswordCheckWindow
+
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
@@ -13,10 +14,7 @@ QCoreApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
 # QDesktopServices.openUrl(QUrl("https://doc.qt.io/qt-5/qdesktopservices.html", QUrl.TolerantMode));
 
 app = QApplication([])
-
 app.setStyle("Fusion")
 app.setPalette(MyDarkPalette())
-window=DongliTeahouseStudio()
-
-window.show()
+PasswordCheckWindow()
 sys.exit(app.exec_())

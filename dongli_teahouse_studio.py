@@ -15,45 +15,67 @@ from dongli_teahouse_studio_window import Ui_dongli_teahouse_studio_window
 
 class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
-
-	# Mainwindow无边框的移动方法
-	# def mousePressEvent(self, event):
-	# 	if event.button() == Qt.LeftButton:
-	# 		self.__press_pos = event.pos()
-
-	# def mouseReleaseEvent(self, event):
-	# 	if event.button() == Qt.LeftButton:
-	# 		self.__press_pos = QPoint()
-
-	# def mouseMoveEvent(self, event):
-	# 	if not self.__press_pos.isNull():
-	# 		#全屏还移动就会出问题
-	# 		if not self.isFullScreen() and not self.isMaximized():
-	# 			self.move(self.pos() + (event.pos() - self.__press_pos))
-
-	def __init__(self):
+	def __init__(self,password):
 		super().__init__()
 		self.setupUi(self)
+		self.password=password
 		self.user_settings=QSettings("user_settings.ini",QSettings.IniFormat)
 		self.qlock=QMutex(QMutex.NonRecursive)
 		setdefaulttimeout(3.0)
 
-		#这个一定得放在初始化窗体之前，貌似对dock的设置会被其中某个步骤重置掉
-		self.initialize_dockwidget()
-		#初始化窗体
-		self.initialize_window()
+		#开始跑炫酷的splash screen
+		splash_screen=SplashScreen(7)
+		splash_screen.label_stastus.setText("loading...")
 
+		#1
 		#初始化concept、diary、file、rss、zen的数据
+		splash_screen.label_description.setText("<strong>Retrieving</strong> Data")
 		self.initialize_data()
-		#初始化tab
-		self.initialize_custom_tab()
+		splash_screen.progress()
 
+		#2
+		#初始化tab
+		splash_screen.label_description.setText("<strong>Rendering</strong> Tabs")
+		self.initialize_custom_tab()
+		splash_screen.progress()
+
+		#3
 		#初始化信号
+		splash_screen.label_description.setText("<strong>Connecting</strong> Signal")
 		self.initialize_signal()
+		splash_screen.progress()
+
+		#4
 		#初始化system tray
+		splash_screen.label_description.setText("<strong>Creating</strong> System Tray Icon")
 		self.initialize_tray()
+		splash_screen.progress()
+
+		#5
 		#初始化自定义menu
+		splash_screen.label_description.setText("<strong>Initializing</strong> Context Menu")
 		self.initialize_menu()
+		splash_screen.progress()
+
+		#6
+		#初始化窗体
+		splash_screen.label_description.setText("<strong>Buiding</strong> Window")
+		#这个一定得放在initialize_window之前，貌似对dock的设置会被其中某个步骤重置掉
+		self.initialize_dockwidget()
+		#这个得放在initialize_data之前，因为initialize_data中可能弹出file_base的警告窗口，如果不先initialize_window，窗口的风格会是系统原生风格
+		self.initialize_window()
+		splash_screen.progress()
+
+		#7
+		splash_screen.label_description.setText("<strong>Welcome</strong>")
+		splash_screen.label_stastus.setText("Done")
+		splash_screen.progress()
+		splash_screen.progressBar.setValue(splash_screen.progressBar.maximum())
+
+		delay_msecs(1200)
+		splash_screen.close()
+
+		self.show()
 
 	def initialize_signal(self):
 		
@@ -62,6 +84,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.btn_stack_diary.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(2))
 		self.btn_stack_zen.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(3))
 		self.btn_stack_tab.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(4))
+
+		self.label_hello.clicked.connect(self.initialize_random_text)
 
 		#########################################################################################################
 		#File
@@ -159,6 +183,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.actionSearch_Diary_Text.triggered.connect(self.diary_text_search)
 		#Diary分析
 		self.actionAnalyze_Diary_with_Concept.triggered.connect(self.diary_analyze)
+		#I'm Feeling Lucky
+		self.actionI_m_Feeling_Lucky.triggered.connect(self.diary_random_date)
 
 		# self.listWidget_lines.右键点击
 
@@ -360,6 +386,15 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#无边框
 		self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.CustomizeWindowHint)
 		
+		#右上角的三个按钮
+		self.btn_minimize.clicked.connect(self.showMinimized)
+		self.btn_maximize.clicked.connect(self.window_toggle_maximun)
+		self.btn_close.clicked.connect(self.close)
+
+		if self.isFullScreen():
+			self.btn_maximize.hide()
+			self.btn_minimize.hide()
+		
 		self.browser=QWebEngineView()
 		self.splitter_rss.addWidget(self.browser)
 
@@ -369,30 +404,28 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.restoreState(self.user_settings.value("windowState"))
 			self.resize(self.user_settings.value("size"))
 			self.move(self.user_settings.value("pos"))
-
 			self.splitter_rss.restoreState(self.user_settings.value("splitter_rss"))
 			self.splitter_zen.restoreState(self.user_settings.value("splitter_zen"))
-			
-			font=self.user_settings.value("font")
-			font_size=self.user_settings.value("font_size")
-			self.font_set(font,font_size)
-
-			sticker_text=decrypt(self.user_settings.value("sticker"))
-			self.plainTextEdit_sticker.setPlainText(sticker_text)
-			
-			# settings_list=self.user_settings.allKeys()
-			# print(settings_list)
 		except:
 			pass
 		
-		#右上角的三个按钮
-		self.btn_minimize.clicked.connect(self.showMinimized)
-		self.btn_maximize.clicked.connect(self.window_toggle_maximun)
-		self.btn_close.clicked.connect(self.close)
+		try:
+			font=self.user_settings.value("font")
+			font_size=self.user_settings.value("font_size")
+			self.font_set(font,font_size)
+		except:
+			pass
+		
+		try:
+			sticker_text=decrypt(self.user_settings.value("sticker"))
+			self.plainTextEdit_sticker.setPlainText(sticker_text)
+		except:
+			pass
+		
+		self.initialize_random_text()
 
-		if self.isFullScreen():
-			self.btn_maximize.hide()
-			self.btn_minimize.hide()
+		# settings_list=self.user_settings.allKeys()
+		# print(settings_list)
 		
 		# self.setWindowOpacity(0.95)
 		# self.shadow = QGraphicsDropShadowEffect(self)
@@ -404,7 +437,28 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 		# QCoreApplication.setApplicationName("Teahouse Studio")
 		# QCoreApplication.setOrganizationName("Dongli Teahouse")
+	
+	def initialize_random_text(self):
+		try:
+			self.label_hello.setMaximumWidth(int(self.stackedWidget.width())*0.75)
+			random_text_directory=decrypt(self.user_settings.value("random_text_directory"))
+			
+			with open(random_text_directory,"r",encoding="utf-8") as f:
+				text=f.read()
+			
+			text_list=text.split("\n\n")
+			# name=random_text_directory.split("/")[-1]
+			# name="《"+name[:name.rfind(".")]+"》"
 
+			random_text=text_list[randint(0,len(text_list))].replace("\n","\n\n")
+			self.label_hello.setText(random_text)
+
+			#如果成功的话再改字体，否则保持原来的Segoe UI
+			font=self.user_settings.value("font")
+			self.label_hello.setFont(font)
+		except:
+			pass
+	
 	def initialize_data(self):
 		#初始化diary、concept、file、rss的data
 		if self.data_validity_check()==1:
@@ -629,12 +683,18 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.label_concept_icon.clicked.connect(lambda:show_context_menu_right(ConceptMenu,self.label_concept_icon))
 		self.label_diary_icon.clicked.connect(lambda:show_context_menu_right(DiaryMenu,self.label_diary_icon))
 		self.label_library_icon.clicked.connect(lambda:show_context_menu_right(LibraryMenu,self.label_library_icon))
-		
+
 
 	def closeEvent(self,event):
 		super(DongliTeahouseStudio,self).closeEvent(event)
 		
+		#开始跑炫酷的splash screen
+		splash_screen=SplashScreen(4,5)
+		splash_screen.label_stastus.setText("closing...")
+
+		#1
 		#Kill RSS的线程
+		splash_screen.label_description.setText("<strong>Killing</strong> RSS Thread")
 		try:
 			self.daily_update_thread.need_to_quit=True
 
@@ -667,20 +727,38 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			del self.adding_feed_thread
 		except:
 			pass
-		
-		self.data_save()
+		splash_screen.progress()
 
+		#2
+		#保存所有数据
+		splash_screen.label_description.setText("<strong>Saving</strong> Data")
+		self.data_save()
+		splash_screen.progress()
+
+		#3
 		#保存界面设置
+		splash_screen.label_description.setText("<strong>Saving</strong> Window Data")
 		self.user_settings.setValue("geometry",self.saveGeometry())
 		self.user_settings.setValue("windowState",self.saveState())
 		self.user_settings.setValue("size",self.size())
 		self.user_settings.setValue("pos",self.pos())
-
 		self.user_settings.setValue("splitter_rss",self.splitter_rss.saveState())
 		self.user_settings.setValue("splitter_zen",self.splitter_zen.saveState())
-
-		#自动保存tab data
 		self.user_settings.setValue("custom_tab_data",encrypt(self.custom_tab_data))
+		splash_screen.progress()
+
+		#4
+		splash_screen.label_description.setText("<strong>Have a Nice Day~</strong>")
+		splash_screen.label_stastus.setText("Done")
+		splash_screen.progress()
+		splash_screen.progressBar.setValue(splash_screen.progressBar.maximum())
+
+
+		delay_msecs(1200)
+		splash_screen.close()
+
+		self.close()
+
 
 		####
 			#全部自动保存
@@ -1093,7 +1171,9 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.stackedWidget_zen.setCurrentIndex(0)
 			text=self.plainTextEdit_zen.toPlainText()
 			self.textEdit_viewer_zen.setMarkdown(text)
-			
+		
+		self.zen_text_search_or_count()
+		
 			####
 				#更新cursor位置
 				# self.plainTextEdit_zen.update_cursor_pos()
@@ -1294,8 +1374,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 		#保存所有相关的数据
 		self.diary_data_save_out()
-		encrypt_save(self.concept_data,"Concept_Data.dlcw")
-		encrypt_save(self.file_data,"File_Data.dlcw")		
+		Fernet_Encrypt_Save(self.password,self.concept_data,"Concept_Data.dlcw")
+		Fernet_Encrypt_Save(self.password,self.file_data,"File_Data.dlcw")		
 
 		#更新所有相关的界面
 		try:
@@ -2251,7 +2331,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		if self.file_saving_today_dst_exist==False:
 			
 			#当日路径在不在，这里不作过多限制，如果硬盘拔掉了，创建不了路径也没关系，因为要允许添加网页链接
-			if not os.path.exists(self.file_saving_today_dst):
+			if not os.path.exists(self.file_saving_today_dst) and self.file_saving_base!="":
 				try:
 					os.makedirs(self.file_saving_today_dst)
 					self.file_saving_today_dst_exist=True
@@ -2260,69 +2340,12 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					pass
 
 	def setting_menu(self):
-
-
-		try:
-			font=self.user_settings.value("font")
-			font_size=self.user_settings.value("font_size")
-		except:
-			font=None
-			font_size=""
-			pass
 		
-		try:
-			pixiv_cookie=decrypt(self.user_settings.value("pixiv_cookie"))
-		except:
-			pixiv_cookie=""
-			pass
-		
-		try:
-			instagram_cookie=decrypt(self.user_settings.value("instagram_cookie"))
-		except:
-			instagram_cookie=""
-			pass
-		
-		try:
-			rss_auto_update=self.user_settings.value("rss_auto_update")
-			if rss_auto_update=="true" or rss_auto_update=="True":
-				rss_auto_update=True
-			elif rss_auto_update=="false" or rss_auto_update=="False":
-				rss_auto_update=False
-		except:
-			rss_auto_update=False
-			pass
-		
-		try:
-			typora_directory=decrypt(self.user_settings.value("typora_directory"))
-		except:
-			typora_directory=""
-			pass
-		
-		try:
-			sublime_directory=decrypt(self.user_settings.value("sublime_directory"))
-		except:
-			sublime_directory=""
-			pass
-		
-		dlg=SettingDialog()
-		dlg.set_option(self.file_saving_base,font,font_size,typora_directory,sublime_directory,pixiv_cookie,instagram_cookie,rss_auto_update)
-	
-		if self.window_is_stay_on_top()==True:
-			dlg.setWindowFlag(Qt.WindowStaysOnTopHint,True)
-		
-		if dlg.exec_():
-			
+		def settings_retrieve():
 			self.file_saving_base=dlg.lineEdit_file_saving_base.text()
 			self.user_settings.setValue("file_saving_base",encrypt(self.file_saving_base))
 			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.y)+"/"+str(self.m)+"/"+str(self.d)
 			self.file_library_list_update()
-
-			typora_directory=dlg.lineEdit_typora.text()
-			self.user_settings.setValue("typora_directory",encrypt(typora_directory))
-
-			sublime_directory=dlg.lineEdit_sublime.text()
-			self.user_settings.setValue("sublime_directory",encrypt(sublime_directory))
-
 
 			if dlg.font!=None:
 				font=dlg.font
@@ -2332,6 +2355,17 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				self.user_settings.setValue("font_size",font_size)
 				self.font_set(font,font_size)
 
+			typora_directory=dlg.lineEdit_typora.text()
+			self.user_settings.setValue("typora_directory",encrypt(typora_directory))
+
+			sublime_directory=dlg.lineEdit_sublime.text()
+			self.user_settings.setValue("sublime_directory",encrypt(sublime_directory))
+			
+			random_text_directory=dlg.lineEdit_random_text.text()
+			self.user_settings.setValue("random_text_directory",encrypt(random_text_directory))
+
+
+			######################################################################################
 			pixiv_cookie=dlg.lineEdit_pixiv_cookie.text()
 			self.user_settings.setValue("pixiv_cookie",encrypt(pixiv_cookie))
 			
@@ -2340,6 +2374,15 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			
 			rss_auto_update=dlg.checkBox_rss_auto_update.isChecked()
 			self.user_settings.setValue("rss_auto_update",rss_auto_update)
+		
+
+		dlg=SettingDialog(self)
+
+		if self.window_is_stay_on_top()==True:
+			dlg.setWindowFlag(Qt.WindowStaysOnTopHint,True)
+		
+		if dlg.exec_():
+			settings_retrieve()
 		else:
 			pass
 
@@ -3712,8 +3755,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 	def tab_refresh_current_tab(self):
 		if self.stackedWidget.currentIndex()==4:
-			tab=self.custom_tabs_shown[self.tabWidget.currentIndex()]
-			tab.tab_update()
+			if self.tabWidget.currentIndex()!=-1:
+				tab=self.custom_tabs_shown[self.tabWidget.currentIndex()]
+				tab.tab_update()
 		
 	####
 		############################################################################
@@ -3809,7 +3853,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		############################################################################
 
 	def about(self):
-		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 0.1.9.4\nAuthor: 鍵山狐\nContact: Holence08@gmail.com")
+		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 0.1.9.5\nAuthor: 鍵山狐\nContact: Holence08@gmail.com")
 
 	def font_set(self,font,font_size):
 		font_size=int(font_size)
@@ -4069,8 +4113,10 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 	def window_toggle_maximun(self):
 		if self.isMaximized():
 			self.showNormal()
+			self.btn_maximize.setIcon(QIcon(":/icon/cil-window-maximize.png"))
 		else:
 			self.showMaximized()
+			self.btn_maximize.setIcon(QIcon(":/icon/cil-window-restore.png"))
 
 	def window_toggle_fullscreen(self):
 		
@@ -4120,7 +4166,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			self.dockWidget_library.showNormal()
 		if not self.dockWidget_sticker.isHidden():
 			self.dockWidget_sticker.showNormal()
-		
 
 	def data_validity_check(self):
 		"检查diary concept file rss的data"
@@ -4133,7 +4178,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		if "Diary_Data.dlcw" in os.listdir("."):
 			#如果有Diary_Data.dlcw文件
 			try:
-				data=decrypt_load("Diary_Data.dlcw")
+				data=Fernet_Decrypt_Load(self.password,"Diary_Data.dlcw")
 				#不是从1970到2169年都有的，或者一年不是十二个月的，报错
 				for i in range(len(l)):
 					if data[i]["year"]!=l[i] or len(data[i]["date"])!=12:
@@ -4158,7 +4203,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				}
 				data.append(temp_year)
 			
-			encrypt_save(data,"Diary_Data.dlcw")
+			Fernet_Encrypt_Save(self.password,data,"Diary_Data.dlcw")
 				
 		##########################################################################################################
 		#################################################Concept##################################################
@@ -4166,7 +4211,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		if "Concept_Data.dlcw" in os.listdir("."):
 			#如果有Concept_Data.dlcw文件
 			try:
-				data=decrypt_load("Concept_Data.dlcw")
+				data=Fernet_Decrypt_Load(self.password,"Concept_Data.dlcw")
 			except:
 				QMessageBox.critical(self,"Error","Concept_Data.dlcw文件出错，请联系相关开发人员！")
 				return 0
@@ -4204,7 +4249,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				"az": "yz|universe",
 				"file": []
 			}]
-			encrypt_save(data,"Concept_Data.dlcw")
+			Fernet_Encrypt_Save(self.password,data,"Concept_Data.dlcw")
 		
 
 		##########################################################################################################
@@ -4215,7 +4260,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		if "File_Data.dlcw" in os.listdir("."):
 			#如果有File_Data文件
 			try:
-				data=decrypt_load("File_Data.dlcw")
+				data=Fernet_Decrypt_Load(self.password,"File_Data.dlcw")
 			except:
 				QMessageBox.critical(self,"Error","File_Data.dlcw文件出错，请联系相关开发人员！")
 				return 0
@@ -4231,7 +4276,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				data[i]={
 					1:{},2:{},3:{},4:{},5:{},6:{},7:{},8:{},9:{},10:{},11:{},12:{}
 				}
-			encrypt_save(data,"File_Data.dlcw")
+			Fernet_Encrypt_Save(self.password,data,"File_Data.dlcw")
 			#默认路径
 			self.file_saving_base=""
 		
@@ -4243,7 +4288,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			try:
 				#检查rss_tree_data和rss_data中的url是否有出入
 				
-				rss_tree_data=decrypt_load("RSS_Tree_Data.dlcw")
+				rss_tree_data=Fernet_Decrypt_Load(self.password,"RSS_Tree_Data.dlcw")
 				l0=[]
 				for top_level in rss_tree_data:
 					#top_level放了folder
@@ -4260,7 +4305,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						rss_url=rss[2]
 						l0.append(rss_url)
 
-				rss_data=decrypt_load("RSS_Data.dlcw")
+				rss_data=Fernet_Decrypt_Load(self.password,"RSS_Data.dlcw")
 				l1=list(rss_data.keys())
 
 				if list_difference(l0,l1)==[]:
@@ -4277,8 +4322,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			rss_tree_data=[]
 			rss_data={}
 			
-			encrypt_save(rss_tree_data,"RSS_Tree_Data.dlcw")
-			encrypt_save(rss_data,"RSS_Data.dlcw")
+			Fernet_Encrypt_Save(self.password,rss_tree_data,"RSS_Tree_Data.dlcw")
+			Fernet_Encrypt_Save(self.password,rss_data,"RSS_Data.dlcw")
 		
 		##########################################################################################################
 		#################################################ZEN######################################################
@@ -4289,7 +4334,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			try:
 				#检查zen_tree_data和zen_data中的segment_name是否有出入
 				
-				zen_tree_data=decrypt_load("Zen_Tree_Data.dlcw")
+				zen_tree_data=Fernet_Decrypt_Load(self.password,"Zen_Tree_Data.dlcw")
 				l0=[]
 				for top_level in zen_tree_data:
 					#top_level放了folder
@@ -4302,7 +4347,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						segment_name=top_level
 						l0.append(segment_name)
 
-				zen_data=decrypt_load("Zen_Data.dlcw")
+				zen_data=Fernet_Decrypt_Load(self.password,"Zen_Data.dlcw")
 				l1=list(zen_data.keys())
 
 				if list_difference(l0,l1)==[]:
@@ -4319,8 +4364,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			zen_tree_data=[]
 			zen_data={}
 			
-			encrypt_save(zen_tree_data,"Zen_Tree_Data.dlcw")
-			encrypt_save(zen_data,"Zen_Data.dlcw")
+			Fernet_Encrypt_Save(self.password,zen_tree_data,"Zen_Tree_Data.dlcw")
+			Fernet_Encrypt_Save(self.password,zen_data,"Zen_Data.dlcw")
 
 
 		##########################################################################################################
@@ -4333,18 +4378,18 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 	def data_load(self):
 		"load file、concept、file、rss的data"
 
-		self.diary_data=decrypt_load("Diary_Data.dlcw")
-		self.origin_diary_data=decrypt_load("Diary_Data.dlcw")
+		self.diary_data=Fernet_Decrypt_Load(self.password,"Diary_Data.dlcw")
+		self.origin_diary_data=Fernet_Decrypt_Load(self.password,"Diary_Data.dlcw")
 
-		self.concept_data=decrypt_load("Concept_Data.dlcw")
+		self.concept_data=Fernet_Decrypt_Load(self.password,"Concept_Data.dlcw")
 
-		self.file_data=decrypt_load("File_Data.dlcw")
+		self.file_data=Fernet_Decrypt_Load(self.password,"File_Data.dlcw")
 
-		self.rss_data=decrypt_load("RSS_Data.dlcw")
-		self.rss_tree_data=decrypt_load("RSS_Tree_Data.dlcw")
+		self.rss_data=Fernet_Decrypt_Load(self.password,"RSS_Data.dlcw")
+		self.rss_tree_data=Fernet_Decrypt_Load(self.password,"RSS_Tree_Data.dlcw")
 		
-		self.zen_data=decrypt_load("Zen_Data.dlcw")
-		self.zen_tree_data=decrypt_load("Zen_Tree_Data.dlcw")
+		self.zen_data=Fernet_Decrypt_Load(self.password,"Zen_Data.dlcw")
+		self.zen_tree_data=Fernet_Decrypt_Load(self.password,"Zen_Tree_Data.dlcw")
 		
 		# print(self.rss_tree_data)
 
@@ -4385,18 +4430,18 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.diary_data_save_out()
 
 		#concept data
-		encrypt_save(self.concept_data,"Concept_Data.dlcw")
+		Fernet_Encrypt_Save(self.password,self.concept_data,"Concept_Data.dlcw")
 
 		#file data
-		encrypt_save(self.file_data,"File_Data.dlcw")
+		Fernet_Encrypt_Save(self.password,self.file_data,"File_Data.dlcw")
 
 		#RSS data
-		encrypt_save(self.rss_data,"RSS_Data.dlcw")
-		encrypt_save(self.rss_tree_data,"RSS_Tree_Data.dlcw")
+		Fernet_Encrypt_Save(self.password,self.rss_data,"RSS_Data.dlcw")
+		Fernet_Encrypt_Save(self.password,self.rss_tree_data,"RSS_Tree_Data.dlcw")
 
 		#Zen data
-		encrypt_save(self.zen_data,"Zen_Data.dlcw")
-		encrypt_save(self.zen_tree_data,"Zen_Tree_Data.dlcw")
+		Fernet_Encrypt_Save(self.password,self.zen_data,"Zen_Data.dlcw")
+		Fernet_Encrypt_Save(self.password,self.zen_tree_data,"Zen_Tree_Data.dlcw")
 
 		#sticker
 		sticker_text=self.plainTextEdit_sticker.toPlainText()
@@ -4404,8 +4449,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 	def diary_data_save_out(self):
 		#保存到外存
-		encrypt_save(self.diary_data,"Diary_Data.dlcw")
-		self.origin_diary_data=decrypt_load("Diary_Data.dlcw")
+		Fernet_Encrypt_Save(self.password,self.diary_data,"Diary_Data.dlcw")
+		self.origin_diary_data=Fernet_Decrypt_Load(self.password,"Diary_Data.dlcw")
 
 		self.window_title_update()
 
@@ -5883,18 +5928,21 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.calendarWidget.setSelectedDate(QDate(y,m,d))
 		self.diary_show((y,m,d))
 
-		review_text=review[1]#只取一日内的第一个出来，去最后定位，因为我没法定位多个
+		try:
+			review_text=review[1]#只取一日内的第一个出来，去最后定位，因为我没法定位多个
 
-		review_text_id=0
-		for i in self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"]:
-			if review_text in i["line_text"]:
-				
-				review_linked_concept_id=i["linked_concept"].index(ID)
-				break
-			review_text_id+=1
+			review_text_id=0
+			for i in self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"]:
+				if review_text in i["line_text"]:
+					
+					review_linked_concept_id=i["linked_concept"].index(ID)
+					break
+				review_text_id+=1
 
-		self.listWidget_lines.scrollToItem(self.listWidget_lines.item(review_text_id))
-		self.listWidget_lines.item(review_text_id).setSelected(1)
+			self.listWidget_lines.scrollToItem(self.listWidget_lines.item(review_text_id))
+			self.listWidget_lines.item(review_text_id).setSelected(1)
+		except:
+			pass
 
 	def diary_line_file_show(self):
 		self.listWidget_text_linked_file.clear()
@@ -6243,7 +6291,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					do+=1
 					
 				self.diary_line_file_show()
-				self.window_title_update()	
+				self.window_title_update()
 
 	def zen_open_typora(self):
 		try:
@@ -6284,7 +6332,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			count=len(text)
 			self.label_zen_text_search.setText(str(count))
 		
-		def zen_search():
+		def text_fmt_clear():
+			"恢复初始着色"
+			cursor.setPosition(0, QTextCursor.MoveAnchor)
+			cursor.setPosition(len(text), QTextCursor.KeepAnchor)
+			cursor.setCharFormat(fmt)
+		
+		def text_search():
 			#上色
 			fmt.setBackground(QColor(107,114,74))
 			
@@ -6304,25 +6358,96 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 			count=len(l)
 			self.label_zen_text_search.setText(str(count))
-		
-		
+
+
 		searching=self.lineEdit_zen_text_search.text()
-		text=self.plainTextEdit_zen.toPlainText()
-
-		#恢复初始颜色
-		fmt=QTextCharFormat()
-		cursor=QTextCursor(self.plainTextEdit_zen.document())
-
-		cursor.setPosition(0, QTextCursor.MoveAnchor)
-		cursor.setPosition(len(text), QTextCursor.KeepAnchor)
-		cursor.setCharFormat(fmt)
 		
+		fmt=QTextCharFormat()
+		if self.stackedWidget_zen.currentIndex()==0:
+			text=self.textEdit_viewer_zen.toPlainText()
+			cursor=QTextCursor(self.textEdit_viewer_zen.document())
+		elif self.stackedWidget_zen.currentIndex()==1:
+			text=self.plainTextEdit_zen.toPlainText()
+			cursor=QTextCursor(self.plainTextEdit_zen.document())
+		text_fmt_clear()
 
 		if searching=="":
+			#显示总字数的以plainTextEdit_zen为准
+			text=self.plainTextEdit_zen.toPlainText()
 			zen_count()
 		else:
-			zen_search()
+			text_search()
+
+	def diary_random_date(self):
+		pool=[]
+		# replace diary data中的old data
+		for year_index in range(1970-1970,2170-1970):
+			for month_index in range(0,12):
+				for day_index in range(len(self.diary_data[year_index]["date"][month_index])):
+					y=self.diary_data[year_index]["date"][month_index][day_index]["year"]
+					m=self.diary_data[year_index]["date"][month_index][day_index]["month"]
+					d=self.diary_data[year_index]["date"][month_index][day_index]["day"]
+					pool.append((y,m,d))
+		if len(pool)>=1:
+			lucky=pool[randint(0,len(pool)-1)]
+			self.calendarWidget.setSelectedDate(QDate(lucky[0],lucky[1],lucky[2]))
+			self.diary_show(lucky)
 
 
+from password_check_window import Ui_password_check_window
 
-"无框窗口！！！self.setWindowFlags(Qt.CustomizeWindowHint|Qt.FramelessWindowHint)"
+class PasswordCheckWindow(QMainWindow,Ui_password_check_window):
+	def __init__(self):
+		super().__init__()
+		self.setupUi(self)
+		#设置拖动坐标和控件
+		self.label_title_bar_top.set_drag_papa(self)
+		#无边框
+		self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.CustomizeWindowHint)
+
+		#Signal
+		self.buttonBox.button(QDialogButtonBox.Ok).clicked.connect(self.ok_clicked)
+		self.lineEdit.returnPressed.connect(self.ok_clicked)
+		self.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.close)
+		self.btn_close.clicked.connect(self.close)
+
+		#初始化加密状态信息
+		self.user_settings=QSettings("user_settings.ini",QSettings.IniFormat)
+		self.cheker=self.user_settings.value("password_checker")
+		
+		if self.cheker!=None:
+			#老用户了
+			self.lineEdit.setPlaceholderText("Password")
+			self.new_comer=False
+		else:
+			#新用户
+			self.lineEdit.setPlaceholderText("Set a new password here.")
+			self.new_comer=True
+		
+		#尝试的次数
+		self.left_times=5
+		
+		self.show()
+
+	def ok_clicked(self):
+		self.password=self.lineEdit.text()
+		if self.new_comer==True:
+			
+			#密码至少六位
+			if len(self.lineEdit.text())<6:
+				self.label.setText("Password should be at least six characters long.")
+				return
+			
+			new_cheker=Fernet_Encrypt(self.password,"Dongli Teahouse")
+			self.user_settings.setValue("password_checker",new_cheker)
+			self.close()
+			DongliTeahouseStudio(self.password)
+		else:
+			if Fernet_Decrypt(self.password,self.cheker)=="Dongli Teahouse":
+				self.close()
+				DongliTeahouseStudio(self.password)
+			else:
+				self.left_times-=1
+				self.label.setText("Wrong Password! Remaining Times: %s"%self.left_times)
+				if self.left_times==0:
+					self.close()

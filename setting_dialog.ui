@@ -94,49 +94,21 @@
           <property name="maximumSize">
            <size>
             <width>16777215</width>
-            <height>240</height>
+            <height>360</height>
            </size>
           </property>
           <layout class="QGridLayout" name="gridLayout">
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_2">
-             <property name="text">
-              <string>Font</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label">
-             <property name="text">
-              <string>File Saving Directory</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="label_6">
-             <property name="text">
-              <string>Typora Directory</string>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="0">
-            <widget class="QLineEdit" name="lineEdit_sublime">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLineEdit" name="lineEdit_file_saving_base">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
            <item row="3" column="1">
             <widget class="QPushButton" name="pushButton_font">
              <property name="text">
               <string>Font...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="pushButtonfile_saving_base">
+             <property name="text">
+              <string>Open...</string>
              </property>
             </widget>
            </item>
@@ -147,10 +119,73 @@
              </property>
             </widget>
            </item>
+           <item row="9" column="0">
+            <widget class="QLineEdit" name="lineEdit_random_text">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_6">
+             <property name="text">
+              <string>Typora Directory</string>
+             </property>
+            </widget>
+           </item>
+           <item row="11" column="0">
+            <widget class="QLineEdit" name="lineEdit_password">
+             <property name="enabled">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
            <item row="5" column="1">
             <widget class="QPushButton" name="pushButton_typora">
              <property name="text">
               <string>Open...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0">
+            <widget class="QLabel" name="label_8">
+             <property name="text">
+              <string>Random Text Directory</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0">
+            <widget class="QLineEdit" name="lineEdit_sublime">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="1">
+            <widget class="QPushButton" name="pushButton_sublime">
+             <property name="text">
+              <string>Open...</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>File Saving Directory</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Font</string>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QLabel" name="label_7">
+             <property name="text">
+              <string>Sublime Directory</string>
              </property>
             </widget>
            </item>
@@ -164,24 +199,31 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
-            <widget class="QPushButton" name="pushButtonfile_saving_base">
+           <item row="1" column="0">
+            <widget class="QLineEdit" name="lineEdit_file_saving_base">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="1">
+            <widget class="QPushButton" name="pushButton_random_text">
              <property name="text">
               <string>Open...</string>
              </property>
             </widget>
            </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="label_7">
+           <item row="10" column="0">
+            <widget class="QLabel" name="label_9">
              <property name="text">
-              <string>Sublime Directory</string>
+              <string>Password</string>
              </property>
             </widget>
            </item>
-           <item row="7" column="1">
-            <widget class="QPushButton" name="pushButton_sublime">
+           <item row="11" column="1">
+            <widget class="QPushButton" name="pushButton_change_password">
              <property name="text">
-              <string>Open...</string>
+              <string>Change</string>
              </property>
             </widget>
            </item>

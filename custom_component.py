@@ -13,6 +13,8 @@ from rss_feed_edit_dialog import Ui_rss_feed_edit_dialog
 from diary_search_dialog import Ui_diary_search_dialog
 from diary_analyze_dialog import Ui_diary_analyze_dialog
 from concept_related_text_dialog import Ui_concept_related_text_dialog
+from splash_screen import Ui_SplashScreen
+
 
 class RSS_Updator_Threador(QThread):
 	"""
@@ -157,7 +159,6 @@ class RSS_Updator_Threador(QThread):
 		
 	def run(self):
 		self.rss_data_update()
-
 
 class RSS_Adding_Getor_Threador(QThread):
 	"添加新feed的threador，全部结束后应该回收这里的successed（添加成功的rss）字典和failed（解析失败的rss_url）列表"
@@ -311,7 +312,6 @@ class RSS_Adding_Getor_Threador(QThread):
 			self.parent.qlock.unlock()
 			
 			time.sleep(2)
-
 
 class MyTabWidget(QWidget,Ui_mytabwidget_form):
 
@@ -1431,48 +1431,91 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		return (chart,xaxis,yaxis)
 
 class SettingDialog(QDialog,Ui_setting_dialog):
-	def __init__(self):
+	def __init__(self,parent):
+		"只有font和fontsize记录在内存中，其他的出去了都要从qt控件中获取"
 		super().__init__()
 		self.setupUi(self)
-		
+		self.parent=parent
+		self.get_settings()
 
 		self.pushButton_general.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
 		self.pushButton_rss.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(1))
 
 		self.pushButtonfile_saving_base.clicked.connect(self.file_dir_dialog)
+		self.pushButton_font.clicked.connect(self.font_dialog)
 		self.pushButton_typora.clicked.connect(self.typora_dir_dialog)
 		self.pushButton_sublime.clicked.connect(self.sublime_dir_dialog)
-		self.pushButton_font.clicked.connect(self.font_dialog)
+		self.pushButton_random_text.clicked.connect(self.random_text_dir_dialog)
+		self.pushButton_change_password.clicked.connect(self.change_password)
 
-	
-	def set_option(self,file_saving_base,font,font_size,typora_directory,sublime_directory,pixiv_cookie,instagram_cookie,rss_auto_update):
-		self.lineEdit_file_saving_base.setText(file_saving_base)
-		self.lineEdit_typora.setText(typora_directory)
-		self.lineEdit_sublime.setText(sublime_directory)
-
-		self.font=font
-		self.font_size=font_size
-
+	def get_settings(self):
+		
 		try:
+			file_saving_base=decrypt(self.parent.user_settings.value("file_saving_base"))
+		except:
+			file_saving_base=""
+			pass
+		self.lineEdit_file_saving_base.setText(file_saving_base)
+		
+		try:
+			self.font=self.parent.user_settings.value("font")
+			self.font_size=self.parent.user_settings.value("font_size")
 			self.lineEdit_font.setText(self.font.family()+";"+str(self.font_size))
 		except:
-			pass
-
-		try:
-			self.lineEdit_pixiv_cookie.setText(pixiv_cookie)
-		except:
+			self.font=None
+			self.font_size=""
 			pass
 		
 		try:
-			self.lineEdit_instagram_cookie.setText(instagram_cookie)
+			typora_directory=decrypt(self.parent.user_settings.value("typora_directory"))
 		except:
+			typora_directory=""
 			pass
+		self.lineEdit_typora.setText(typora_directory)
+		
+		try:
+			sublime_directory=decrypt(self.parent.user_settings.value("sublime_directory"))
+		except:
+			sublime_directory=""
+			pass
+		self.lineEdit_sublime.setText(sublime_directory)
+		
+		try:
+			random_text_directory=decrypt(self.parent.user_settings.value("random_text_directory"))
+		except:
+			random_text_directory=""
+			pass
+		self.lineEdit_random_text.setText(random_text_directory)
+
+		self.lineEdit_password.setText(self.parent.password)
+		
+		######################################################################################
 
 		try:
-			self.checkBox_rss_auto_update.setChecked(rss_auto_update)
+			pixiv_cookie=decrypt(self.parent.user_settings.value("pixiv_cookie"))
 		except:
+			pixiv_cookie=""
 			pass
+		self.lineEdit_pixiv_cookie.setText(pixiv_cookie)
 		
+		try:
+			instagram_cookie=decrypt(self.parent.user_settings.value("instagram_cookie"))
+		except:
+			instagram_cookie=""
+			pass
+		self.lineEdit_instagram_cookie.setText(instagram_cookie)
+		
+		try:
+			rss_auto_update=self.parent.user_settings.value("rss_auto_update")
+			if rss_auto_update=="true" or rss_auto_update=="True":
+				rss_auto_update=True
+			elif rss_auto_update=="false" or rss_auto_update=="False" or rss_auto_update==None:
+				rss_auto_update=False
+		except:
+			rss_auto_update=False
+			pass
+		self.checkBox_rss_auto_update.setChecked(rss_auto_update)
+	
 	def file_dir_dialog(self):
 		dlg=QFileDialog(self)
 		file_saving_base=dlg.getExistingDirectory()
@@ -1488,17 +1531,43 @@ class SettingDialog(QDialog,Ui_setting_dialog):
 		sublime_directory=dlg.getOpenFileUrl()[0].url().replace("file:///","")
 		self.lineEdit_sublime.setText(sublime_directory)
 	
+	def random_text_dir_dialog(self):
+		dlg=QFileDialog(self)
+		random_text_directory=dlg.getOpenFileUrl(filter="TXT(*.txt)")[0].url().replace("file:///","")
+		self.lineEdit_random_text.setText(random_text_directory)
+
 	def font_dialog(self):
 		dlg=QFontDialog(self)
 
 		ok, font = dlg.getFont(self.font,self)
 		if ok:
-			
 			self.font=font
 			self.font_size=font.pointSize()
 			self.lineEdit_font.setText(self.font.family()+";"+str(self.font_size))
 
+	def change_password(self):
+		try:
+			new_password=self.lineEdit_password.text()
+			if len(new_password)<6:
+				QMessageBox.warning(self,"Warning","密码至少六位！")
+				return
+			
+			self.parent.password=new_password
 
+			new_cheker=Fernet_Encrypt(new_password,"Dongli Teahouse")
+			self.parent.user_settings.setValue("password_checker",new_cheker)
+			
+			self.parent.qlock.lock()
+			
+			self.parent.data_save()
+			
+			self.parent.qlock.unlock()
+
+			QMessageBox.information(self,"Information","密码更改成功！")
+		except Exception as e:
+			QMessageBox.information(self,"Information","密码更改失败！\n\n%s"%e)
+
+		
 class RSSFeedEditDialog(QDialog,Ui_rss_feed_edit_dialog):
 	#传进来的列表元素是[rss_name,rss_url]
 	def __init__(self,parent,rss_url_list):
@@ -1707,7 +1776,6 @@ class RSSFeedEditDialog(QDialog,Ui_rss_feed_edit_dialog):
 			self.lineEdit_name.setText(name)
 			self.lineEdit_name.setReadOnly(1)
 			self.lineEdit_unread.setText("xxx")
-
 
 class FileCheckDialog(QDialog,Ui_file_check_dialog):
 	"""
@@ -2020,7 +2088,6 @@ class FileCheckDialog(QDialog,Ui_file_check_dialog):
 		self.file_check_list_update()
 		return
 
-
 class ConceptRelatedTextEditDialog(QDialog,Ui_concept_related_text_dialog):
 	def __init__(self,parent,source_id):
 		super().__init__()
@@ -2315,15 +2382,20 @@ class DiarySearchDialog(QDialog,Ui_diary_search_dialog):
 								}
 								self.listing_result.append(temp)
 						d_index+=1
-			
-		self.listing_result.sort(key=lambda x:x["weight"],reverse=True)
 		
-		#展示最多前30条
-		self.listing_result=self.listing_result[:30]
+		#按日期排序
+		if self.checkBox.isChecked():
+			pass
+		#按权重排序
+		else:
+			self.listing_result.sort(key=lambda x:x["weight"],reverse=True)
+		
+		# 展示最多前30条，算了，还是全部展示吧
+		# self.listing_result=self.listing_result[:30]
+
 		for i in self.listing_result[:30]:
 			self.listWidget.addItem(str(i["weight"])+"|"+i["text"])
 			# self.listWidget.addItem(i["text"])
-
 
 class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 	def __init__(self,parent):
@@ -2948,3 +3020,42 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 			
 			draw_spline_chart()
 			draw_pie_chart()
+
+# SPLASH SCREEN
+class SplashScreen(QMainWindow,Ui_SplashScreen):
+	"感谢Wanderson M. Pimenta大大！"
+	
+	def __init__(self,progress_num,speed=25):
+		super().__init__()
+		self.setupUi(self)
+
+		## REMOVE TITLE BAR
+		self.setWindowFlag(Qt.FramelessWindowHint)
+		self.setAttribute(Qt.WA_TranslucentBackground)
+		self.setWindowFlag(Qt.WindowStaysOnTopHint)
+
+		## DROP SHADOW EFFECT
+		self.shadow = QGraphicsDropShadowEffect(self)
+		self.shadow.setBlurRadius(20)
+		self.shadow.setXOffset(8)
+		self.shadow.setYOffset(8)
+		self.shadow.setColor(QColor(0, 0, 0, 60))
+		self.dropShadowFrame.setGraphicsEffect(self.shadow)
+
+		self.counter=0
+
+		#每一步子=最大值/总共的步骤数
+		self.one_step=self.progressBar.maximum()/progress_num
+		self.speed=speed
+
+		self.show()
+
+	def progress(self):
+		i=0
+		while i<self.one_step:
+			self.progressBar.setValue(self.counter)
+			self.counter += 1
+			i+=1
+			delay_msecs(self.speed)
+		delay_msecs(self.speed*4)
+

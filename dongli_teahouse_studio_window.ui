@@ -18,7 +18,27 @@
     <normaloff>:/icon/holoico_trans.ico</normaloff>:/icon/holoico_trans.ico</iconset>
   </property>
   <property name="styleSheet">
-   <string notr="true"/>
+   <string notr="true">QDockWidget QPushButton {	
+	border: none;
+	background-color: transparent;
+}
+QDockWidget QPushButton:hover{
+	background-color: rgb(40,40,40);
+}
+QDockWidget QPushButton:pressed {	
+	background-color: rgb(30,30,30);
+}
+
+QWidget#centralwidget QPushButton {	
+	border: none;
+	background-color: transparent;
+}
+QWidget#centralwidget QPushButton:hover{
+	background-color: rgb(40,40,40);
+}
+QWidget#centralwidget QPushButton:pressed {	
+	background-color: rgb(30,30,30);
+}</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="styleSheet">
@@ -62,7 +82,7 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QFrame" name="horizontalFrame">
+        <widget class="QFrame" name="title_frame">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -109,8 +129,11 @@
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">QPushButton {	
-	border: none;
+             <string notr="true">QPushButton:hover{
+	background-color: rgba(255, 255, 255, 0);
+}
+QPushButton:pressed {	
+	background-color: rgba(255, 255, 255, 0);
 }</string>
             </property>
             <property name="text">
@@ -176,16 +199,7 @@
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">QPushButton {	
-	border: none;
-	background-color: transparent;
-}
-QPushButton:hover {
-	background-color: rgb(62,62,62);
-}
-QPushButton:pressed {	
-	background-color: rgb(70,70,70);
-}</string>
+             <string notr="true"/>
             </property>
             <property name="text">
              <string/>
@@ -223,16 +237,7 @@ QPushButton:pressed {
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">QPushButton {	
-	border: none;
-	background-color: transparent;
-}
-QPushButton:hover {
-	background-color: rgb(62,62,62);
-}
-QPushButton:pressed {	
-	background-color: rgb(70,70,70);
-}</string>
+             <string notr="true"/>
             </property>
             <property name="text">
              <string/>
@@ -270,16 +275,7 @@ QPushButton:pressed {
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">QPushButton {	
-	border: none;
-	background-color: transparent;
-}
-QPushButton:hover {
-	background-color: rgb(62,62,62);
-}
-QPushButton:pressed {	
-	background-color: rgb(70,70,70);
-}</string>
+             <string notr="true"/>
             </property>
             <property name="text">
              <string/>
@@ -346,15 +342,7 @@ QPushButton:pressed {
                </size>
               </property>
               <property name="styleSheet">
-               <string notr="true">QPushButton {	
-	border: none;
-}
-QPushButton:hover {
-	background-color: rgb(62,62,62);
-}
-QPushButton:pressed {	
-	background-color: rgb(70,70,70);
-}</string>
+               <string notr="true"/>
               </property>
               <property name="text">
                <string/>
@@ -395,15 +383,7 @@ QPushButton:pressed {
                </size>
               </property>
               <property name="styleSheet">
-               <string notr="true">QPushButton {	
-	border: none;
-}
-QPushButton:hover {
-	background-color: rgb(62,62,62);
-}
-QPushButton:pressed {	
-	background-color: rgb(70,70,70);
-}</string>
+               <string notr="true"/>
               </property>
               <property name="text">
                <string/>
@@ -444,15 +424,7 @@ QPushButton:pressed {
                </size>
               </property>
               <property name="styleSheet">
-               <string notr="true">QPushButton {	
-	border: none;
-}
-QPushButton:hover {
-	background-color: rgb(62,62,62);
-}
-QPushButton:pressed {	
-	background-color: rgb(70,70,70);
-}</string>
+               <string notr="true"/>
               </property>
               <property name="text">
                <string/>
@@ -493,15 +465,7 @@ QPushButton:pressed {
                </size>
               </property>
               <property name="styleSheet">
-               <string notr="true">QPushButton {	
-	border: none;
-}
-QPushButton:hover {
-	background-color: rgb(62,62,62);
-}
-QPushButton:pressed {	
-	background-color: rgb(70,70,70);
-}</string>
+               <string notr="true"/>
               </property>
               <property name="text">
                <string/>
@@ -542,15 +506,7 @@ QPushButton:pressed {
                </size>
               </property>
               <property name="styleSheet">
-               <string notr="true">QPushButton {	
-	border: none;
-}
-QPushButton:hover {
-	background-color: rgb(62,62,62);
-}
-QPushButton:pressed {	
-	background-color: rgb(70,70,70);
-}</string>
+               <string notr="true"/>
               </property>
               <property name="text">
                <string/>
@@ -604,15 +560,7 @@ QPushButton:pressed {
                </size>
               </property>
               <property name="styleSheet">
-               <string notr="true">QPushButton {	
-	border: none;
-}
-QPushButton:hover {
-	background-color: rgb(62,62,62);
-}
-QPushButton:pressed {	
-	background-color: rgb(70,70,70);
-}</string>
+               <string notr="true"/>
               </property>
               <property name="text">
                <string/>
@@ -647,9 +595,9 @@ QPushButton:pressed {
             <number>0</number>
            </property>
            <widget class="QWidget" name="stackedWidgetPage_home">
-            <layout class="QVBoxLayout" name="verticalLayout_10">
+            <layout class="QVBoxLayout" name="verticalLayout_8">
              <property name="spacing">
-              <number>0</number>
+              <number>15</number>
              </property>
              <property name="leftMargin">
               <number>0</number>
@@ -694,22 +642,38 @@ QPushButton:pressed {
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="label_hello">
-               <property name="font">
-                <font>
-                 <family>Segoe UI</family>
-                 <pointsize>24</pointsize>
-                 <weight>75</weight>
-                 <bold>true</bold>
-                </font>
+              <layout class="QHBoxLayout" name="horizontalLayout_14">
+               <property name="spacing">
+                <number>0</number>
                </property>
-               <property name="text">
-                <string>Welcome</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignHCenter|Qt::AlignTop</set>
-               </property>
-              </widget>
+               <item>
+                <widget class="MyDockTitleLabel" name="label_hello">
+                 <property name="font">
+                  <font>
+                   <family>Segoe UI</family>
+                   <pointsize>24</pointsize>
+                   <weight>75</weight>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Welcome</string>
+                 </property>
+                 <property name="textFormat">
+                  <enum>Qt::AutoText</enum>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignHCenter|Qt::AlignTop</set>
+                 </property>
+                 <property name="wordWrap">
+                  <bool>true</bool>
+                 </property>
+                 <property name="margin">
+                  <number>0</number>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </item>
             </layout>
            </widget>
@@ -1057,6 +1021,9 @@ p, li { white-space: pre-wrap; }
                        <verstretch>0</verstretch>
                       </sizepolicy>
                      </property>
+                     <property name="placeholderText">
+                      <string>Regex Search</string>
+                     </property>
                     </widget>
                    </item>
                    <item>
@@ -1232,15 +1199,7 @@ p, li { white-space: pre-wrap; }
                 </size>
                </property>
                <property name="styleSheet">
-                <string notr="true">QPushButton {	
-	border: none;
-}
-QPushButton:hover {
-	background-color: rgb(62,62,62);
-}
-QPushButton:pressed {	
-	background-color: rgb(70,70,70);
-}</string>
+                <string notr="true"/>
                </property>
                <property name="text">
                 <string/>
@@ -1380,7 +1339,7 @@ QPushButton:pressed {
            <enum>QFrame::Plain</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <property name="tabSpacing">
            <number>0</number>
@@ -1739,15 +1698,7 @@ QPushButton:pressed {
                 </size>
                </property>
                <property name="styleSheet">
-                <string notr="true">QPushButton {	
-	border: none;
-}
-QPushButton:hover {
-	background-color: rgb(62,62,62);
-}
-QPushButton:pressed {	
-	background-color: rgb(70,70,70);
-}</string>
+                <string notr="true"/>
                </property>
                <property name="text">
                 <string/>
@@ -2041,6 +1992,7 @@ QPushButton:pressed {
      <addaction name="actionAdd_New_Line"/>
      <addaction name="actionLink_Concept_to_Line"/>
      <addaction name="actionAnalyze_Diary_with_Concept"/>
+     <addaction name="actionI_m_Feeling_Lucky"/>
     </widget>
     <widget class="QMenu" name="menuConcept">
      <property name="title">
@@ -2256,15 +2208,7 @@ QPushButton:pressed {
               </size>
              </property>
              <property name="styleSheet">
-              <string notr="true">QPushButton {	
-	border: none;
-}
-QPushButton:hover {
-	background-color: rgb(62,62,62);
-}
-QPushButton:pressed {	
-	background-color: rgb(70,70,70);
-}</string>
+              <string notr="true"/>
              </property>
              <property name="text">
               <string/>
@@ -2450,15 +2394,7 @@ QPushButton:pressed {
               </size>
              </property>
              <property name="styleSheet">
-              <string notr="true">QPushButton {	
-	border: none;
-}
-QPushButton:hover {
-	background-color: rgb(62,62,62);
-}
-QPushButton:pressed {	
-	background-color: rgb(70,70,70);
-}</string>
+              <string notr="true"/>
              </property>
              <property name="text">
               <string/>
@@ -2791,12 +2727,6 @@ QPushButton:pressed {
         </layout>
        </widget>
        <widget class="QToolBox" name="toolBox_concept">
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>200</height>
-         </size>
-        </property>
         <property name="currentIndex">
          <number>0</number>
         </property>
@@ -3447,6 +3377,15 @@ QPushButton:pressed {
    </property>
    <property name="text">
     <string>Restore Main Window</string>
+   </property>
+  </action>
+  <action name="actionI_m_Feeling_Lucky">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/smile.svg</normaloff>:/icon/smile.svg</iconset>
+   </property>
+   <property name="text">
+    <string>I'm Feeling Lucky</string>
    </property>
   </action>
  </widget>
