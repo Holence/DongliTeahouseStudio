@@ -494,9 +494,6 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			#显示普通箭头
 			self.setCursor(QCursor(Qt.ArrowCursor))
 
-
-
-
 	def spline_clicked(self,*arg):
 		"""
 		这里传进来的参数有：信号参数hover_point(QPoint)
@@ -734,8 +731,6 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		self.series.attachAxis(yaxis)
 
 		self.chartView_spline.setChart(chart)
-		
-
 
 	def concept_info_edited_and_save(self):
 		if self.current_select_conceptID!=None:
@@ -1164,7 +1159,6 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 
 		self.parent.tab_refresh_current_tab()
 
-
 	def tree_deep_check_expand(self,depth,current_root):
 		if depth==0:
 			return
@@ -1193,7 +1187,6 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			current_root.setExpanded(self.tree_expand[str(root_concept["id"])])
 		except:
 			pass
-
 
 	def update_file_list(self):
 		
@@ -1241,7 +1234,6 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		for concept_id in self.current_leaf_conceptID_list:
 			for tree_item in generate_file_tree_item_list(concept_id):
 				self.listWidget_file_leafs.addItem(tree_item)
-
 
 	def root_file_open(self):
 		#######################################
@@ -1360,9 +1352,6 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			except Exception as e :
 				e=str(e).split(":",1)
 				QMessageBox.critical(self,"Critical Error","%s\n%s\n请手动设置该类型文件的默认启动应用！"%(e[0],e[1]))
-
-
-	
 
 	def clear_view(self):
 		self.MaxY=0#最大的y坐标（一天内最多的concept的数量的最大值
@@ -1567,7 +1556,6 @@ class SettingDialog(QDialog,Ui_setting_dialog):
 		except Exception as e:
 			QMessageBox.information(self,"Information","密码更改失败！\n\n%s"%e)
 
-		
 class RSSFeedEditDialog(QDialog,Ui_rss_feed_edit_dialog):
 	#传进来的列表元素是[rss_name,rss_url]
 	def __init__(self,parent,rss_url_list):

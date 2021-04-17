@@ -12,15 +12,15 @@ Features:
 
 ---
 
-Examples
+![home](Manual.assets/home.png)
 
-![Example1](./Manual/Example1.jpg)
+![rss](Manual.assets/rss.png)
 
-![Example2](./Manual/Example2.jpg)
+![diary](Manual.assets/diary.png)
 
-![Example3](./Manual/Example3.jpg)
+![zen](Manual.assets/zen.png)
 
-![Example4](./Manual/Example4.jpg)
+![tab](Manual.assets/tab.png)
 
 ---
 
@@ -38,7 +38,7 @@ TODO List:
 
 - [ ] More export options
 - [ ] ~~File right click context menu~~
-- [ ] A short manual
+- [x] A short manual
 
 ---
 

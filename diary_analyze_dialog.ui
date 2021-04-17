@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Analyze Diary Text</string>
+   <string>Analyze Diary with Concept</string>
   </property>
   <property name="windowIcon">
    <iconset resource="resource.qrc">

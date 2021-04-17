@@ -121,7 +121,7 @@ class Ui_diary_analyze_dialog(object):
     # setupUi
 
     def retranslateUi(self, diary_analyze_dialog):
-        diary_analyze_dialog.setWindowTitle(QCoreApplication.translate("diary_analyze_dialog", u"Analyze Diary Text", None))
+        diary_analyze_dialog.setWindowTitle(QCoreApplication.translate("diary_analyze_dialog", u"Analyze Diary with Concept", None))
         self.label_3.setText(QCoreApplication.translate("diary_analyze_dialog", u"Threshold", None))
         self.label_2.setText(QCoreApplication.translate("diary_analyze_dialog", u"To", None))
         self.label.setText(QCoreApplication.translate("diary_analyze_dialog", u"From", None))

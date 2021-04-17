@@ -279,25 +279,25 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#而如果用的是hide，那只会把mainwindow隐藏掉，我的漂浮dockwidget就一直在那里！
 
 		#添加view设置
-		action=self.dockWidget_concept.toggleViewAction()
-		action.setIcon(QIcon(":/icon/database.svg"))
-		action.setShortcut(QKeySequence(Qt.Key_F5))
-		self.menuView.addAction(action)
+		self.actionToggleConcept=self.dockWidget_concept.toggleViewAction()
+		self.actionToggleConcept.setIcon(QIcon(":/icon/database.svg"))
+		self.actionToggleConcept.setShortcut(QKeySequence(Qt.Key_F5))
+		self.menuView.addAction(self.actionToggleConcept)
 
-		action=self.dockWidget_diary.toggleViewAction()
-		action.setShortcut(QKeySequence(Qt.Key_F6))
-		action.setIcon(QIcon(":/icon/feather.svg"))
-		self.menuView.addAction(action)
+		self.actionToggleDiary=self.dockWidget_diary.toggleViewAction()
+		self.actionToggleDiary.setShortcut(QKeySequence(Qt.Key_F6))
+		self.actionToggleDiary.setIcon(QIcon(":/icon/feather.svg"))
+		self.menuView.addAction(self.actionToggleDiary)
 
-		action=self.dockWidget_library.toggleViewAction()
-		action.setShortcut(QKeySequence(Qt.Key_F7))
-		action.setIcon(QIcon(":/icon/hard-drive.svg"))
-		self.menuView.addAction(action)
+		self.actionToggleLibrary=self.dockWidget_library.toggleViewAction()
+		self.actionToggleLibrary.setShortcut(QKeySequence(Qt.Key_F7))
+		self.actionToggleLibrary.setIcon(QIcon(":/icon/hard-drive.svg"))
+		self.menuView.addAction(self.actionToggleLibrary)
 
-		action=self.dockWidget_sticker.toggleViewAction()
-		action.setShortcut(QKeySequence(Qt.Key_F8))
-		action.setIcon(QIcon(":/icon/coffee.svg"))
-		self.menuView.addAction(action)
+		self.actionToggleSticker=self.dockWidget_sticker.toggleViewAction()
+		self.actionToggleSticker.setShortcut(QKeySequence(Qt.Key_F8))
+		self.actionToggleSticker.setIcon(QIcon(":/icon/coffee.svg"))
+		self.menuView.addAction(self.actionToggleSticker)
 
 		#########################################################################################################
 		#Help
@@ -461,7 +461,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 	def initialize_data(self):
 		#初始化diary、concept、file、rss的data
 		if self.data_validity_check()==1:
-			
 			self.data_load()
 			
 			#####################################################################################################################
@@ -493,7 +492,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.file_saving_today_dst_exist=False
 			self.file_saving_today_dst_exist_check()
 
-			self.file_library_list_update()
+			self.file_library_list_update(starting=True)
 
 			#####################################################################################################################
 
@@ -509,7 +508,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			
 			#####################################################################################################################
 		else:
-			QCoreApplication.exit()
+			self.close()
 
 	def initialize_custom_tab(self):
 		#custom_tabs_shown存储正在界面上展示的tabs，这些是用来实时与concept data同步更新的
@@ -538,11 +537,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					tab.listWidget_file_root.setEnabled(0)
 					tab.listWidget_file_leafs.setEnabled(0)
 
-					self.tabWidget.addTab(tab,QIcon(":/icon/trello.svg"),custom_tab[0])
-					
-
 					#正在界面上展示的tabs，这些是用来实时与concept data同步更新的
 					self.custom_tabs_shown.append(tab)
+
+					self.tabWidget.addTab(tab,QIcon(":/icon/trello.svg"),custom_tab[0])
 				
 				#把隐藏了的tab，放在tab menu的action里面
 				else:
@@ -569,6 +567,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#################################################################
 
 		self.trayIconMenu.addAction(self.actionSetting)
+		self.trayIconMenu.addSeparator()
+		self.trayIconMenu.addAction(self.actionToggleConcept)
+		self.trayIconMenu.addAction(self.actionToggleDiary)
+		self.trayIconMenu.addAction(self.actionToggleLibrary)
+		self.trayIconMenu.addAction(self.actionToggleSticker)
 		self.trayIconMenu.addSeparator()
 		self.trayIconMenu.addAction(self.actionToggle_Fullscreen)
 		self.trayIconMenu.addAction(self.actionHide_Main_Window)
@@ -667,7 +670,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		LibraryMenu=generate_LibraryMenu()
 		RSSMenu=generate_RSSMenu()
 		ZenMenu=generate_ZenMenu()
-		TabMenu=generate_TabMenu()
+		#这个得是全局变量，因为Tab的恢复和建立是动态的，所以也会在其他地方被动态修改
+		self.TabMenu=generate_TabMenu()
 
 		self.btn_menu.clicked.connect(lambda:show_context_menu_beneath(WholeMenu,self.btn_menu))
 
@@ -675,7 +679,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.btn_stack_rss.rightclicked.connect(lambda:show_context_menu_right(RSSMenu,self.btn_stack_rss))
 		self.btn_stack_diary.rightclicked.connect(lambda:show_context_menu_right(DiaryMenu,self.btn_stack_diary))
 		self.btn_stack_zen.rightclicked.connect(lambda:show_context_menu_right(ZenMenu,self.btn_stack_zen))
-		self.btn_stack_tab.rightclicked.connect(lambda:show_context_menu_right(TabMenu,self.btn_stack_tab))
+		self.btn_stack_tab.rightclicked.connect(lambda:show_context_menu_right(self.TabMenu,self.btn_stack_tab))
 		self.btn_stack_menu.clicked.connect(lambda:show_context_menu_right(WholeMenu,self.btn_stack_menu))
 
 		#
@@ -1123,7 +1127,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 		self.textEdit_viewer_zen.setMarkdown(text)
 		self.plainTextEdit_zen.setPlainText(text)
-
+		
 		self.zen_text_search_or_count()
 
 		# 奶奶的 《老 子》 不干了
@@ -1149,6 +1153,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 	def zen_switch_mode(self):
 		# self.stackedWidget_zen的第0个是textEdit_viewer_zen
 		# self.stackedWidget_zen的第1个是plainTextEdit_zen
+
+		
 
 		if self.stackedWidget_zen.currentIndex()==0:
 			#切换到编辑模式
@@ -1309,41 +1315,43 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 								file_heap_have=os.listdir(d_dir)
 
-								try:
-									file_data_have=self.file_data[y][m][d].keys()
-								except:
-									#如果没有当日的容器那就新建好了
-									self.file_data[y][m][d]={}
-									file_data_have=self.file_data[y][m][d].keys()
-								
-								#文件堆中多出来的光头
-								for file_name in file_heap_have:
-									# file路径中是/，不是\
-									# file_dir=os.path.join(d_dir,file_name).replace("\\","/")
-									if file_name not in file_data_have:
-										redundant.append(
-											{
-												"y":y,
-												"m":m,
-												"d":d,
-												"file_name":file_name
-											}
-										)
+								if file_heap_have!=[]:
+									
+									try:
+										file_data_have=self.file_data[y][m][d].keys()
+									except:
+										#如果没有当日的容器那就新建好了
+										self.file_data[y][m][d]={}
+										file_data_have=self.file_data[y][m][d].keys()
+									
+									#文件堆中多出来的光头
+									for file_name in file_heap_have:
+										# file路径中是/，不是\
+										# file_dir=os.path.join(d_dir,file_name).replace("\\","/")
+										if file_name not in file_data_have:
+											redundant.append(
+												{
+													"y":y,
+													"m":m,
+													"d":d,
+													"file_name":file_name
+												}
+											)
 
-								#文件堆缺失的
-								for file_name in file_data_have:
-									# #file路径中是/，不是\
-									# file_dir=os.path.join(d_dir,file_name).replace("\\","/")
-									if "|" not in file_name and file_name not in file_heap_have:
-										missing.append(
-											{
-												"y":y,
-												"m":m,
-												"d":d,
-												"file_name":file_name,
-												"linked_concept":self.file_data[y][m][d][file_name]
-											}
-										)
+									#文件堆缺失的
+									for file_name in file_data_have:
+										# #file路径中是/，不是\
+										# file_dir=os.path.join(d_dir,file_name).replace("\\","/")
+										if "|" not in file_name and file_name not in file_heap_have:
+											missing.append(
+												{
+													"y":y,
+													"m":m,
+													"d":d,
+													"file_name":file_name,
+													"linked_concept":self.file_data[y][m][d][file_name]
+												}
+											)
 								
 		#判断每日的文件夹存不存在
 		for y in range(1970,2170):
@@ -1418,7 +1426,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		
 		self.listWidget_search_file.addItem(temp)
 
-	def file_library_list_update(self):
+	def file_library_list_update(self,starting=False):
 		"file_data[y][m][d]字典里key的顺序是乱的，也就这里列出来看的时候要按文件名sort一下"
 
 
@@ -1534,10 +1542,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		########################################################################################
 		########################################################################################
 		########################################################################################
-		
-		if self.file_saving_base=="":
-			QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
-			return
+		#为了不让启动的时候跳出警告窗口，只能这样勉强一下了
+		if starting==False:
+			if self.file_saving_base=="":
+				QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
+				return
 		
 		search=self.lineEdit_search_file.text()
 		
@@ -2344,7 +2353,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.file_saving_base=dlg.lineEdit_file_saving_base.text()
 			self.user_settings.setValue("file_saving_base",encrypt(self.file_saving_base))
 			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.y)+"/"+str(self.m)+"/"+str(self.d)
-			self.file_library_list_update()
+			self.file_library_list_update(starting=True)
 
 			if dlg.font!=None:
 				font=dlg.font
@@ -2564,7 +2573,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				#找文件夹中所有的RSS
 				for item in self.rss_tree_data:
 					if type(item)==dict and item["folder_name"]==folder_name:
-						for rss_url in [feed[2] for feed in item["RSS"]]:
+						for rss_url in [feed[1] for feed in item["RSS"]]:
 							updating_url_list.append(rss_url)
 						break
 				
@@ -2826,12 +2835,12 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						#folder
 						if type(self.rss_tree_data[i])==dict:
 							for j in range(len(self.rss_tree_data[i]["RSS"])):
-								if self.rss_tree_data[i]["RSS"][j][2]==rss_url:
+								if self.rss_tree_data[i]["RSS"][j][1]==rss_url:
 									self.rss_tree_data[i]["RSS"].pop(j)
 									break
 						#顶层的RSS
-						if type(self.rss_tree_data[i])==tuple:
-							if self.rss_tree_data[i][2]==rss_url:
+						if type(self.rss_tree_data[i])==list:
+							if self.rss_tree_data[i][1]==rss_url:
 								self.rss_tree_data.pop(i)
 								break
 
@@ -2853,7 +2862,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 							if self.rss_tree_data[i]["folder_name"]==folder_name:
 								
 								for j in self.rss_tree_data[i]["RSS"]:
-									feed_url=j[2]
+									feed_url=j[1]
 									del self.rss_data[feed_url]
 									
 								del self.rss_tree_data[i]
@@ -2903,7 +2912,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			feed_list=[]
 			for item in self.rss_tree_data:
 				if type(item)==dict and item["folder_name"]==folder_name:
-					for rss_url in [feed[2] for feed in item["RSS"]]:
+					for rss_url in [feed[1] for feed in item["RSS"]]:
 						feed_list.append(rss_url)
 					break
 
@@ -2993,13 +3002,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 							#folder
 							if type(self.rss_tree_data[i])==dict:
 								for j in range(len(self.rss_tree_data[i]["RSS"])):
-									if self.rss_tree_data[i]["RSS"][j][2]==rss_url:
+									if self.rss_tree_data[i]["RSS"][j][1]==rss_url:
 										#淦，竟然弄成了元组类型，这里没法直接改，那就重新制定吧
-										self.rss_tree_data[i]["RSS"][j]=(result[rss_url]["feed_name"],"RSS",rss_url)
+										self.rss_tree_data[i]["RSS"][j]=(result[rss_url]["feed_name"],rss_url)
 							#顶层的RSS
-							if type(self.rss_tree_data[i])==tuple:
-								if self.rss_tree_data[i][2]==rss_url:
-									self.rss_tree_data[i]=(result[rss_url]["feed_name"],"RSS",rss_url)
+							if type(self.rss_tree_data[i])==list:
+								if self.rss_tree_data[i][1]==rss_url:
+									self.rss_tree_data[i]=(result[rss_url]["feed_name"],rss_url)
 					
 
 				self.qlock.unlock()
@@ -3112,7 +3121,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						rss_url=root.child(index).text(2)
 						
 						#树的信息中不区分RSS是Standard还是Custom，只区分Folder和RSS！这东西只是用于建树以及判断rss树的合法性的
-						pointer.append((rss_name,"RSS",rss_url))
+						pointer.append([rss_name,rss_url])
 						continue
 				
 				#如果是Folder
@@ -3185,7 +3194,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						for rss in top_level["RSS"]:
 							
 							rss_name=rss[0]
-							rss_url=rss[2]
+							rss_url=rss[1]
 							feed_unread=self.rss_data[rss_url]["unread"]
 							folder_unread+=feed_unread
 
@@ -3225,7 +3234,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						
 						for rss in top_level["RSS"]:
 							rss_name=rss[0]
-							rss_url=rss[2]
+							rss_url=rss[1]
 							feed_unread=self.rss_data[rss_url]["unread"]
 							folder_unread+=feed_unread
 
@@ -3254,11 +3263,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 								pass
 					
 					#top_level放了rss
-					elif type(top_level)==tuple:
+					elif type(top_level)==list:
 						rss=top_level
 						
 						rss_name=rss[0]
-						rss_url=rss[2]
+						rss_url=rss[1]
 
 						if search_name in rss_url or search_name in convert_to_az(rss_url):
 							feed_unread=self.rss_data[rss_url]["unread"]
@@ -3290,7 +3299,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						
 						for rss in top_level["RSS"]:
 							rss_name=rss[0]
-							rss_url=rss[2]
+							rss_url=rss[1]
 							feed_unread=self.rss_data[rss_url]["unread"]
 							folder_unread+=feed_unread
 
@@ -3319,11 +3328,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 								pass
 					
 					#top_level放了rss
-					elif type(top_level)==tuple:
+					elif type(top_level)==list:
 						rss=top_level
 						
 						rss_name=rss[0]
-						rss_url=rss[2]
+						rss_url=rss[1]
 
 						if search_name in rss_name or search_name in convert_to_az(rss_name):
 							feed_unread=self.rss_data[rss_url]["unread"]
@@ -3355,9 +3364,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					self.treeWidget_rss.addTopLevelItem(temp_root)
 
 					for rss in top_level["RSS"]:
-						
 						rss_name=rss[0]
-						rss_url=rss[2]
+						rss_url=rss[1]
 						feed_unread=self.rss_data[rss_url]["unread"]
 						folder_unread+=feed_unread
 
@@ -3380,11 +3388,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						pass
 				
 				#top_level放了rss
-				elif type(top_level)==tuple:
+				elif type(top_level)==list:
 					rss=top_level
 					
 					rss_name=rss[0]
-					rss_url=rss[2]
+					rss_url=rss[1]
 					feed_unread=self.rss_data[rss_url]["unread"]
 
 					if feed_unread==0:
@@ -3433,7 +3441,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				feed_list=[]
 				for item in self.rss_tree_data:
 					if type(item)==dict and item["folder_name"]==folder_name:
-						for rss_url in [feed[2] for feed in item["RSS"]]:
+						for rss_url in [feed[1] for feed in item["RSS"]]:
 							feed_list.append(rss_url)
 						break
 
@@ -3491,7 +3499,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				feed_list=[]
 				for item in self.rss_tree_data:
 					if type(item)==dict and item["folder_name"]==folder_name:
-						for rss_url in [feed[2] for feed in item["RSS"]]:
+						for rss_url in [feed[1] for feed in item["RSS"]]:
 							feed_list.append(rss_url)
 						break
 
@@ -3649,14 +3657,16 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				tab.listWidget_file_root.setEnabled(0)
 				tab.listWidget_file_leafs.setEnabled(0)
 				
-				self.tabWidget.addTab(tab,QIcon(":/icon/trello.svg"),tab_name)
-				self.tabWidget.setCurrentIndex(self.tabWidget.indexOf(tab))
-
 				#更新custom_tab_data的数据
 				self.custom_tab_data.append([tab_name,tab_selection_id,tab_selection_depth,True])
 
 				#custom_tabs_shown存储正在界面上展示的tabs，这些是用来实时与concept data同步更新的
 				self.custom_tabs_shown.append(tab)
+
+				self.tabWidget.addTab(tab,QIcon(":/icon/trello.svg"),tab_name)
+				self.tabWidget.setCurrentIndex(self.tabWidget.indexOf(tab))
+
+				self.tab_set_font(tab)
 
 		else:
 			return
@@ -3690,6 +3700,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			action.setIcon(QIcon(":/icon/trello.svg"))
 			action.triggered.connect(partial(self.tab_custom_resurrection,index,action))
 			self.menuTab.addAction(action)
+			self.TabMenu.addAction(action)
 
 	def tab_custom_resurrection(self,index,action):
 		#更新custom_tab_data的数据
@@ -3704,14 +3715,17 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			#点击内部的leaf，回传到这里，去显示concept
 			# tab.clicked.connect(lambda ID:self.concept_show(ID))
 
-		self.tabWidget.addTab(tab,QIcon(":/icon/trello.svg"),self.custom_tab_data[index][0])
-		self.tabWidget.setCurrentIndex(self.tabWidget.indexOf(tab))
-		
 		#custom_tabs_shown存储正在界面上展示的tabs，这些是用来实时与concept data同步更新的
 		self.custom_tabs_shown.append(tab)
 
+		self.tabWidget.addTab(tab,QIcon(":/icon/trello.svg"),self.custom_tab_data[index][0])
+		self.tabWidget.setCurrentIndex(self.tabWidget.indexOf(tab))
+		
+		self.tab_set_font(tab)
+
 		#销毁action
 		self.menuTab.removeAction(action)
+		self.TabMenu.removeAction(action)
 
 	def tab_custom_delete(self):
 		tab_index=self.tabWidget.currentIndex()
@@ -3757,7 +3771,35 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			if self.tabWidget.currentIndex()!=-1:
 				tab=self.custom_tabs_shown[self.tabWidget.currentIndex()]
 				tab.tab_update()
+
+	def tab_set_font(self,tab):
+		"因为Tab是动态生成的，所以creat和resurrection时要再来设置一下字体"
+		font=self.user_settings.value("font")
+		font_size=int(self.user_settings.value("font_size"))
+
+		font.setPointSize(int(font_size*0.8))
+		tab.lineEdit_id.setFont(font)
+		tab.lineEdit_name.setFont(font)
+		tab.plainTextEdit_detail.setFont(font)
+		tab.listWidget_relative.setFont(font)
+		tab.listWidget_file_root.setFont(font)
+		tab.listWidget_file_leafs.setFont(font)
+		tab.treeWidget.setFont(font)
+		tab.tabWidget.setFont(font)
 		
+		font.setPointSize(font_size)
+		tab.textEdit_viewer.setFont(font)
+
+		tab.listWidget_file_root.setIconSize(QSize(font_size*2,font_size*2))
+		tab.listWidget_file_root.setGridSize(QSize(font_size*6,font_size*6))
+		tab.listWidget_file_root.setSpacing(font_size*2)
+		tab.listWidget_file_root.setWordWrap(1)
+		
+		tab.listWidget_file_leafs.setIconSize(QSize(font_size*2,font_size*2))
+		tab.listWidget_file_leafs.setGridSize(QSize(font_size*6,font_size*6))
+		tab.listWidget_file_leafs.setSpacing(font_size*2)
+		tab.listWidget_file_leafs.setWordWrap(1)
+
 	####
 		############################################################################
 		# 要摒弃树就彻底一点，这个就别用了哈~
@@ -3852,7 +3894,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		############################################################################
 
 	def about(self):
-		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 0.1.9.5\nAuthor: 鍵山狐\nContact: Holence08@gmail.com")
+		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 1.0.0.0\nAuthor: Holence\nContact: Holence08@gmail.com")
 
 	def font_set(self,font,font_size):
 		font_size=int(font_size)
@@ -3944,18 +3986,18 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.tabWidget.setIconSize(QSize(font_size,font_size))
 		
 		#toolbox竟然没有iconsize选项，那我就不管啦
-		self.dockWidget_concept.setFont(font)
+		self.label_titlebar_concept.setFont(font)
 		self.toolBox_concept.setFont(font)
 		self.label_concept_icon.setFixedSize(QSize(font_size,font_size))
 
-		self.dockWidget_diary.setFont(font)
+		self.label_titlebar_diary.setFont(font)
 		self.toolBox_text.setFont(font)
 		self.label_diary_icon.setFixedSize(QSize(font_size,font_size))
 
-		self.dockWidget_library.setFont(font)
+		self.label_titlebar_library.setFont(font)
 		self.label_library_icon.setFixedSize(QSize(font_size,font_size))
 
-		self.dockWidget_sticker.setFont(font)
+		self.label_titlebar_sticker.setFont(font)
 		self.label_sticker_icon.setFixedSize(QSize(font_size,font_size))
 
 		#日历区不变
@@ -3978,6 +4020,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			tab.lineEdit_id.setFont(font)
 			tab.lineEdit_name.setFont(font)
 			tab.plainTextEdit_detail.setFont(font)
+			tab.listWidget_relative.setFont(font)
 			tab.listWidget_file_root.setFont(font)
 			tab.listWidget_file_leafs.setFont(font)
 			tab.treeWidget.setFont(font)
@@ -4040,12 +4083,18 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		#文本块 链接文件 定位
 		elif self.listWidget_text_linked_file.hasFocus():
 			self.file_library_locate_from_other_place(self.listWidget_text_linked_file)
-		#tab root file 定位
+		#tab定位
 		else:
 			for tab in self.custom_tabs_shown:
+				#tab root file 定位
 				if tab.listWidget_file_root.hasFocus():
 					self.file_library_locate_from_other_place(tab.listWidget_file_root)
 					break
+				#tab root file 定位
+				if tab.listWidget_file_leafs.hasFocus():
+					self.file_library_locate_from_other_place(tab.listWidget_file_leafs)
+					break
+				#tab tree concept 定位
 				elif tab.treeWidget.hasFocus():
 					self.concept_locate_from_tab(tab.treeWidget)
 					break
@@ -4227,7 +4276,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				return 0
 
 			try:
-				if "Universe" not in data[0]["name"] or data[0]["parent"]!=-1:
+				if "Universe" not in data[0]["name"] or data[0]["parent"]!=[]:
 					QMessageBox.critical(self,"Error","Concept_Data.dlcw文件头部结构出错，请联系相关开发人员！")
 					return 0
 			except:
@@ -4253,7 +4302,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				"id": 0,
 				"name": "宇宙|Universe",
 				"detail": "",
-				"parent": -1,
+				"parent": [],
 				"child": [],
 				"relative": [],
 				"az": "yz|universe",
@@ -4278,7 +4327,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			try:
 				self.file_saving_base=decrypt(self.user_settings.value("file_saving_base"))
 			except:
-				QMessageBox.critical(self,"Error","file_saving_base为空！")
+				# QMessageBox.critical(self,"Error","file_saving_base为空！")
 				self.file_saving_base=""
 		else:
 			data={}
@@ -4305,19 +4354,18 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					if type(top_level)==dict:
 						for rss in top_level["RSS"]:
 
-							rss_url=rss[2]
+							rss_url=rss[1]
 							l0.append(rss_url)
 
 					#top_level放了rss
-					elif type(top_level)==tuple:
+					elif type(top_level)==list:
 						rss=top_level
 						
-						rss_url=rss[2]
+						rss_url=rss[1]
 						l0.append(rss_url)
 
 				rss_data=Fernet_Decrypt_Load(self.password,"RSS_Data.dlcw")
 				l1=list(rss_data.keys())
-
 				if list_difference(l0,l1)==[]:
 					pass
 				else:
@@ -4657,7 +4705,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			if item["id"] in changed_id_dict_keys:
 				item["id"]=changed_id_dict[item["id"]]
 			
-			if item["parent"]!=-1:
+			if item["id"]!=0:
 				for i in range(len(item["parent"])):
 					if item["parent"][i] in changed_id_dict_keys:
 						item["parent"][i]=changed_id_dict[item["parent"][i]]
@@ -4734,11 +4782,10 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.listWidget_parent.clear()
 		self.listWidget_child.clear()
 		self.listWidget_relative.clear()
-		if item["parent"]!=-1:
-			for related_ID in item["parent"]:
-				related_item=self.concept_data[related_ID]
-				name=str(related_item["id"])+"|"+related_item["name"]
-				self.listWidget_parent.addItem(name)
+		for related_ID in item["parent"]:
+			related_item=self.concept_data[related_ID]
+			name=str(related_item["id"])+"|"+related_item["name"]
+			self.listWidget_parent.addItem(name)
 		for related_ID in item["child"]:
 			related_item=self.concept_data[related_ID]
 			name=str(related_item["id"])+"|"+related_item["name"]
@@ -4936,7 +4983,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						return
 					if self.easter_egg_deleting_universe==5:
 						QMessageBox.critical(self,"Critical Error","程序崩溃！\n\n请联系开发人员，并提供您的错误信息，以及更好玩的翻译腔生成器。\n\n邮箱地址：Holence08@gmail.com")
-						QCoreApplication.exit()
+						self.close()
 						return
 
 
@@ -4980,9 +5027,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				
 
 				#把关联物的关联信息删掉
-				if self.concept_data[ID]["parent"]!=-1:
-					for i in self.concept_data[ID]["parent"]:
-						self.concept_data[i]["child"].remove(ID)
+				for i in self.concept_data[ID]["parent"]:
+					self.concept_data[i]["child"].remove(ID)
 				
 				for i in self.concept_data[ID]["child"]:
 					self.concept_data[i]["parent"].remove(ID)
@@ -5028,7 +5074,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				changed_id_dict_keys=list(changed_id_dict.keys())
 				#修改id、parent、child、relative中有改变的id
 				for item in self.concept_data:
-					if item["parent"]!=-1:
+					if item["id"]!=0:
 						for i in range(len(item["parent"])):
 							if item["parent"][i] in changed_id_dict_keys:
 								item["parent"][i]=changed_id_dict[item["parent"][i]]
@@ -5096,7 +5142,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				if item_ID==0:
 					QMessageBox.warning(self,"Error","哦我的上帝，就让宇宙先生当DAI王吧")
 					return
-				elif self.concept_data[item_ID]["parent"]!=-1 and link_ID in self.concept_data[item_ID]["parent"] :
+				elif item_ID!=0 and link_ID in self.concept_data[item_ID]["parent"] :
 					QMessageBox.warning(self,"Error","哦我的上帝，%s 已经是 %s 的父辈了"%(link_name,item_name))
 					return
 				elif link_ID in self.concept_data[item_ID]["child"]:
@@ -5115,7 +5161,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				if link_ID==0:
 					QMessageBox.warning(self,"Error","哦我的上帝，就让宇宙先生当DAI王吧")
 					return
-				elif self.concept_data[item_ID]["parent"]!=-1 and link_ID in self.concept_data[item_ID]["parent"]:
+				elif item_ID!=0 and link_ID in self.concept_data[item_ID]["parent"]:
 					QMessageBox.warning(self,"Error","哦我的上帝，%s 已经是 %s 的父辈了"%(link_name,item_name))
 					return
 				elif link_ID in self.concept_data[item_ID]["child"]:
@@ -5533,7 +5579,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		while old_text_pool!=[]:
 			# if len(old_text_pool)!=len(new_text_pool):
 			# 	QMessageBox.critical(self,"Critical Error","程序崩溃！\n重排行1出错！")
-			# 	QCoreApplication.exit()
+			# 	self.close()
 
 			old_text_index=old_text_pool[0][0]
 			old_text=old_text_pool[0][1]
@@ -5555,7 +5601,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 		# if old_text_pool!=[] or new_text_pool!=[]:
 		# 	QMessageBox.critical(self,"Critical Error","程序崩溃！\n重排行2出错！")
-		# 	QCoreApplication.exit()
+		# 	self.close()
 
 		self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"].sort(key=lambda x:x["index"])
 
@@ -6373,20 +6419,29 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		searching=self.lineEdit_zen_text_search.text()
 		
 		fmt=QTextCharFormat()
-		if self.stackedWidget_zen.currentIndex()==0:
-			text=self.textEdit_viewer_zen.toPlainText()
-			cursor=QTextCursor(self.textEdit_viewer_zen.document())
-		elif self.stackedWidget_zen.currentIndex()==1:
-			text=self.plainTextEdit_zen.toPlainText()
-			cursor=QTextCursor(self.plainTextEdit_zen.document())
-		text_fmt_clear()
 
-		if searching=="":
-			#显示总字数的以plainTextEdit_zen为准
-			text=self.plainTextEdit_zen.toPlainText()
-			zen_count()
-		else:
-			text_search()
+		#显示总字数的以plainTextEdit_zen为准
+		text=self.plainTextEdit_zen.toPlainText()
+
+		if self.stackedWidget_zen.currentIndex()==1:
+			#Edit模式
+			cursor=QTextCursor(self.plainTextEdit_zen.document())
+			text_fmt_clear()
+			if searching=="":
+				zen_count()
+			else:
+				text_search()
+
+		if self.stackedWidget_zen.currentIndex()==0:
+			#View模式
+			if searching=="":
+				zen_count()
+			else:
+				pass
+		
+		# 发现markdown的标记格式会被fmt抹掉，那view模式下的搜索高亮还是削了吧……
+		# 	text=self.textEdit_viewer_zen.toPlainText()
+		# 	cursor=QTextCursor(self.textEdit_viewer_zen.document())
 
 	def diary_random_date(self):
 		pool=[]

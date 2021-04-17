@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1264</width>
-    <height>1052</height>
+    <width>1442</width>
+    <height>1084</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,14 +29,25 @@ QDockWidget QPushButton:pressed {
 	background-color: rgb(30,30,30);
 }
 
-QWidget#centralwidget QPushButton {	
+QWidget#stack_btn_frame QPushButton {	
 	border: none;
 	background-color: transparent;
 }
-QWidget#centralwidget QPushButton:hover{
+QWidget#stack_btn_frame QPushButton:hover{
 	background-color: rgb(40,40,40);
 }
-QWidget#centralwidget QPushButton:pressed {	
+QWidget#stack_btn_frame QPushButton:pressed {	
+	background-color: rgb(30,30,30);
+}
+
+QWidget#title_frame QPushButton {	
+	border: none;
+	background-color: transparent;
+}
+QWidget#title_frame QPushButton:hover{
+	background-color: rgb(40,40,40);
+}
+QWidget#title_frame QPushButton:pressed {	
 	background-color: rgb(30,30,30);
 }</string>
   </property>
@@ -587,7 +598,7 @@ QPushButton:pressed {
           <widget class="QStackedWidget" name="stackedWidget">
            <property name="minimumSize">
             <size>
-             <width>600</width>
+             <width>800</width>
              <height>800</height>
             </size>
            </property>
@@ -1416,7 +1427,7 @@ p, li { white-space: pre-wrap; }
              <x>0</x>
              <y>0</y>
              <width>277</width>
-             <height>145</height>
+             <height>157</height>
             </rect>
            </property>
            <attribute name="icon">
@@ -1490,7 +1501,7 @@ p, li { white-space: pre-wrap; }
              <x>0</x>
              <y>0</y>
              <width>277</width>
-             <height>145</height>
+             <height>144</height>
             </rect>
            </property>
            <attribute name="icon">
@@ -1990,7 +2001,7 @@ p, li { white-space: pre-wrap; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1264</width>
+     <width>1442</width>
      <height>22</height>
     </rect>
    </property>
@@ -2804,8 +2815,8 @@ p, li { white-space: pre-wrap; }
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>280</width>
-           <height>80</height>
+           <width>272</width>
+           <height>81</height>
           </rect>
          </property>
          <attribute name="icon">
@@ -2860,7 +2871,7 @@ p, li { white-space: pre-wrap; }
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>280</width>
+           <width>258</width>
            <height>80</height>
           </rect>
          </property>
