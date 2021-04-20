@@ -345,7 +345,6 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		self.splitter_top.setStretchFactor(0,1)
 		self.splitter_top.setStretchFactor(1,1)
 		self.splitter_top.setStretchFactor(2,2)
-		# print(self.splitter_top.count())
 
 		#编辑结束后自动临时保存
 		self.lineEdit_name.editingFinished.connect(self.concept_info_edited_and_save)
@@ -685,53 +684,63 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			name=str(related_item["id"])+"|"+related_item["name"]
 			self.listWidget_relative.addItem(name)
 		
-
-		self.begin_date=None
-		self.MaxY=0#最大的y坐标（一天内最多的concept的数量的最大值
-		self.series=QtCharts.QLineSeries()
-
-		color=generate_color()
-		self.series.setColor(color)
 		
-		#改线的宽度还得这样改……
-		pen = self.series.pen()
-		pen.setWidth(2)
-		self.series.setPen(pen)
+		#如果没隐藏才要画图
+		if self.chartView_spline.width()!=self.chartView_spline.minimumWidth() and self.chartView_spline.height()!=self.chartView_spline.minimumHeight():
+			self.begin_date=None
+			self.MaxY=0#最大的y坐标（一天内最多的concept的数量的最大值
+			self.series=QtCharts.QLineSeries()
 
-		#列出self.current_select_conceptID以及它下层所有concept的related text
-		self.textEdit_viewer.clear()
-		self.concept_related_text_show(plot=True)
-		
-
-		#开始绘图
-		(chart,xaxis,yaxis)=self.create_spline_chart()
-
-		if self.series.count()==1:
-			#只在一天出现过的无法连成线，重置为QScatterSeries点状图类型
-			point=self.series.at(0)
-			x=point.x()
-			y=point.y()
-			#新建QLineSeries，并放入字典中
-			self.series=QtCharts.QScatterSeries()
+			color=generate_color()
 			self.series.setColor(color)
 			
-			self.series.setMarkerSize(10.0)#小点点的大小
-			self.series.setBorderColor(QColor(255,255,255))#小点点的边框颜色
+			#改线的宽度还得这样改……
+			pen = self.series.pen()
+			pen.setWidth(2)
+			self.series.setPen(pen)
 
-			self.series.append(x,y)
+			#列出self.current_select_conceptID以及它下层所有concept的related text
+			self.textEdit_viewer.clear()
 
-		self.series.setPointsVisible(True)
+			#如果没隐藏才要筛选text
+			if self.textEdit_viewer.width()!=self.textEdit_viewer.minimumWidth() and self.textEdit_viewer.height()!=self.textEdit_viewer.minimumHeight():
+				self.concept_related_text_show(plot=True)
+
+			#开始绘图
+			(chart,xaxis,yaxis)=self.create_spline_chart()
+
+			if self.series.count()==1:
+				#只在一天出现过的无法连成线，重置为QScatterSeries点状图类型
+				point=self.series.at(0)
+				x=point.x()
+				y=point.y()
+				#新建QLineSeries，并放入字典中
+				self.series=QtCharts.QScatterSeries()
+				self.series.setColor(color)
+				
+				self.series.setMarkerSize(10.0)#小点点的大小
+				self.series.setBorderColor(QColor(255,255,255))#小点点的边框颜色
+
+				self.series.append(x,y)
+
+			self.series.setPointsVisible(True)
+			
+			self.series.hovered.connect(self.spline_hovered)
+			self.series.clicked.connect(self.spline_clicked)
+
+			chart.addSeries(self.series)
+			
+			self.series.attachAxis(xaxis)
+			self.series.attachAxis(yaxis)
+
+			self.chartView_spline.setChart(chart)
 		
-		self.series.hovered.connect(self.spline_hovered)
-		self.series.clicked.connect(self.spline_clicked)
-
-		chart.addSeries(self.series)
-		
-		self.series.attachAxis(xaxis)
-		self.series.attachAxis(yaxis)
-
-		self.chartView_spline.setChart(chart)
-
+		#不用画图
+		else:
+			#如果没隐藏才要筛选text
+			if self.textEdit_viewer.width()!=self.textEdit_viewer.minimumWidth() and self.textEdit_viewer.height()!=self.textEdit_viewer.minimumHeight():
+				self.concept_related_text_show(plot=False)
+	
 	def concept_info_edited_and_save(self):
 		if self.current_select_conceptID!=None:
 			
@@ -766,8 +775,6 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
 			return
 		
-		self.parent.file_saving_today_dst_exist_check()
-		
 		#存不存在当日文件的容器
 		try:
 			self.parent.file_data[self.parent.y][self.parent.m][self.parent.d]
@@ -793,6 +800,11 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			if self.parent.file_saving_base in i:
 				try:
 					date_and_name=i.replace(self.parent.file_saving_base,"")[1:].split("/")
+					
+					if len(date_and_name)>4:
+						QMessageBox.warning(self,"Warning","禁止从内部路径之下导入文件，先拖出到内部路径之外处。")
+						break
+					
 					y=int(date_and_name[0])
 					m=int(date_and_name[1])
 					d=int(date_and_name[2])
@@ -800,14 +812,11 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 					if y in range(1970,2170) and m in range(1,13) and d in range(1,32):
 						#如果filedata中已经存在，就只做链接操作
 						try:
-						
 							if "|" in i:
 								file_name=i[i.find(">"):]
-								file_icon=which_icon(file_name+".url")
 							else:
 								file_name=date_and_name[3]
-								file_icon=which_icon(file_name)
-								
+							
 							#file_data中是否存在该文件\link
 							self.parent.file_data[y][m][d][file_name]
 
@@ -817,8 +826,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 									"y":y,
 									"m":m,
 									"d":d,
-									"file_name":file_name,
-									"file_icon":file_icon
+									"file_name":file_name
 								}
 							)
 						#如果不存在，那就说明熊孩子在乱搞，明明可以用file check来添加他非得手拖进来
@@ -846,18 +854,18 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 					if result[0]==True:
 						title=result[1]
 					else:
-						title="Unkown Page"
+						title="Unknown Page"
 						self.parent.trayIcon.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
 					
 					file_name=">"+title+"|"+i
 					self.parent.file_data[self.parent.y][self.parent.m][self.parent.d][file_name]=[]
 
-					file_icon=which_icon(file_name+".url")
-
 				else:
 				
 					file_name=os.path.basename(i)
 					file_dst=self.parent.file_saving_today_dst+"/"+file_name
+					
+					self.parent.file_saving_today_dst_exist_check()
 					
 					#文件添加，有可能硬盘被拔掉了
 					try:
@@ -868,16 +876,13 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 					
 					#文件链接concept置空
 					self.parent.file_data[self.parent.y][self.parent.m][self.parent.d][file_name]=[]
-
-					file_icon=which_icon(file_name)
 				
 				adding_file.append(
 					{
 						"y":self.parent.y,
 						"m":self.parent.m,
 						"d":self.parent.d,
-						"file_name":file_name,
-						"file_icon":file_icon
+						"file_name":file_name
 					}
 				)
 		
@@ -902,6 +907,11 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		
 		#按照文件名排序
 		self.parent.concept_data[ID]["file"].sort(key=lambda x:x["file_name"])
+		for index in range(len(self.parent.concept_data[ID]["file"])):
+			file_name=self.parent.concept_data[ID]["file"][index]["file_name"]
+			if which_file_type(file_name)=="folder":
+				folder=self.parent.concept_data[ID]["file"].pop(index)
+				self.parent.concept_data[ID]["file"].insert(0,folder)
 
 		parent_ID=self.parent.lineEdit_id.text()
 		if parent_ID!="" and self.current_select_conceptID==int(parent_ID):
@@ -1105,11 +1115,6 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 						QMessageBox.critical(self,"Error","重命名%s出错：\n\n%s"%(old_file_url,e))
 						continue
 
-				if should_not_change=="":
-					new_file_icon=which_icon(new_file_name)
-				else:
-					new_file_icon=which_icon(new_file_name+".url")
-
 				# replace concept data中的old data，增加file data中的new data
 				self.parent.file_data[old_y][old_m][old_d][new_file_name]=[]
 				for ID in old_file_linked_concept:
@@ -1123,8 +1128,6 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 						ff=self.parent.concept_data[ID]["file"][ff_index]
 						if ff["y"]==old_y and ff["m"]==old_m and ff["d"]==old_d and ff["file_name"]==old_file_name:
 							self.parent.concept_data[ID]["file"][ff_index]["file_name"]=new_file_name
-							self.parent.concept_data[ID]["file"][ff_index]["file_icon"]=new_file_icon
-
 							break
 					
 				
@@ -1141,9 +1144,8 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 									if ff["y"]==old_y and ff["m"]==old_m and ff["d"]==old_d and ff["file_name"]==old_file_name:
 										
 										self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["file_name"]=new_file_name
-										self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["file_icon"]=new_file_icon
-
 										break
+
 				self.parent.diary_data_save_out()
 				
 			else:
@@ -1190,7 +1192,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 
 	def update_file_list(self):
 		
-		def generate_file_tree_item_list(concept_id):
+		def generate_file_tree_item_list(concept_id,listwidget):
 			tree_item_list=[]
 
 			item=self.parent.concept_data[concept_id]
@@ -1200,30 +1202,35 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 				d=file["d"]
 				file_name=file["file_name"]
 
+				temp=QListWidgetItem()
+
+				file_url=self.parent.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
+				
+				#Root
+				if listwidget==0:
+					temp.setIcon(self.listWidget_file_root.which_icon(file_url))
+				#Leaf
+				else:
+					temp.setIcon(self.listWidget_file_leafs.which_icon(file_url))
+				
 				#如果是link
 				if "|" in file_name:
 					#link的tooltip没有直接设置成url网址
 					#考虑到几个file listwidget间的拖动操作需要判断link是否已经在file_data中存在，所以需要附带ymd信息
 					#这样损失了直接往浏览器拖动打开网页的功能，但双击、回车打开就行了
-					file_url=self.parent.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
 					# ">Google|http://www.google.com"
 					file_name=file_name[:file_name.rfind("|")][1:]
-				else:
-					file_url=self.parent.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
-				
-				temp=QListWidgetItem()
+
 				temp.setText(file_name)
-				temp.setIcon(QIcon(file["file_icon"]))
 				temp.setToolTip(file_url)
 
 				tree_item_list.append(temp)
 			
 			return tree_item_list
 
-
 		#本层的文件
 		self.listWidget_file_root.clear()
-		root_file_tree_item_list=generate_file_tree_item_list(self.current_select_conceptID)
+		root_file_tree_item_list=generate_file_tree_item_list(self.current_select_conceptID,0)
 		for tree_item in root_file_tree_item_list:
 			self.listWidget_file_root.addItem(tree_item)
 
@@ -1232,7 +1239,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		#本层之下的所有child里的文件
 		self.listWidget_file_leafs.clear()
 		for concept_id in self.current_leaf_conceptID_list:
-			for tree_item in generate_file_tree_item_list(concept_id):
+			for tree_item in generate_file_tree_item_list(concept_id,1):
 				self.listWidget_file_leafs.addItem(tree_item)
 
 	def root_file_open(self):
@@ -1263,8 +1270,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		#########################################################################################
 		#########################################################################################
 		############################如果按下ctrl双击图片，启动内置的图片浏览器#########################
-		clicked_file_name=clicked_file_link.split("/")[-1]
-		if which_file_type(clicked_file_name)=="image" and self.listWidget_file_root.ctrl_pressed==True:
+		if which_file_type(clicked_file_link)=="image" and self.listWidget_file_root.ctrl_pressed==True:
 
 			ID=self.current_select_conceptID
 
@@ -1322,8 +1328,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		#########################################################################################
 		#########################################################################################
 		############################如果按下ctrl双击图片，启动内置的图片浏览器#########################
-		clicked_file_name=clicked_file_link.split("/")[-1]
-		if which_file_type(clicked_file_name)=="image" and self.listWidget_file_leafs.ctrl_pressed==True:
+		if which_file_type(clicked_file_link)=="image" and self.listWidget_file_leafs.ctrl_pressed==True:
 
 			pic_list=[]
 
@@ -1331,8 +1336,8 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			for file_index in range(self.listWidget_file_leafs.count()):
 				
 				file_link=self.listWidget_file_leafs.item(file_index).toolTip()
-				file_name=file_link.split("/")[-1]
-				if which_file_type(file_name)=="image":
+				
+				if which_file_type(file_link)=="image":
 					pic_list.append(file_link)
 		
 			clicked_index=pic_list.index(clicked_file_link)
@@ -2020,7 +2025,6 @@ class FileCheckDialog(QDialog,Ui_file_check_dialog):
 				new_m=new_file["m"]
 				new_d=new_file["d"]
 				new_file_name=new_file["file_name"]
-				new_file_icon=which_icon(new_file_name)
 				# replace concept data中的old data，增加file data中的new data
 
 				self.parent.file_data[new_y][new_m][new_d][new_file_name]=[]
@@ -2039,7 +2043,6 @@ class FileCheckDialog(QDialog,Ui_file_check_dialog):
 							self.parent.concept_data[ID]["file"][ff_index]["m"]=new_m
 							self.parent.concept_data[ID]["file"][ff_index]["d"]=new_d
 							self.parent.concept_data[ID]["file"][ff_index]["file_name"]=new_file_name
-							self.parent.concept_data[ID]["file"][ff_index]["file_icon"]=new_file_icon
 
 							#logging
 							self.plainTextEdit.appendPlainText("Replaced y:%s m:%s d:%s file_name:%s in concept_data:(id:%s) by y:%s m:%s d:%s file_name:%s\n"%(old_y,old_m,old_d,old_file_name,ID,new_y,new_m,new_d,new_file_name))
@@ -2065,7 +2068,6 @@ class FileCheckDialog(QDialog,Ui_file_check_dialog):
 										self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["m"]=new_m
 										self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["d"]=new_d
 										self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["file_name"]=new_file_name
-										self.parent.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["file_icon"]=new_file_icon
 
 										#logging
 										self.plainTextEdit.appendPlainText("Replaced y:%s m:%s d:%s file_name:%s from diary_data:(y:%s m:%s d:%s line_index:%s) by y:%s m:%s d:%s file_name:%s\n"%(old_y,old_m,old_d,old_file_name,year_index,month_index,day_index,line_index,new_y,new_m,new_d,new_file_name))

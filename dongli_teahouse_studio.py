@@ -199,7 +199,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.listWidget_search_file.currentItemChanged.connect(self.file_library_file_info_show)
 
 		#文件搜索
-		self.lineEdit_search_file.textEdited.connect(self.file_library_list_update)
+		# self.lineEdit_search_file.textEdited.connect(self.file_library_list_update)
+		self.lineEdit_search_file.returnPressed.connect(self.file_library_list_update)
 		self.lineEdit_search_file.returnPressed.connect(self.file_library_list_focus)
 		#文件链接concept的列表
 		self.listWidget_file_related_concept.itemDoubleClicked.connect(lambda:self.concept_show(self.listWidget_file_related_concept.currentItem().text().split("|")[0]))
@@ -272,6 +273,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 		self.actionRestore_Main_Window.triggered.connect(self.showNormal)
 		self.actionHide_Main_Window.triggered.connect(self.hide)
+		self.actionRestore_to_Normal_Size.triggered.connect(self.window_restore_normal_size)
 		#牛逼疯了！我要的就是这个！
 		#如果是点窗口右上角的的最小化，调用的是self.showMinimized
 		#这会把所有归属于mainwindow的窗口都最小化，我的漂浮dockwidget就没了
@@ -490,7 +492,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.y)+"/"+str(self.m)+"/"+str(self.d)
 			self.searching_file=[]
 			self.file_saving_today_dst_exist=False
-			self.file_saving_today_dst_exist_check()
+			
+			# 这个不着急，在shutil.move之前做检查就行了
+			# self.file_saving_today_dst_exist_check()
+			if not os.path.exists("./cache"):
+				os.makedirs("./cache")
 
 			self.file_library_list_update(starting=True)
 
@@ -576,6 +582,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.trayIconMenu.addAction(self.actionToggle_Fullscreen)
 		self.trayIconMenu.addAction(self.actionHide_Main_Window)
 		self.trayIconMenu.addAction(self.actionRestore_Main_Window)
+		self.trayIconMenu.addAction(self.actionRestore_to_Normal_Size)
 		self.trayIconMenu.addAction(self.actionStay_on_Top)
 		self.trayIconMenu.addSeparator()
 		self.trayIconMenu.addAction(self.actionExit)
@@ -1289,7 +1296,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 		redundant=[]
 		missing=[]
-		dont_exist=[]
 		
 		base=self.file_saving_base
 		for y_dir in os.listdir(base):
@@ -1314,16 +1320,21 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 								d=int(d)
 
 								file_heap_have=os.listdir(d_dir)
-
 								if file_heap_have!=[]:
-									
-									try:
-										file_data_have=self.file_data[y][m][d].keys()
-									except:
-										#如果没有当日的容器那就新建好了
-										self.file_data[y][m][d]={}
-										file_data_have=self.file_data[y][m][d].keys()
-									
+									file_heap_exist=True
+								else:
+									file_heap_exist=False
+
+								try:
+									file_data_have=self.file_data[y][m][d].keys()
+									file_data_exist=True
+								except:
+									#如果没有当日的容器那就新建好了
+									self.file_data[y][m][d]={}
+									file_data_have=self.file_data[y][m][d].keys()
+									file_data_exist=False
+								
+								if file_heap_exist or file_data_exist:
 									#文件堆中多出来的光头
 									for file_name in file_heap_have:
 										# file路径中是/，不是\
@@ -1362,15 +1373,17 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					if not os.path.exists(self.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)):
 						#missing添加全部的file
 						for file_name in self.file_data[y][m][d].keys():
-							missing.append(
-								{
-									"y":y,
-									"m":m,
-									"d":d,
-									"file_name":file_name,
-									"linked_concept":self.file_data[y][m][d][file_name]
-								}
-							)
+							#可以没有文件夹但存在网页链接，所以这里missing的只是那些文件，不包含网页链接
+							if "|" not in file_name:
+								missing.append(
+									{
+										"y":y,
+										"m":m,
+										"d":d,
+										"file_name":file_name,
+										"linked_concept":self.file_data[y][m][d][file_name]
+									}
+								)
 		
 		file_checker=FileCheckDialog(self,missing,redundant)
 
@@ -1408,21 +1421,21 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			}
 		)
 		
+		temp=QListWidgetItem()
+		
+		file_url=self.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
+		temp.setIcon(self.listWidget_search_file.which_icon(file_url))
+
 		#如果是link
 		if "|" in file_name:
 			#link的tooltip没有直接设置成url网址
 			#考虑到几个file listwidget间的拖动操作需要判断link是否已经在file_data中存在，所以需要附带ymd信息
 			#这样损失了直接往浏览器拖动打开网页的功能，但双击、回车打开就行了
-			file_url=self.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
 			# ">Google|http://www.google.com"
 			file_name=file_name[:file_name.rfind("|")][1:]
-		else:
-			file_url=self.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
-			
-		temp=QListWidgetItem()
+		
 		temp.setText(file_name)
 		temp.setToolTip(file_url)
-
 		
 		self.listWidget_search_file.addItem(temp)
 
@@ -1524,7 +1537,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		
 		def list_file_in_filename(search):
 			"搜索文件名只有“与”模式，关键词用空格分隔，列出文件名同时包含所有关键词的文件"
-			search=search.split()
+			search=list(map(lambda x: x.lower(),search.split()))
 			for y in range(1970,2170):
 				for m in range(1,13):
 					for d in self.file_data[y][m].keys():
@@ -1559,7 +1572,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		# "输入为空，列出当日的文件"
 		if search=="":
 			list_file_in_today()
-			return
 		
 		else:
 			#特殊搜索模式
@@ -1569,22 +1581,18 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				# "日期搜索模式:\d 2021.3.12"
 				if search[:3]=="\\d " or search[:3]=="\\D ":
 					list_file_in_date(search)
-					return
 				
 				#"没有concept归属搜索模式：\^c"
 				elif search[:3]=="\\^c" or search[:3]=="\\^C":
 					list_file_without_concept()
-					return
 
 				# "concept name“与”搜索模式:\c 宇宙 地球"
 				elif search[:3]=="\\c " or search[:3]=="\\C ":
 					list_file_with_and_concept(search)
-					return
 
 			# 文件名搜索模式
 			else:
 				list_file_in_filename(search)
-				return
 
 	def file_library_list_focus(self):
 		self.listWidget_search_file.setFocus()
@@ -1638,15 +1646,22 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			如果是内部文件，先按照ymd查filedata中有没有，
 				如果有就只做链接操作，
 				如果没有，那就说明熊孩子在乱搞，明明可以用file check来添加他非得手拖进来，报出警告！
-		
-		"""
 		"这里进来的要么是文件路径D:/，要么是网址http(s)"
 		
+		另外如果从内部拖到Library区，可以执行copy操作。
+		"""
+
+		def file_dir_dialog(lineedit):
+			dlg=QFileDialog(self)
+			file_saving_base=dlg.getExistingDirectory()
+			lineedit.setText(file_saving_base)
+		
+
+
+
 		if self.file_saving_base=="":
 			QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
 			return
-		
-		self.file_saving_today_dst_exist_check()
 		
 		#存不存在当日文件的容器
 		try:
@@ -1661,6 +1676,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.progress.setValue(0)
 		value=0
 		
+		coping_file=[]
+
 		#移动文件到当日路径
 		for i in links:
 			
@@ -1686,7 +1703,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				if result[0]==True:
 					title=result[1]
 				else:
-					title="Unkown Page"
+					title="Unknown Page"
 					self.trayIcon.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
 				file_name=">"+title+"|"+i
 				self.file_data[self.y][self.m][self.d][file_name]=[]
@@ -1708,12 +1725,36 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					#如果拥有内部路径
 					if self.file_saving_base in i:
 						date_and_name=i.replace(self.file_saving_base,"")[1:].split("/")
+
+						if len(date_and_name)>4:
+							QMessageBox.warning(self,"Warning","禁止从内部路径之下导入文件，先拖出到内部路径之外处。")
+							break
+						
+						#考虑把这些文件复制出去
 						y=int(date_and_name[0])
 						m=int(date_and_name[1])
 						d=int(date_and_name[2])
-						if y in range(1970,2170) and m in range(1,13) and d in range(1,32):
-							QMessageBox.warning(self,"Warning","禁止内部拖动文件到File区！同时禁止从内部路径导入文件（可以用File Chack功能添加abundant文件）")
+
+						if "|" in i:
+							#网页链接就算了
+							continue
+						else:
+							file_name=date_and_name[3]
+						
+						try:
+							#file_data中是否存在该文件
+							self.file_data[y][m][d][file_name]
+						except:
+							#如果都不存在，说明是在尝试导入基地址下的，但不在file_data中的文件
+							QMessageBox.warning(self,"Warning","禁止从内部路径导入文件（可以用File Chack功能添加abundant文件）")
 							break
+						#如果存在
+
+						#那就添加到复制列表中
+						coping_file.append(i)
+						#继续下一个
+						continue
+
 				except:
 					QMessageBox.warning(self,"Warning","请不要在file_base下乱放文件！")
 					break
@@ -1721,6 +1762,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				file_name=os.path.basename(i)
 				file_dst=self.file_saving_today_dst+"/"+file_name
 				
+				self.file_saving_today_dst_exist_check()
+
 				#文件添加，有可能硬盘被拔掉了
 				try:
 					shutil.move(i,file_dst)
@@ -1730,11 +1773,73 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					
 				#文件链接concept置空
 				self.file_data[self.y][self.m][self.d][file_name]=[]
-			
+		
 		self.progress.setValue(len(links))
 		self.progress.deleteLater()
 		
+		if coping_file!=[]:
+			
+			warning_text="确认要将这些文件复制到出去吗？\n\n"
+			for i in coping_file:
+				warning_text+=i+"\n"
+			
+			dlg = QDialog(self)
+			dlg.setWindowTitle("Copy Warning")
+
+			name_label=QLabel(warning_text)
+
+			lineedit_dst=QLineEdit(dlg)
+			lineedit_dst.setReadOnly(1)
+
+			button=QPushButton("Open",dlg)
+			button.clicked.connect(lambda:file_dir_dialog(lineedit_dst))
+			
+			QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+			buttonBox = QDialogButtonBox(QBtn)
+			buttonBox.accepted.connect(dlg.accept)
+			buttonBox.rejected.connect(dlg.reject)
+
+			layout=QVBoxLayout()
+			layout.addWidget(name_label)
+			layout.addWidget(lineedit_dst)
+			layout.addWidget(button)
+			layout.addWidget(buttonBox)
+			dlg.setLayout(layout)
+
+			if dlg.exec_():
+				dst=lineedit_dst.text()
+				
+				if dst!="":
+					self.progress=QProgressDialog("Coping File...","Cancel",0,len(coping_file),self)
+					self.progress.setWindowTitle("Coping File...")
+					#禁止cancel和close
+					btn=QPushButton("Cancel")
+					btn.setDisabled(True)
+					self.progress.setCancelButton(btn)
+					self.progress.setWindowFlag(Qt.WindowCloseButtonHint,False)
+					self.progress.setWindowModality(Qt.WindowModal)
+					self.progress.setMinimumDuration(0)
+					
+					ii=1
+					self.progress.setValue(ii)
+					for i in coping_file:
+						self.progress.setValue(ii)
+						
+						file_name=os.path.basename(i)
+						file_dst=os.path.join(dst,file_name)
+						
+						if os.path.isdir(i):
+							shutil.copytree(i,file_dst)
+						else:
+							shutil.copyfile(i,file_dst)
+						
+						ii+=1
+				else:
+					QMessageBox.warning(self,"Warning","请设置目标地址！")
+
 		self.file_library_list_update()
+
+		
 
 	def file_library_file_open(self):
 		"""
@@ -1749,8 +1854,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			}
 		)
 		"""
-
-		clicked_file_link=self.listWidget_search_file.currentItem().toolTip()
+		try:
+			clicked_file_link=self.listWidget_search_file.currentItem().toolTip()
+		except:
+			pass
 		
 		#如果是link
 		if "|" in clicked_file_link:
@@ -1766,8 +1873,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#########################################################################################
 		#########################################################################################
 		############################如果按下ctrl双击图片，启动内置的图片浏览器#########################
-		clicked_file_name=clicked_file_link.split("/")[-1]
-		if which_file_type(clicked_file_name)=="image" and self.listWidget_search_file.ctrl_pressed==True:
+		if which_file_type(clicked_file_link)=="image" and self.listWidget_search_file.ctrl_pressed==True:
 			
 			pic_list=[]
 
@@ -1879,14 +1985,14 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				del self.file_data[y][m][d][file_name]
 		
 		
-		self.file_library_list_update()
-		try:
-			self.concept_show(int(self.lineEdit_id.text()))
-		except:
-			pass
-		self.diary_line_file_show()
+			self.file_library_list_update()
+			try:
+				self.concept_show(int(self.lineEdit_id.text()))
+			except:
+				pass
+			self.diary_line_file_show()
 
-		self.tab_refresh_current_tab()
+			self.tab_refresh_current_tab()
 
 	def file_library_file_rename(self):
 		def check_validity(new_name_enter,buttonBox):
@@ -1977,11 +2083,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 						QMessageBox.critical(self,"Error","重命名%s出错：\n\n%s"%(old_file_url,e))
 						continue
 
-				if should_not_change=="":
-					new_file_icon=which_icon(new_file_name)
-				else:
-					new_file_icon=which_icon(new_file_name+".url")
-
 				# replace concept data中的old data，增加file data中的new data
 				self.file_data[old_y][old_m][old_d][new_file_name]=[]
 				for ID in old_file["linked_concept"]:
@@ -1995,8 +2096,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 						ff=self.concept_data[ID]["file"][ff_index]
 						if ff["y"]==old_y and ff["m"]==old_m and ff["d"]==old_d and ff["file_name"]==old_file_name:
 							self.concept_data[ID]["file"][ff_index]["file_name"]=new_file_name
-							self.concept_data[ID]["file"][ff_index]["file_icon"]=new_file_icon
-
 							break
 					
 				
@@ -2013,8 +2112,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 									if ff["y"]==old_y and ff["m"]==old_m and ff["d"]==old_d and ff["file_name"]==old_file_name:
 										
 										self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["file_name"]=new_file_name
-										self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["file_icon"]=new_file_icon
-
 										break
 				self.diary_data_save_out()
 				
@@ -2128,11 +2225,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 						QMessageBox.critical(self,"Error","重命名%s出错：\n\n%s"%(old_file_url,e))
 						continue
 
-				if should_not_change=="":
-					new_file_icon=which_icon(new_file_name)
-				else:
-					new_file_icon=which_icon(new_file_name+".url")
-
 				# replace concept data中的old data，增加file data中的new data
 				self.file_data[old_y][old_m][old_d][new_file_name]=[]
 				for ID in old_file_linked_concept:
@@ -2146,7 +2238,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 						ff=self.concept_data[ID]["file"][ff_index]
 						if ff["y"]==old_y and ff["m"]==old_m and ff["d"]==old_d and ff["file_name"]==old_file_name:
 							self.concept_data[ID]["file"][ff_index]["file_name"]=new_file_name
-							self.concept_data[ID]["file"][ff_index]["file_icon"]=new_file_icon
 
 							break
 					
@@ -2162,11 +2253,9 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 								for ff_index in range(len(self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"])):
 									ff=self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]
 									if ff["y"]==old_y and ff["m"]==old_m and ff["d"]==old_d and ff["file_name"]==old_file_name:
-										
 										self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["file_name"]=new_file_name
-										self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["file_icon"]=new_file_icon
-
 										break
+
 				self.diary_data_save_out()
 				
 			else:
@@ -2279,11 +2368,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 						QMessageBox.critical(self,"Error","重命名%s出错：\n\n%s"%(old_file_url,e))
 						continue
 
-				if should_not_change=="":
-					new_file_icon=which_icon(new_file_name)
-				else:
-					new_file_icon=which_icon(new_file_name+".url")
-
 				# replace concept data中的old data，增加file data中的new data
 				self.file_data[old_y][old_m][old_d][new_file_name]=[]
 				for ID in old_file_linked_concept:
@@ -2297,8 +2381,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 						ff=self.concept_data[ID]["file"][ff_index]
 						if ff["y"]==old_y and ff["m"]==old_m and ff["d"]==old_d and ff["file_name"]==old_file_name:
 							self.concept_data[ID]["file"][ff_index]["file_name"]=new_file_name
-							self.concept_data[ID]["file"][ff_index]["file_icon"]=new_file_icon
-
 							break
 					
 				
@@ -2315,9 +2397,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 									if ff["y"]==old_y and ff["m"]==old_m and ff["d"]==old_d and ff["file_name"]==old_file_name:
 										
 										self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["file_name"]=new_file_name
-										self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_file"][ff_index]["file_icon"]=new_file_icon
-
 										break
+				
 				self.diary_data_save_out()
 				
 			else:
@@ -2336,6 +2417,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 	def file_saving_today_dst_exist_check(self):
 		#这个判断是为了不要每次都去侦测硬盘路径，如果打开程序后侦测过一次后，就不要侦测第二次了
 		#如果只是添加网页link的话没必要侦测硬盘，机械硬盘从休眠到启动很慢的
+		#在shutil.move之前做检查就行了
 		if self.file_saving_today_dst_exist==False:
 			
 			#当日路径在不在，这里不作过多限制，如果硬盘拔掉了，创建不了路径也没关系，因为要允许添加网页链接
@@ -3894,7 +3976,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		############################################################################
 
 	def about(self):
-		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 1.0.0.0\nAuthor: Holence\nContact: Holence08@gmail.com")
+		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 1.0.0.1\nAuthor: Holence\nContact: Holence08@gmail.com")
 
 	def font_set(self,font,font_size):
 		font_size=int(font_size)
@@ -4225,6 +4307,15 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			self.dockWidget_library.showNormal()
 		if not self.dockWidget_sticker.isHidden():
 			self.dockWidget_sticker.showNormal()
+
+	def window_restore_normal_size(self):
+		pos=self.pos()
+		x=pos.x()
+		y=pos.y()
+		mini_size=self.minimumSize()
+		w=mini_size.width()
+		h=mini_size.height()
+		self.setGeometry(x,y,w,h)
 
 	def data_validity_check(self):
 		"检查diary concept file rss的data"
@@ -4808,20 +4899,20 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			d=file["d"]
 			file_name=file["file_name"]
 
+			temp=QListWidgetItem()
+
+			file_url=self.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
+			temp.setIcon(self.listWidget_concept_linked_file.which_icon(file_url))
+			
 			#如果是link
 			if "|" in file_name:
 				#link的tooltip没有直接设置成url网址
 				#考虑到几个file listwidget间的拖动操作需要判断link是否已经在file_data中存在，所以需要附带ymd信息
 				#这样损失了直接往浏览器拖动打开网页的功能，但双击、回车打开就行了
-				file_url=self.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
 				# ">Google|http://www.google.com"
 				file_name=file_name[:file_name.rfind("|")][1:]
-			else:
-				file_url=self.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
-				
-			temp=QListWidgetItem()
+			
 			temp.setText(file_name)
-			temp.setIcon(QIcon(file["file_icon"]))
 			temp.setToolTip(file_url)
 			
 			self.listWidget_concept_linked_file.addItem(temp)
@@ -5665,9 +5756,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
 			return
 		
-		
-		self.file_saving_today_dst_exist_check()
-		
 		#存不存在当日文件的容器
 		try:
 			self.file_data[self.y][self.m][self.d]
@@ -5693,6 +5781,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			if self.file_saving_base in i:
 				try:
 					date_and_name=i.replace(self.file_saving_base,"")[1:].split("/")
+
+					if len(date_and_name)>4:
+						QMessageBox.warning(self,"Warning","禁止从内部路径之下导入文件，先拖出到内部路径之外处。")
+						break
+					
 					y=int(date_and_name[0])
 					m=int(date_and_name[1])
 					d=int(date_and_name[2])
@@ -5702,10 +5795,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						try:
 							if "|" in i:
 								file_name=i[i.find(">"):]
-								file_icon=which_icon(file_name+".url")
 							else:
 								file_name=date_and_name[3]
-								file_icon=which_icon(file_name)
 							
 							#file_data中是否存在该文件\link
 							self.file_data[y][m][d][file_name]
@@ -5716,8 +5807,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 									"y":y,
 									"m":m,
 									"d":d,
-									"file_name":file_name,
-									"file_icon":file_icon
+									"file_name":file_name
 								}
 							)
 						#如果不存在，那就说明熊孩子在乱搞，明明可以用file check来添加他非得手拖进来
@@ -5745,19 +5835,19 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					if result[0]==True:
 						title=result[1]
 					else:
-						title="Unkown Page"
+						title="Unknown Page"
 						self.trayIcon.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
 					
 					file_name=">"+title+"|"+i
 					self.file_data[self.y][self.m][self.d][file_name]=[]
-
-					file_icon=which_icon(file_name+".url")
 
 				else:
 				
 					file_name=os.path.basename(i)
 					file_dst=self.file_saving_today_dst+"/"+file_name
 					
+					self.file_saving_today_dst_exist_check()
+
 					#文件添加，有可能硬盘被拔掉了
 					try:
 						shutil.move(i,file_dst)
@@ -5767,16 +5857,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 					#文件链接concept置空
 					self.file_data[self.y][self.m][self.d][file_name]=[]
-
-					file_icon=which_icon(file_name)
 				
 				adding_file.append(
 					{
 						"y":self.y,
 						"m":self.m,
 						"d":self.d,
-						"file_name":file_name,
-						"file_icon":file_icon
+						"file_name":file_name
 					}
 				)
 		
@@ -5799,9 +5886,14 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			if ID not in self.file_data[y][m][d][file_name]:
 				self.file_data[y][m][d][file_name].append(ID)
 		
-		#按照文件名排序
+		#按照文件名排序，并且把文件夹放在最前面
 		self.concept_data[ID]["file"].sort(key=lambda x:x["file_name"])
-
+		for index in range(len(self.concept_data[ID]["file"])):
+			file_name=self.concept_data[ID]["file"][index]["file_name"]
+			if which_file_type(file_name)=="folder":
+				folder=self.concept_data[ID]["file"].pop(index)
+				self.concept_data[ID]["file"].insert(0,folder)
+			
 		#更新事物界面
 		self.concept_show(ID)
 		self.file_library_list_update()
@@ -5837,8 +5929,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		#########################################################################################
 		#########################################################################################
 		############################如果按下ctrl双击图片，启动内置的图片浏览器#########################
-		clicked_file_name=clicked_file_link.split("/")[-1]
-		if which_file_type(clicked_file_name)=="image" and self.listWidget_concept_linked_file.ctrl_pressed==True:
+		if which_file_type(clicked_file_link)=="image" and self.listWidget_concept_linked_file.ctrl_pressed==True:
 			
 			ID=int(self.lineEdit_id.text())
 
@@ -6001,6 +6092,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			pass
 
 	def diary_line_file_show(self):
+
 		self.listWidget_text_linked_file.clear()
 		
 		#不是新的一篇
@@ -6017,20 +6109,20 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						d=file["d"]
 						file_name=file["file_name"]
 
+						temp=QListWidgetItem()
+						
+						file_url=self.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
+						temp.setIcon(self.listWidget_text_linked_file.which_icon(file_url))
+						
 						#如果是link
 						if "|" in file_name:
 							#link的tooltip没有直接设置成url网址
 							#考虑到几个file listwidget间的拖动操作需要判断link是否已经在file_data中存在，所以需要附带ymd信息
 							#这样损失了直接往浏览器拖动打开网页的功能，但双击、回车打开就行了
-							file_url=self.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
 							# ">Google|http://www.google.com"
 							file_name=file_name[:file_name.rfind("|")][1:]
-						else:
-							file_url=self.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
-							
-						temp=QListWidgetItem()
+
 						temp.setText(file_name)
-						temp.setIcon(QIcon(file["file_icon"]))
 						temp.setToolTip(file_url)
 
 						self.listWidget_text_linked_file.addItem(temp)
@@ -6049,20 +6141,20 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					d=file["d"]
 					file_name=file["file_name"]
 
+					temp=QListWidgetItem()
+					
+					file_url=self.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
+					temp.setIcon(self.listWidget_text_linked_file.which_icon(file_url))
+
 					#如果是link
 					if "|" in file_name:
 						#link的tooltip没有直接设置成url网址
 						#考虑到几个file listwidget间的拖动操作需要判断link是否已经在file_data中存在，所以需要附带ymd信息
 						#这样损失了直接往浏览器拖动打开网页的功能，但双击、回车打开就行了
-						file_url=self.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
 						# ">Google|http://www.google.com"
 						file_name=file_name[:file_name.rfind("|")][1:]
-					else:
-						file_url=self.file_saving_base+"/"+str(y)+"/"+str(m)+"/"+str(d)+"/"+file_name
-						
-					temp=QListWidgetItem()
+					
 					temp.setText(file_name)
-					temp.setIcon(QIcon(file["file_icon"]))
 					temp.setToolTip(file_url)
 					
 					self.listWidget_text_linked_file.addItem(temp)
@@ -6073,6 +6165,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				else:
 					self.toolBox_text.setItemText(1,"Text Linked File")
 
+	
 	def diary_line_file_link(self,links):
 		"""
 		从file library中进来的直接添加到当前日期，（如果带有内部路径，报错！）
@@ -6087,8 +6180,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		if self.file_saving_base=="":
 			QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
 			return
-		
-		self.file_saving_today_dst_exist_check()
 		
 		#存不存在当日文件的容器
 		try:
@@ -6115,6 +6206,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			if self.file_saving_base in i:
 				try:
 					date_and_name=i.replace(self.file_saving_base,"")[1:].split("/")
+
+					if len(date_and_name)>4:
+						QMessageBox.warning(self,"Warning","禁止从内部路径之下导入文件，先拖出到内部路径之外处。")
+						break
+					
 					y=int(date_and_name[0])
 					m=int(date_and_name[1])
 					d=int(date_and_name[2])
@@ -6125,10 +6221,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 							
 							if "|" in i:
 								file_name=i[i.find(">"):]
-								file_icon=which_icon(file_name+".url")
 							else:
 								file_name=date_and_name[3]
-								file_icon=which_icon(file_name)
 								
 							#file_data中是否存在该文件\link
 							self.file_data[y][m][d][file_name]
@@ -6139,8 +6233,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 									"y":y,
 									"m":m,
 									"d":d,
-									"file_name":file_name,
-									"file_icon":file_icon
+									"file_name":file_name
 								}
 							)
 							#如果不存在，那就说明熊孩子在乱搞，明明可以用file check来添加他非得手拖进来
@@ -6169,19 +6262,19 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					if result[0]==True:
 						title=result[1]
 					else:
-						title="Unkown Page"
+						title="Unknown Page"
 						self.trayIcon.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
 					
 					file_name=">"+title+"|"+i
 					self.file_data[self.y][self.m][self.d][file_name]=[]
-
-					file_icon=which_icon(file_name+".url")
 
 				else:
 				
 					file_name=os.path.basename(i)
 					file_dst=self.file_saving_today_dst+"/"+file_name
 					
+					self.file_saving_today_dst_exist_check()
+
 					#文件添加，有可能硬盘被拔掉了
 					try:
 						shutil.move(i,file_dst)
@@ -6191,16 +6284,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					
 					#文件链接concept置空
 					self.file_data[self.y][self.m][self.d][file_name]=[]
-
-					file_icon=which_icon(file_name)
 				
 				adding_file.append(
 					{
 						"y":self.y,
 						"m":self.m,
 						"d":self.d,
-						"file_name":file_name,
-						"file_icon":file_icon
+						"file_name":file_name
 					}
 				)
 		
@@ -6215,6 +6305,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"].append(file)
 
 		self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"].sort(key=lambda x:x["file_name"])
+		for index in range(len(self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"])):
+			file_name=self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"][index]["file_name"]
+			if which_file_type(file_name)=="folder":
+				folder=self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"].pop(index)
+				self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"].insert(0,folder)
 
 		self.diary_line_file_show()
 		self.window_title_update()
@@ -6289,8 +6384,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		#########################################################################################
 		#########################################################################################
 		############################如果按下ctrl双击图片，启动内置的图片浏览器#########################
-		clicked_file_name=clicked_file_link.split("/")[-1]
-		if which_file_type(clicked_file_name)=="image" and self.listWidget_text_linked_file.ctrl_pressed==True:
+		if which_file_type(clicked_file_link)=="image" and self.listWidget_text_linked_file.ctrl_pressed==True:
 
 			pic_list=[]
 

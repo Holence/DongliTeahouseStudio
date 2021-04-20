@@ -298,6 +298,7 @@ class MyTextEdit(QTextEdit):
 		self._changed = False
 
 class MyTabFileLeafList(QListWidget):
+	"这个与MyConceptLinkedFileList不同之处在于不允许拖进来"
 	def __init__(self,parent):
 		super(MyTabFileLeafList,self).__init__(parent)
 		self.parent=parent
@@ -305,6 +306,39 @@ class MyTabFileLeafList(QListWidget):
 		# self.setDragDropMode(QAbstractItemView.InternalMove)
 		self.ctrl_pressed=False
 		self.alt_pressed=False
+	
+	def which_icon(self,file_url):
+		"根据文件名，返回对应的QIcon"
+		
+		#网页链接
+		if "|" in file_url:
+			icon=QIcon(":/icon/globe.svg")
+		#不是网页链接
+		else:
+			
+			file_extension=file_url.split(".")[-1].lower()
+			
+			#图片显示预览
+			if file_extension in image_extension:
+				
+				info_list=file_url.split("/")
+				cache_name="".join(info_list[-4:])
+				
+				pic=QPixmap()
+				if not pic.load("./cache/%s"%cache_name):
+					pic.load(file_url)
+					pic=pic.scaled(128,128,Qt.KeepAspectRatio,Qt.FastTransformation)
+					pic.save("./cache/%s"%cache_name)
+				
+				icon=QIcon(pic)
+
+			#不是图片的正常显示
+			else:
+				file_info=QFileInfo(file_url)
+				file_icon_provider=QFileIconProvider()
+				icon=file_icon_provider.icon(file_info)
+		
+		return icon
 	
 	def dropEvent(self, event):
 		#不让你在内部乱拖！
@@ -341,6 +375,29 @@ class MyTabFileLeafList(QListWidget):
 			self.ctrl_pressed=False
 		if event.key()==Qt.Key_Alt:
 			self.alt_pressed=False
+	
+	def wheelEvent(self,event):
+		super(MyTabFileLeafList,self).wheelEvent(event)
+		"Ctrl+滚轮去放大缩小"
+		
+		if self.ctrl_pressed==True:
+			xscrolls = event.angleDelta().x()
+			yscrolls = event.angleDelta().y()
+			
+			delta=8
+			#放大
+			if xscrolls>0 or yscrolls>0 and self.iconSize().width()+delta<64:
+				icon_size=self.iconSize()+QSize(delta,delta)
+				grid_size=self.gridSize()+QSize(delta,delta)
+			#缩小
+			elif xscrolls<0 or yscrolls<0 and self.iconSize().width()-delta>23:
+				icon_size=self.iconSize()-QSize(delta,delta)
+				grid_size=self.gridSize()-QSize(delta,delta)
+			else:
+				return
+			
+			self.setIconSize(icon_size)
+			self.setGridSize(grid_size)
 
 class MyConceptLinkedFileList(QListWidget):
 	"包括concept linked file区、tab root file区、file manager区"
@@ -348,6 +405,7 @@ class MyConceptLinkedFileList(QListWidget):
 	enter_pressed=Signal()
 	focusouted=Signal()
 	focusined=Signal()
+
 	def __init__(self,parent):
 		super(MyConceptLinkedFileList,self).__init__(parent)
 		self.setAcceptDrops(True)
@@ -355,6 +413,39 @@ class MyConceptLinkedFileList(QListWidget):
 		self.ctrl_pressed=False
 		self.alt_pressed=False
 	
+	def which_icon(self,file_url):
+		"根据文件名，返回对应的QIcon"
+		
+		#网页链接
+		if "|" in file_url:
+			icon=QIcon(":/icon/globe.svg")
+		#不是网页链接
+		else:
+			
+			file_extension=file_url.split(".")[-1].lower()
+			
+			#图片显示预览
+			if file_extension in image_extension:
+				
+				info_list=file_url.split("/")
+				cache_name="".join(info_list[-4:])
+				
+				pic=QPixmap()
+				if not pic.load("./cache/%s"%cache_name):
+					pic.load(file_url)
+					pic=pic.scaled(128,128,Qt.KeepAspectRatio,Qt.FastTransformation)
+					pic.save("./cache/%s"%cache_name)
+				
+				icon=QIcon(pic)
+			
+			#不是图片的正常显示
+			else:
+				file_info=QFileInfo(file_url)
+				file_icon_provider=QFileIconProvider()
+				icon=file_icon_provider.icon(file_info)
+		
+		return icon
+
 	def focusOutEvent(self, event):
 		super(MyConceptLinkedFileList,self).focusOutEvent(event)
 		self.focusouted.emit()
@@ -461,13 +552,37 @@ class MyConceptLinkedFileList(QListWidget):
 		#按回车发出enter_press的信号，出去打开文件
 		if event.key()==Qt.Key_Return:
 			self.enter_pressed.emit()
-		
+	
 	def keyReleaseEvent(self,event):
 		super(MyConceptLinkedFileList, self).keyReleaseEvent( event )
 		if event.key()==Qt.Key_Control:
 			self.ctrl_pressed=False
 		if event.key()==Qt.Key_Alt:
 			self.alt_pressed=False
+	
+	def wheelEvent(self,event):
+		super(MyConceptLinkedFileList,self).wheelEvent(event)
+		"Ctrl+滚轮去放大缩小"
+		
+		
+		if self.ctrl_pressed==True:
+			xscrolls = event.angleDelta().x()
+			yscrolls = event.angleDelta().y()
+			
+			delta=8
+			#放大
+			if xscrolls>0 or yscrolls>0 and self.iconSize().width()+delta<64:
+				icon_size=self.iconSize()+QSize(delta,delta)
+				grid_size=self.gridSize()+QSize(delta,delta)
+			#缩小
+			elif xscrolls<0 or yscrolls<0 and self.iconSize().width()-delta>23:
+				icon_size=self.iconSize()-QSize(delta,delta)
+				grid_size=self.gridSize()-QSize(delta,delta)
+			else:
+				return
+			
+			self.setIconSize(icon_size)
+			self.setGridSize(grid_size)
 
 class MyImageViewer(QMainWindow):
 	"MyImageViewer(pic_list,index)，传入包含所有url的pic_list，以及双击打开时的index"
@@ -549,7 +664,6 @@ class MyImageViewer(QMainWindow):
 				pix=pix.scaled(w,h,Qt.KeepAspectRatio)
 				self.image_label.setPixmap(pix)
 				return
-		
 		
 	def keyPressEvent(self,event):
 		super(MyImageViewer, self).keyPressEvent( event )

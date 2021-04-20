@@ -1427,7 +1427,7 @@ p, li { white-space: pre-wrap; }
              <x>0</x>
              <y>0</y>
              <width>277</width>
-             <height>157</height>
+             <height>155</height>
             </rect>
            </property>
            <attribute name="icon">
@@ -1501,7 +1501,7 @@ p, li { white-space: pre-wrap; }
              <x>0</x>
              <y>0</y>
              <width>277</width>
-             <height>144</height>
+             <height>155</height>
             </rect>
            </property>
            <attribute name="icon">
@@ -1861,12 +1861,39 @@ p, li { white-space: pre-wrap; }
             <property name="selectionMode">
              <enum>QAbstractItemView::ExtendedSelection</enum>
             </property>
-            <property name="spacing">
-             <number>5</number>
+            <property name="iconSize">
+             <size>
+              <width>23</width>
+              <height>23</height>
+             </size>
+            </property>
+            <property name="gridSize">
+             <size>
+              <width>23</width>
+              <height>27</height>
+             </size>
             </property>
             <property name="selectionRectVisible">
              <bool>true</bool>
             </property>
+            <item>
+             <property name="text">
+              <string>asdasd</string>
+             </property>
+             <property name="icon">
+              <iconset resource="resource.qrc">
+               <normaloff>:/icon/airplay.svg</normaloff>:/icon/airplay.svg</iconset>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>asdasd</string>
+             </property>
+             <property name="icon">
+              <iconset resource="resource.qrc">
+               <normaloff>:/icon/archive.svg</normaloff>:/icon/archive.svg</iconset>
+             </property>
+            </item>
            </widget>
            <widget class="QWidget" name="layoutWidget2">
             <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -2019,6 +2046,7 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionToggle_Fullscreen"/>
     <addaction name="actionHide_Main_Window"/>
     <addaction name="actionRestore_Main_Window"/>
+    <addaction name="actionRestore_to_Normal_Size"/>
     <addaction name="actionStay_on_Top"/>
     <addaction name="separator"/>
    </widget>
@@ -2816,7 +2844,7 @@ p, li { white-space: pre-wrap; }
            <x>0</x>
            <y>0</y>
            <width>272</width>
-           <height>81</height>
+           <height>83</height>
           </rect>
          </property>
          <attribute name="icon">
@@ -2871,8 +2899,8 @@ p, li { white-space: pre-wrap; }
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>258</width>
-           <height>80</height>
+           <width>272</width>
+           <height>83</height>
           </rect>
          </property>
          <attribute name="icon">
@@ -3463,6 +3491,15 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>I'm Feeling Lucky</string>
+   </property>
+  </action>
+  <action name="actionRestore_to_Normal_Size">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/minimize-2.svg</normaloff>:/icon/minimize-2.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Restore to Normal Size</string>
    </property>
   </action>
  </widget>

@@ -268,55 +268,63 @@ def what_day_is_today():
 		today=7
 	return today
 
-def which_icon(file_name):
-	if "." not in file_name:
-		icon=":/icon/folder.svg"
-		return icon
-	
-	
-	file_extension=file_name.split(".")[-1].lower()
-	
-	if file_extension=="url":
-		icon=":/icon/globe.svg"
-	elif file_extension in app_extension:
-		icon=":/icon/box.svg"
-	elif file_extension in audio_extension:
-		icon=":/icon/music.svg"
-	elif file_extension in playlist_extension:
-		icon=":/icon/list.svg"
-	elif file_extension in video_extension:
-		icon=":/icon/film.svg"
-	elif file_extension in image_extension:
-		icon=":/icon/image.svg"
-	elif file_extension in text_extension:
-		icon=":/icon/file-text.svg"
-	else:
-		icon=":/icon/file.svg"
-	return icon
 
-def which_file_type(file_name):
-	if "." not in file_name:
-		return "folder"
+# def which_icon(file_name):
+# 	if "." not in file_name:
+# 		icon=":/icon/folder.svg"
+# 		return icon
+
+# 	file_extension=file_name.split(".")[-1].lower()
 	
-	
-	file_extension=file_name.split(".")[-1].lower()
-	
-	if file_extension=="url":
+# 	if file_extension=="url":
+# 		icon=":/icon/globe.svg"
+# 	elif file_extension in app_extension:
+# 		icon=":/icon/box.svg"
+# 	elif file_extension in audio_extension:
+# 		icon=":/icon/music.svg"
+# 	elif file_extension in playlist_extension:
+# 		icon=":/icon/list.svg"
+# 	elif file_extension in video_extension:
+# 		icon=":/icon/film.svg"
+# 	elif file_extension in image_extension:
+# 		icon=":/icon/image.svg"
+# 	elif file_extension in text_extension:
+# 		icon=":/icon/file-text.svg"
+# 	else:
+# 		icon=":/icon/file.svg"
+# 	return icon
+
+def which_file_type(file_url):
+	#网页链接
+	if "|" in file_url:
 		return "url"
-	elif file_extension in app_extension:
-		return "exe"
-	elif file_extension in audio_extension:
-		return "audio"
-	elif file_extension in playlist_extension:
-		return "playlist"
-	elif file_extension in video_extension:
-		return "video"
-	elif file_extension in image_extension:
-		return "image"
-	elif file_extension in text_extension:
-		return "text"
+	#不是网页链接
 	else:
-		return "unknown"
+		
+		file_name=file_url.split("/")[-1]
+
+		file_extension=file_name.split(".")[-1].lower()
+		
+		if file_extension in app_extension:
+			return "exe"
+		elif file_extension in image_extension:
+			return "image"
+		elif file_extension in text_extension:
+			return "text"
+		elif file_extension in audio_extension:
+			return "audio"
+		elif file_extension in video_extension:
+			return "video"
+		elif file_extension in playlist_extension:
+			return "playlist"
+		else:
+			return "folder"
+		
+		#文件夹也可以有.号的呀……
+		# if "." not in file_name:
+		# 	return "folder"
+		# else:
+		
 
 def find_dict_in_string(s,name):
 	"尝试在字符串中找出格式为 name:\{  \}的字典，返回一个字典，若找不到返回False"
@@ -369,9 +377,6 @@ def find_dict_in_string(s,name):
 	find="{\""+s[index_head:index_tail]+"}"
 	
 	return json.loads(find)
-
-
-
 
 class RSS_Parser():
 	################################################################################
