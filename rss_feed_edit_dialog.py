@@ -91,10 +91,15 @@ class Ui_rss_feed_edit_dialog(object):
 
         self.verticalLayout.addItem(self.verticalSpacer)
 
-        self.pushButton = QPushButton(rss_feed_edit_dialog)
-        self.pushButton.setObjectName(u"pushButton")
+        self.pushButton_mark = QPushButton(rss_feed_edit_dialog)
+        self.pushButton_mark.setObjectName(u"pushButton_mark")
 
-        self.verticalLayout.addWidget(self.pushButton)
+        self.verticalLayout.addWidget(self.pushButton_mark)
+
+        self.pushButton_delete = QPushButton(rss_feed_edit_dialog)
+        self.pushButton_delete.setObjectName(u"pushButton_delete")
+
+        self.verticalLayout.addWidget(self.pushButton_delete)
 
 
         self.horizontalLayout.addLayout(self.verticalLayout)
@@ -125,6 +130,7 @@ class Ui_rss_feed_edit_dialog(object):
         self.label.setText(QCoreApplication.translate("rss_feed_edit_dialog", u"Update Frequency", None))
         self.lineEdit_frequency.setPlaceholderText(QCoreApplication.translate("rss_feed_edit_dialog", u"1,2,3,4,5,6,7", None))
         self.label_4.setText(QCoreApplication.translate("rss_feed_edit_dialog", u"Unread", None))
-        self.pushButton.setText(QCoreApplication.translate("rss_feed_edit_dialog", u"Mark All Articles in This Feed", None))
+        self.pushButton_mark.setText(QCoreApplication.translate("rss_feed_edit_dialog", u"Mark All Articles in This Feed", None))
+        self.pushButton_delete.setText(QCoreApplication.translate("rss_feed_edit_dialog", u"Delete Articles which Have Been Read", None))
     # retranslateUi
 

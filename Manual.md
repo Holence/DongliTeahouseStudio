@@ -4,7 +4,7 @@
 
 语言：简体中文
 
-对应版本：1.0.0.0
+对应版本：1.0.0.1
 
 ## 前言
 
@@ -150,7 +150,7 @@ Feed可以拖放到Folder中，Folder会自动统计出未读的数目。
 
 选中单个文件夹按F2，编辑文件夹名或者标记文件夹内所有Feed文章全部已读。
 
-选中单个或多个Feed按F2，编辑Feed名（不可批量），更新频率从周一到周日（可批量），Feed文章全部已读（可批量）
+选中单个或多个Feed按F2，编辑Feed名（不可批量），更新频率从周一到周日（可批量），Feed文章全部已读（可批量），Feed内已读文章删除（可批量）。
 
 #### 删除
 
@@ -412,8 +412,7 @@ Ctrl+F搜索Diary。
                                     "y": 2021,
                                     "m": 4,
                                     "d": 17,
-                                    "file_name": ">Lorem ipsum - Wikipedia|https://en.wikipedia.org/wiki/Lorem_ipsum",
-                                    "file_icon": ":/icon/globe.svg"
+                                    "file_name": ">Lorem ipsum - Wikipedia|https://en.wikipedia.org/wiki/Lorem_ipsum"
                                 }
                             ]
                         },
@@ -496,6 +495,8 @@ Segment的信息zen_data存储在Zen_Data.dlcw中：
 树状展开Concept，并可以查看Concept的相关信息，并且展示出与Concept链接的文本块的汇总以及该对应时频图（鼠标拖动、上下左右键移动，滚轮、加减号缩放，Ctrl键+滚轮水平缩放，Shift+滚轮水平移动。鼠标靠近某个日期左键点击，下方的文本区会展示对应日期的文本）
 
 ![tab](Manual.assets/tab.png)
+
+![tab](Manual.assets/tab2.png)
 
 #### 新建Tab
 
@@ -628,8 +629,7 @@ Ctrl+R
                 "y": 2021,
                 "m": 4,
                 "d": 17,
-                "file_name": ">Lipsum|https://www.lipsum.com",
-                "file_icon": ":/icon/globe.svg"
+                "file_name": ">Lipsum|https://www.lipsum.com"
             }
         ]
     }
@@ -740,6 +740,10 @@ Ctrl+Q
 
 在Library中选中文件（支持多选），按Delete，所有与这些文件相关的链接信息将会被抹去，这些文件将会被移动到系统的回收站。
 
+#### 复制文件到外部位置
+
+选中文件，拖动到Library Dock窗内的文件列表中。
+
 #### 内置图片浏览器
 
 在Concept Dock窗的Concept Linked File区 或 Diary Dock窗的Text Linked File区 或 Tab页的Root File区和Leaf File区
@@ -843,7 +847,11 @@ F11
 
 这是我最喜欢的功能！
 
-## 数据迁移
+## 数据
+
+### 安全性检验
+
+Data Security Check，检查是否有数据损坏。
 
 ### 导出
 
@@ -861,13 +869,15 @@ F11
 
 ## 设计遗憾与残留问题*
 
+还是没有面向对象，还是一片混乱……
+
 如果要用自定义window title、全部支持右键菜单的话，需要从最一开始就设计自制Mainwindow、Dialog、MessageBox类，之后所有的空间全部继承于这些。
 
 现在发现全部抽象化或是一个个改都太费劲了，那就算了吧。
 
 ---
 
-rss_tree_drop_update调用rss_tree_build后，滚动条跑到了最上面，怎么也设置不下来，很吃屎
+rss_tree_drop_update调用rss_tree_build后，滚动条跑到了最上面，怎么也设置不下来
 
 adding_feed_thread如果被closeEvent打断，可能会卡死（可能是在接受网络数据的过程中）
 

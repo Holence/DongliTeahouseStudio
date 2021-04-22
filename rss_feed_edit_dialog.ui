@@ -122,9 +122,16 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QPushButton" name="pushButton_mark">
          <property name="text">
           <string>Mark All Articles in This Feed</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_delete">
+         <property name="text">
+          <string>Delete Articles which Have Been Read</string>
          </property>
         </widget>
        </item>

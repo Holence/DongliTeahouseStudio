@@ -22,6 +22,8 @@ Features:
 
 ![tab](Manual.assets/tab.png)
 
+![tab](Manual.assets/tab2.png)
+
 ---
 
 Inspired By:

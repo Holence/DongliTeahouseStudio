@@ -1876,24 +1876,6 @@ p, li { white-space: pre-wrap; }
             <property name="selectionRectVisible">
              <bool>true</bool>
             </property>
-            <item>
-             <property name="text">
-              <string>asdasd</string>
-             </property>
-             <property name="icon">
-              <iconset resource="resource.qrc">
-               <normaloff>:/icon/airplay.svg</normaloff>:/icon/airplay.svg</iconset>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>asdasd</string>
-             </property>
-             <property name="icon">
-              <iconset resource="resource.qrc">
-               <normaloff>:/icon/archive.svg</normaloff>:/icon/archive.svg</iconset>
-             </property>
-            </item>
            </widget>
            <widget class="QWidget" name="layoutWidget2">
             <layout class="QVBoxLayout" name="verticalLayout_7">
@@ -2075,6 +2057,7 @@ p, li { white-space: pre-wrap; }
      <addaction name="actionExport_Zen_Tree_Data_to_Json"/>
     </widget>
     <addaction name="actionSave_Data"/>
+    <addaction name="actionData_Security_Check"/>
     <addaction name="menuExport"/>
    </widget>
    <widget class="QMenu" name="menuTool">
@@ -3500,6 +3483,15 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Restore to Normal Size</string>
+   </property>
+  </action>
+  <action name="actionData_Security_Check">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/cpu.svg</normaloff>:/icon/cpu.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Data Security Check</string>
    </property>
   </action>
  </widget>

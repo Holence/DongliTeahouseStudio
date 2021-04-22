@@ -339,12 +339,17 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		self.plainTextEdit_detail.setEnabled(0)
 		self.lineEdit_name.setEnabled(0)
 
-		#貌似没办法在ui文件中定义一个只含有一个widget的splitter，只能先拿一个东西占位，再删掉了
-		self.pushButton.deleteLater()
-		self.splitter_top.addWidget(self.chartView_spline)
-		self.splitter_top.setStretchFactor(0,1)
-		self.splitter_top.setStretchFactor(1,1)
-		self.splitter_top.setStretchFactor(2,2)
+		layout=QVBoxLayout()
+		layout.setContentsMargins(QMargins(0,0,0,0))
+		layout.addWidget(self.chartView_spline)
+		self.frame.setLayout(layout)
+		# self.splitter_right.addWidget()
+		self.splitter_whole.setStretchFactor(0,1)
+		self.splitter_whole.setStretchFactor(1,1)
+		self.splitter_whole.setStretchFactor(2,3)
+		self.splitter_text.setStretchFactor(0,1)
+		self.splitter_text.setStretchFactor(1,5)
+
 
 		#编辑结束后自动临时保存
 		self.lineEdit_name.editingFinished.connect(self.concept_info_edited_and_save)
@@ -391,6 +396,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		# Concept
 		try:
 			self.concept_show()
+			self.chart_and_text_show()
 		except:
 			pass
 
@@ -434,8 +440,8 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		update_current_leaf_concept_list()
 		
 		self.concept_show()
-
 		self.update_file_list()
+		self.chart_and_text_show()
 
 		self.listWidget_file_root.setEnabled(1)
 		self.listWidget_file_leafs.setEnabled(1)
@@ -678,15 +684,16 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		#Detail
 		self.plainTextEdit_detail.setPlainText(self.parent.concept_data[self.current_select_conceptID]["detail"])
 
+		#Relative
 		self.listWidget_relative.clear()
 		for related_ID in self.parent.concept_data[self.current_select_conceptID]["relative"]:
 			related_item=self.parent.concept_data[related_ID]
 			name=str(related_item["id"])+"|"+related_item["name"]
 			self.listWidget_relative.addItem(name)
-		
-		
-		#如果没隐藏才要画图
-		if self.chartView_spline.width()!=self.chartView_spline.minimumWidth() and self.chartView_spline.height()!=self.chartView_spline.minimumHeight():
+
+	def chart_and_text_show(self):
+		#如果在text页才运行
+		if self.tabWidget.currentIndex()==2:
 			self.begin_date=None
 			self.MaxY=0#最大的y坐标（一天内最多的concept的数量的最大值
 			self.series=QtCharts.QLineSeries()
@@ -702,9 +709,8 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			#列出self.current_select_conceptID以及它下层所有concept的related text
 			self.textEdit_viewer.clear()
 
-			#如果没隐藏才要筛选text
-			if self.textEdit_viewer.width()!=self.textEdit_viewer.minimumWidth() and self.textEdit_viewer.height()!=self.textEdit_viewer.minimumHeight():
-				self.concept_related_text_show(plot=True)
+			
+			self.concept_related_text_show(plot=True)
 
 			#开始绘图
 			(chart,xaxis,yaxis)=self.create_spline_chart()
@@ -734,12 +740,9 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 			self.series.attachAxis(yaxis)
 
 			self.chartView_spline.setChart(chart)
-		
-		#不用画图
 		else:
-			#如果没隐藏才要筛选text
-			if self.textEdit_viewer.width()!=self.textEdit_viewer.minimumWidth() and self.textEdit_viewer.height()!=self.textEdit_viewer.minimumHeight():
-				self.concept_related_text_show(plot=False)
+			self.textEdit_viewer.clear()
+			self.clear_view()
 	
 	def concept_info_edited_and_save(self):
 		if self.current_select_conceptID!=None:
@@ -801,7 +804,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 				try:
 					date_and_name=i.replace(self.parent.file_saving_base,"")[1:].split("/")
 					
-					if len(date_and_name)>4:
+					if "|" not in i and len(date_and_name)>4:
 						QMessageBox.warning(self,"Warning","禁止从内部路径之下导入文件，先拖出到内部路径之外处。")
 						break
 					
@@ -1234,8 +1237,6 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		for tree_item in root_file_tree_item_list:
 			self.listWidget_file_root.addItem(tree_item)
 
-		
-		
 		#本层之下的所有child里的文件
 		self.listWidget_file_leafs.clear()
 		for concept_id in self.current_leaf_conceptID_list:
@@ -1570,7 +1571,8 @@ class RSSFeedEditDialog(QDialog,Ui_rss_feed_edit_dialog):
 		self.rss_url_list=rss_url_list
 		
 		self.listWidget.itemSelectionChanged.connect(self.save_and_show_feed)
-		self.pushButton.clicked.connect(self.mark_all_article)
+		self.pushButton_mark.clicked.connect(self.mark_all_article)
+		self.pushButton_delete.clicked.connect(self.delete_read_article)
 
 
 		#存储修改后的rss信息，这是要传出去修改rss_data的
@@ -1581,7 +1583,8 @@ class RSSFeedEditDialog(QDialog,Ui_rss_feed_edit_dialog):
 			self.baked[rss_url]={
 				"feed_name":rss_name,
 				"frequency":self.parent.rss_data[rss_url]["frequency"],
-				"unread":self.parent.rss_data[rss_url]["unread"]
+				"unread":self.parent.rss_data[rss_url]["unread"],
+				"delete":False
 			}
 
 		#初始化rss列表
@@ -1608,7 +1611,7 @@ class RSSFeedEditDialog(QDialog,Ui_rss_feed_edit_dialog):
 
 			rss_name=self.baked[rss_url]["feed_name"]
 			text=rss_url+" "+rss_name
-			QMessageBox.information(self,"Information","RSS文章全部标记已读！\n\n%s"%text)
+			QMessageBox.information(self,"Information","Feed文章全部标记已读！\n\n%s"%text)
 		
 		elif len(self.current_selection)>1:
 			text=""
@@ -1620,10 +1623,32 @@ class RSSFeedEditDialog(QDialog,Ui_rss_feed_edit_dialog):
 				rss_name=self.baked[rss_url]["feed_name"]
 				text+=rss_url+" "+rss_name+"\n"
 			
-			QMessageBox.information(self,"Information","RSS文章全部标记已读！\n\n%s"%text)
+			QMessageBox.information(self,"Information","Feed文章全部标记已读！\n\n%s"%text)
 			
 		self.lineEdit_unread.setText("0")
 	
+	def delete_read_article(self):
+		if len(self.current_selection)==1:
+			index=self.current_selection[0]
+			rss_url=self.rss_url_list[index][1]
+			self.baked[rss_url]["delete"]=True
+
+			rss_name=self.baked[rss_url]["feed_name"]
+			text=rss_url+" "+rss_name
+			QMessageBox.information(self,"Information","Feed已读文章删除成功！\n\n%s"%text)
+		
+		elif len(self.current_selection)>1:
+			text=""
+			for index in self.current_selection:
+				
+				rss_url=self.rss_url_list[index][1]
+				self.baked[rss_url]["delete"]=True
+
+				rss_name=self.baked[rss_url]["feed_name"]
+				text+=rss_url+" "+rss_name+"\n"
+			
+			QMessageBox.information(self,"Information","Feed已读文章删除成功！\n\n%s"%text)
+		
 	def rss_list_update(self):
 		self.listWidget.clear()
 		for rss in self.rss_url_list:

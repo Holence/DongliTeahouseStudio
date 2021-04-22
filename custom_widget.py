@@ -340,9 +340,8 @@ class MyTabFileLeafList(QListWidget):
 		
 		return icon
 	
-	def dropEvent(self, event):
-		#不让你在内部乱拖！
-		QMessageBox.warning(self.parent,"Warning","不要拖文件到叶子区！")
+	def dragEnterEvent(self, event):
+		event.ignore()
 	
 	def startDrag(self, actions):
 		######################################################################
@@ -358,8 +357,12 @@ class MyTabFileLeafList(QListWidget):
 		for itemindex in [item.row() for item in self.selectedIndexes()]:
 			urlList.append(QUrl("file:///"+self.item(itemindex).toolTip()))
 		
+		#防止拖到自己的里面
+		mime.setObjectName(self.objectName())
+
 		mime.setUrls(urlList)
 		drag.setMimeData(mime)
+		drag.setPixmap(QPixmap())
 		drag.exec_(actions)
 	
 	def keyPressEvent(self,event):
@@ -409,7 +412,7 @@ class MyConceptLinkedFileList(QListWidget):
 	def __init__(self,parent):
 		super(MyConceptLinkedFileList,self).__init__(parent)
 		self.setAcceptDrops(True)
-		self.setDragDropMode(QAbstractItemView.InternalMove)
+		self.setDragDropMode(QAbstractItemView.NoDragDrop)
 		self.ctrl_pressed=False
 		self.alt_pressed=False
 	
@@ -469,14 +472,23 @@ class MyConceptLinkedFileList(QListWidget):
 			
 			urlList.append(QUrl("file:///"+self.item(itemindex).toolTip()))
 		
+		#防止拖到自己的里面
+		mime.setObjectName(self.objectName())
+		
+
 		mime.setUrls(urlList)
 		drag.setMimeData(mime)
+		drag.setPixmap(QPixmap())
 		drag.exec_(actions)
 
 	def dragEnterEvent(self, event):
 
 		if event.mimeData().hasUrls() or event.mimeData().hasText():
-			event.acceptProposedAction()
+			#防止拖到自己的里面
+			if event.mimeData().objectName()==self.objectName():
+				event.ignore()
+			else:
+				event.acceptProposedAction()
 		else:
 			super(MyConceptLinkedFileList,self).dragEnterEvent(event)
 

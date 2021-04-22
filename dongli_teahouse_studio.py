@@ -101,6 +101,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.actionSetting.triggered.connect(self.setting_menu)
 		#保存所有数据到外存ctrl+s
 		self.actionSave_Data.triggered.connect(self.data_save)
+		self.actionData_Security_Check.triggered.connect(self.data_security_check)
 		#ctrl+w关闭
 		self.actionExit.triggered.connect(self.close)
 
@@ -693,7 +694,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.label_concept_icon.clicked.connect(lambda:show_context_menu_right(ConceptMenu,self.label_concept_icon))
 		self.label_diary_icon.clicked.connect(lambda:show_context_menu_right(DiaryMenu,self.label_diary_icon))
 		self.label_library_icon.clicked.connect(lambda:show_context_menu_right(LibraryMenu,self.label_library_icon))
-
 
 	def closeEvent(self,event):
 		super(DongliTeahouseStudio,self).closeEvent(event)
@@ -1686,8 +1686,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 			#内部的link不要拖到file区了！
 			if ">" in i:
-				QMessageBox.warning(self,"Warning","禁止内部拖动Link到File区！")
-				break
+				continue
 			
 			#如果是网址的，不生成文件
 			#file_name拥有特殊标记>和|符号（这个符号是不能存在在文件名中的），>为link的开头，|前为网页title，|后为url
@@ -1724,9 +1723,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					#检查file
 					#如果拥有内部路径
 					if self.file_saving_base in i:
+						
 						date_and_name=i.replace(self.file_saving_base,"")[1:].split("/")
 
-						if len(date_and_name)>4:
+						if "|" not in i and len(date_and_name)>4:
 							QMessageBox.warning(self,"Warning","禁止从内部路径之下导入文件，先拖出到内部路径之外处。")
 							break
 						
@@ -1786,7 +1786,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			dlg = QDialog(self)
 			dlg.setWindowTitle("Copy Warning")
 
-			name_label=QLabel(warning_text)
+			warning_text_edit=QPlainTextEdit()
+			warning_text_edit.setPlainText(warning_text)
+			warning_text_edit.setReadOnly(True)
+			warning_text_edit.setFixedSize(400,300)
 
 			lineedit_dst=QLineEdit(dlg)
 			lineedit_dst.setReadOnly(1)
@@ -1800,7 +1803,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			buttonBox.rejected.connect(dlg.reject)
 
 			layout=QVBoxLayout()
-			layout.addWidget(name_label)
+			layout.addWidget(warning_text_edit)
 			layout.addWidget(lineedit_dst)
 			layout.addWidget(button)
 			layout.addWidget(buttonBox)
@@ -1822,24 +1825,25 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					
 					ii=1
 					self.progress.setValue(ii)
-					for i in coping_file:
-						self.progress.setValue(ii)
-						
-						file_name=os.path.basename(i)
-						file_dst=os.path.join(dst,file_name)
-						
-						if os.path.isdir(i):
-							shutil.copytree(i,file_dst)
-						else:
-							shutil.copyfile(i,file_dst)
-						
-						ii+=1
+					try:
+						for i in coping_file:
+							self.progress.setValue(ii)
+							
+							file_name=os.path.basename(i)
+							file_dst=os.path.join(dst,file_name)
+							if os.path.isdir(i):
+								shutil.copytree(i,file_dst)
+							else:
+								shutil.copyfile(i,file_dst)
+							ii+=1
+					except Exception as e:
+						QMessageBox.warning(self,"Warning","复制出错！\n%s"%e)
+						self.progress.setValue(len(coping_file))
+
 				else:
 					QMessageBox.warning(self,"Warning","请设置目标地址！")
 
 		self.file_library_list_update()
-
-		
 
 	def file_library_file_open(self):
 		"""
@@ -3014,7 +3018,38 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			self.rss_tree_build()
 			QMessageBox.information(self,"Information","Folder内的文章全部标记已读！")
 
+		def delete_all_read_in_folder(folder_name):
+			
+			#先列出文件夹中所有的feed
+			feed_list=[]
+			for item in self.rss_tree_data:
+				if type(item)==dict and item["folder_name"]==folder_name:
+					for rss_url in [feed[1] for feed in item["RSS"]]:
+						feed_list.append(rss_url)
+					break
 
+			self.qlock.lock()
+
+			for rss_url in feed_list:
+				#要删除article吗？
+				article_index=0
+				while True:
+					if article_index==len(self.rss_data[rss_url]["article_list"]):
+						break
+
+					if self.rss_data[rss_url]["article_list"][article_index][2]==True:
+						self.rss_data[rss_url]["article_list"].pop(article_index)
+						continue
+					else:
+						article_index+=1
+
+			self.qlock.unlock()
+
+			self.rss_feed_article_list_show()
+			self.rss_tree_build()
+			QMessageBox.information(self,"Information","Folder内的全部已读文章已删除！")
+
+		#################################################################################
 
 		selected_item=[item for item in self.treeWidget_rss.selectedItems()]
 		
@@ -3074,6 +3109,20 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						for article in self.rss_data[rss_url]["article_list"]:
 							article[2]=True
 					
+					#要删除article吗？
+					if result[rss_url]["delete"]==True:
+						
+						article_index=0
+						while True:
+							if article_index==len(self.rss_data[rss_url]["article_list"]):
+								break
+
+							if self.rss_data[rss_url]["article_list"][article_index][2]==True:
+								self.rss_data[rss_url]["article_list"].pop(article_index)
+								continue
+							else:
+								article_index+=1
+
 					#改名字了吗
 					if self.rss_data[rss_url]["feed_name"]!=result[rss_url]["feed_name"]:
 						
@@ -3117,11 +3166,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				dlg.setWindowTitle("Edit RSS Folder")
 				
 				btn=QPushButton("Mark All Articles in This Folder")
+				btn2=QPushButton("Delete Articles which Have Been Read")
 				label=QLabel("Folder Name")
 				enter=QLineEdit()
 				
 				old_folder_name=re.findall("(?<=\]\|).*",folder.text(0))[0]
 				btn.clicked.connect(lambda:mark_all_article_in_folder(old_folder_name))
+				btn2.clicked.connect(lambda:delete_all_read_in_folder(old_folder_name))
 				enter.setText(old_folder_name)
 
 				QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
@@ -3131,6 +3182,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 				layout=QVBoxLayout()
 				layout.addWidget(btn)
+				layout.addWidget(btn2)
 				layout.addWidget(label)
 				layout.addWidget(enter)
 				layout.addWidget(buttonBox)
@@ -4595,7 +4647,47 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		#sticker
 		sticker_text=self.plainTextEdit_sticker.toPlainText()
 		self.user_settings.setValue("sticker",encrypt(sticker_text))
+	
+	def data_security_check(self):
+		
+		#1.Concept中的链接文件是否在File_data中存在？
+		warning_text=""
+		for concept in self.concept_data:
+			for file in concept["file"]:
+				y=file["y"]
+				m=file["m"]
+				d=file["d"]
+				file_name=file["file_name"]
+				try:
+					self.file_data[y][m][d][file_name]
+				except:
+					warning_text+="%s/%s/%s/%s\n"%(y,m,d,file_name)
+		
+		if warning_text!="":
+			warning_text="Concept中的链接文件在File_Data中缺失：\n"+warning_text
+			QMessageBox.warning(self,"Warning",warning_text)
+		
+		#2.Diary中的链接文件是否在File_data中存在？
+		warning_text=""
+		for year_index in range(1970-1970,2170-1970):
+			for month_index in range(0,12):
+				for day_index in range(len(self.diary_data[year_index]["date"][month_index])):
+					for line in self.diary_data[year_index]["date"][month_index][day_index]["text"]:
+						for file in line["linked_file"]:
+							y=file["y"]
+							m=file["m"]
+							d=file["d"]
+							file_name=file["file_name"]
+							try:
+								self.file_data[y][m][d][file_name]
+							except:
+								warning_text+="%s/%s/%s/%s\n"%(y,m,d,file_name)
+		if warning_text!="":
+			warning_text="Diary中的链接文件在File_Data中缺失：\n"+warning_text
+			QMessageBox.warning(self,"Warning",warning_text)
 
+		QMessageBox.information(self,"Infomation","检查完毕！")
+		
 	def diary_data_save_out(self):
 		#保存到外存
 		Fernet_Encrypt_Save(self.password,self.diary_data,"Diary_Data.dlcw")
@@ -5781,8 +5873,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			if self.file_saving_base in i:
 				try:
 					date_and_name=i.replace(self.file_saving_base,"")[1:].split("/")
-
-					if len(date_and_name)>4:
+					
+					if "|" not in i and len(date_and_name)>4:
 						QMessageBox.warning(self,"Warning","禁止从内部路径之下导入文件，先拖出到内部路径之外处。")
 						break
 					
@@ -6207,7 +6299,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				try:
 					date_and_name=i.replace(self.file_saving_base,"")[1:].split("/")
 
-					if len(date_and_name)>4:
+					if "|" not in i and len(date_and_name)>4:
 						QMessageBox.warning(self,"Warning","禁止从内部路径之下导入文件，先拖出到内部路径之外处。")
 						break
 					
