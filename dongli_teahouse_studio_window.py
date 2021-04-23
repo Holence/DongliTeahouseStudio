@@ -539,7 +539,6 @@ class Ui_dongli_teahouse_studio_window(object):
         self.frame.setFrameShape(QFrame.StyledPanel)
         self.frame.setFrameShadow(QFrame.Raised)
         self.horizontalLayout_3 = QHBoxLayout(self.frame)
-        self.horizontalLayout_3.setSpacing(0)
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.splitter_rss = QSplitter(self.frame)
         self.splitter_rss.setObjectName(u"splitter_rss")
@@ -581,6 +580,18 @@ class Ui_dongli_teahouse_studio_window(object):
         self.listWidget_rss.setSpacing(10)
         self.listWidget_rss.setWordWrap(True)
         self.splitter_rss.addWidget(self.listWidget_rss)
+        self.verticalLayoutWidget = QWidget(self.splitter_rss)
+        self.verticalLayoutWidget.setObjectName(u"verticalLayoutWidget")
+        self.verticalLayout_browser = QVBoxLayout(self.verticalLayoutWidget)
+        self.verticalLayout_browser.setSpacing(4)
+        self.verticalLayout_browser.setObjectName(u"verticalLayout_browser")
+        self.verticalLayout_browser.setContentsMargins(0, 0, 0, 0)
+        self.lineEdit_browser = QLineEdit(self.verticalLayoutWidget)
+        self.lineEdit_browser.setObjectName(u"lineEdit_browser")
+
+        self.verticalLayout_browser.addWidget(self.lineEdit_browser)
+
+        self.splitter_rss.addWidget(self.verticalLayoutWidget)
 
         self.horizontalLayout_3.addWidget(self.splitter_rss)
 

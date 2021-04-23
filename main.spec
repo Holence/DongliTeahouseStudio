@@ -3,8 +3,8 @@
 block_cipher = None
 
 
-a = Analysis(['main.py'],
-             pathex=['D:\\program\\茶屋工作室\\DongliTeahouse'],
+a = Analysis(['D:\\DongliTeahouse\\main.py'],
+             pathex=['D:\\DongliTeahouse'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -26,7 +26,7 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=False,
-          console=False,icon="holoico.ico",version='version.txt' )
+          console=False,icon="holoico.ico",version='version.txt')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
@@ -34,4 +34,4 @@ coll = COLLECT(exe,
                strip=False,
                upx=False,
                upx_exclude=[],
-               name='main')
+               name='DongliTeahouseStudio')

@@ -8,6 +8,7 @@ from custom_component import *
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
+from PySide2.QtNetwork import *
 from PySide2.QtWebEngineWidgets import *
 
 from dongli_teahouse_studio_window import Ui_dongli_teahouse_studio_window
@@ -229,6 +230,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.lineEdit_rss_search.returnPressed.connect(self.rss_tree_build)
 		#手动每日更新
 		self.actionStart_Daily_Update_Manually.triggered.connect(lambda:self.rss_feed_daily_update(manually=True))
+		#地址栏回车键
+		self.lineEdit_browser.returnPressed.connect(self.rss_browser_goto_url)
 
 		#########################################################################################################
 		#Zen
@@ -398,7 +401,15 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.btn_minimize.hide()
 		
 		self.browser=QWebEngineView()
-		self.splitter_rss.addWidget(self.browser)
+		self.browser.settings().setAttribute(QWebEngineSettings.PluginsEnabled,True)
+		self.browser.settings().setAttribute(QWebEngineSettings.JavascriptEnabled,True)
+		self.browser.settings().setAttribute(QWebEngineSettings.AllowWindowActivationFromJavaScript,True)
+		self.browser.settings().setAttribute(QWebEngineSettings.WebGLEnabled,True)
+		self.browser.settings().setAttribute(QWebEngineSettings.ScrollAnimatorEnabled,True)
+		self.browser.settings().setAttribute(QWebEngineSettings.FullScreenSupportEnabled,True)
+		self.browser.settings().setAttribute(QWebEngineSettings.Accelerated2dCanvasEnabled,True)
+		self.browser.settings().setAttribute(QWebEngineSettings.AllowRunningInsecureContent,True)
+		self.verticalLayout_browser.addWidget(self.browser)
 
 		#恢复界面设置
 		try:
@@ -3721,9 +3732,15 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				self.rss_tree_build()
 		
 		
+		self.lineEdit_browser.setText(article_url)
 		article_url=QUrl.fromUserInput(article_url)
 		if article_url.isValid():
 			self.browser.load(article_url)
+
+	def rss_browser_goto_url(self):
+		"Bilibili登录按钮点不了，那就自己输网址去登录吧"
+		url=self.lineEdit_browser.text()
+		self.browser.load(url)
 
 	def rss_open_webpage(self):
 		curren_url=self.browser.page().url().toString()
@@ -6678,6 +6695,7 @@ class PasswordCheckWindow(QMainWindow,Ui_password_check_window):
 		#尝试的次数
 		self.left_times=5
 		
+		self.lineEdit.setFocus()
 		self.show()
 
 	def ok_clicked(self):
