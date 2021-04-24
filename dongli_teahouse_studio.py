@@ -24,7 +24,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		setdefaulttimeout(3.0)
 
 		#开始跑炫酷的splash screen
-		splash_screen=SplashScreen(7,speed=10)
+		splash_screen=SplashScreen(8,speed=8)
 		splash_screen.label_stastus.setText("loading...")
 
 		#1
@@ -67,6 +67,12 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		splash_screen.progress()
 
 		#7
+		#BackUp
+		splash_screen.label_description.setText("<strong>Backing Up</strong> Data")
+		self.data_backup(start=True)
+		splash_screen.progress()
+		
+		#8
 		splash_screen.label_description.setText("<strong>Welcome</strong>")
 		splash_screen.label_stastus.setText("Done")
 		splash_screen.progress()
@@ -102,7 +108,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.actionSetting.triggered.connect(self.setting_menu)
 		#保存所有数据到外存ctrl+s
 		self.actionSave_Data.triggered.connect(self.data_save)
+		#数据检查
 		self.actionData_Security_Check.triggered.connect(self.data_security_check)
+		#数据备份
+		self.actionBackup_Data.triggered.connect(self.data_backup)
 		#ctrl+w关闭
 		self.actionExit.triggered.connect(self.close)
 
@@ -119,6 +128,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.lineEdit_search_concept.textEdited.connect(self.concept_search_list_update)
 		#双击进入搜索的选项
 		self.listWidget_search_concept.itemDoubleClicked.connect(lambda:self.concept_show(self.listWidget_search_concept.currentItem().text().split("|")[0]))
+		#回车进入搜索的选项
+		self.listWidget_search_concept.enter_pressed.connect(lambda:self.concept_show(self.listWidget_search_concept.currentItem().text().split("|")[0]))
 		#拖动重排
 		#model()是什么玩意，这就变成了QAbstractItemModel ？
 		self.listWidget_search_concept.model().rowsMoved.connect(self.concept_search_list_drag_update)
@@ -148,7 +159,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#ctrl+q自动锁定搜索框
 		self.actionSearch_Concept.triggered.connect(self.concept_search_focus)
 		#搜索框按enter自动展示第一个concept
-		self.lineEdit_search_concept.returnPressed.connect(lambda: self.concept_show(self.listWidget_search_concept.item(0).text().split("|")[0]) if self.listWidget_search_concept.item(0)!=None else 0)
+		self.lineEdit_search_concept.returnPressed.connect(self.concept_search_pressed)
 
 		####
 			#导入文件树
@@ -229,7 +240,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#rss搜索
 		self.lineEdit_rss_search.returnPressed.connect(self.rss_tree_build)
 		#手动每日更新
-		self.actionStart_Daily_Update_Manually.triggered.connect(lambda:self.rss_feed_daily_update(manually=True))
+		self.actionStart_Daily_Update_Manually.triggered.connect(self.rss_feed_daily_update)
 		#地址栏回车键
 		self.lineEdit_browser.returnPressed.connect(self.rss_browser_goto_url)
 
@@ -510,15 +521,14 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			if not os.path.exists("./cache"):
 				os.makedirs("./cache")
 
-			self.file_library_list_update(starting=True)
+			self.file_library_list_update(start=True)
 
 			#####################################################################################################################
 
-			self.current_rss_showing=None#如果点开的是rss，那么放的是rss_url；如果点开的是folder，那么存所有文章结构体的列表，
-			self.manually_updateing=False
+			self.current_rss_showing=None#如果点开的是rss，那么放的是rss_url；如果点开的是folder，那么存所有文章结构体的列表
 
 			self.rss_tree_build()
-			self.rss_feed_daily_update()
+			self.rss_feed_daily_update(start=True)
 
 			#####################################################################################################################
 			
@@ -526,7 +536,14 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			
 			#####################################################################################################################
 		else:
-			self.close()
+			message=QMessageBox(self)
+			message.setWindowTitle("Error")
+			message.setText("程序即将结束！")
+			message.setWindowFlag(Qt.WindowStaysOnTopHint)
+			message.setIcon(QMessageBox.Critical)
+			message.setWindowIcon(QIcon(":/icon/holoico_trans.ico"))
+			message.exec_()
+			exit()
 
 	def initialize_custom_tab(self):
 		#custom_tabs_shown存储正在界面上展示的tabs，这些是用来实时与concept data同步更新的
@@ -1450,7 +1467,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		
 		self.listWidget_search_file.addItem(temp)
 
-	def file_library_list_update(self,starting=False):
+	def file_library_list_update(self,start=False):
 		"file_data[y][m][d]字典里key的顺序是乱的，也就这里列出来看的时候要按文件名sort一下"
 
 
@@ -1567,7 +1584,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		########################################################################################
 		########################################################################################
 		#为了不让启动的时候跳出警告窗口，只能这样勉强一下了
-		if starting==False:
+		if start==False:
 			if self.file_saving_base=="":
 				QMessageBox.warning(self,"Warning","如果要使用File Library，请先到Setting中设置File Library的基地址。（所有拖进File Library中的文件都会被移动到基地址下）")
 				return
@@ -1645,7 +1662,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 						if ">" in file_name:
 							have_link=file_name.split("|")[1]
 							if have_link==link:
-								self.trayIcon.showMessage("Infomation","该链接已存在！\n%s"%link)
+								self.trayIcon.showMessage("Information","该链接已存在！\n%s"%link)
 								return False
 		return True
 
@@ -1714,7 +1731,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					title=result[1]
 				else:
 					title="Unknown Page"
-					self.trayIcon.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
+					self.trayIcon.showMessage("Information","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
 				file_name=">"+title+"|"+i
 				self.file_data[self.y][self.m][self.d][file_name]=[]
 
@@ -2447,11 +2464,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 	def setting_menu(self):
 		
 		def settings_retrieve():
-			self.file_saving_base=dlg.lineEdit_file_saving_base.text()
-			self.user_settings.setValue("file_saving_base",encrypt(self.file_saving_base))
-			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.y)+"/"+str(self.m)+"/"+str(self.d)
-			self.file_library_list_update(starting=True)
-
+			
 			if dlg.font!=None:
 				font=dlg.font
 				font_size=dlg.font_size
@@ -2459,16 +2472,15 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				self.user_settings.setValue("font",font)
 				self.user_settings.setValue("font_size",font_size)
 				self.font_set(font,font_size)
-
-			typora_directory=dlg.lineEdit_typora.text()
-			self.user_settings.setValue("typora_directory",encrypt(typora_directory))
-
-			sublime_directory=dlg.lineEdit_sublime.text()
-			self.user_settings.setValue("sublime_directory",encrypt(sublime_directory))
 			
+			backup_directory=dlg.lineEdit_backup_directory.text()
+			self.user_settings.setValue("backup_directory",encrypt(backup_directory))
+			auto_backup=dlg.checkBox_auto_backup.isChecked()
+			self.user_settings.setValue("auto_backup",auto_backup)
+
+			######################################################################################
 			random_text_directory=dlg.lineEdit_random_text.text()
 			self.user_settings.setValue("random_text_directory",encrypt(random_text_directory))
-
 
 			######################################################################################
 			pixiv_cookie=dlg.lineEdit_pixiv_cookie.text()
@@ -2479,7 +2491,20 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			
 			rss_auto_update=dlg.checkBox_rss_auto_update.isChecked()
 			self.user_settings.setValue("rss_auto_update",rss_auto_update)
+
+			######################################################################################
+			typora_directory=dlg.lineEdit_typora.text()
+			self.user_settings.setValue("typora_directory",encrypt(typora_directory))
+
+			sublime_directory=dlg.lineEdit_sublime.text()
+			self.user_settings.setValue("sublime_directory",encrypt(sublime_directory))
 		
+			######################################################################################
+			self.file_saving_base=dlg.lineEdit_file_saving_base.text()
+			self.user_settings.setValue("file_saving_base",encrypt(self.file_saving_base))
+			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.y)+"/"+str(self.m)+"/"+str(self.d)
+			self.file_library_list_update(start=True)
+
 
 		dlg=SettingDialog(self)
 
@@ -2507,7 +2532,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		elif which=="Zen Tree":
 			save_to_json(self.zen_tree_data,"Zen_Tree_Data.json")
 
-	def rss_feed_daily_update(self,manually=False):
+	def rss_feed_daily_update(self,start=False):
 		#淦！为了搞界面展示后的自动后台更新，搞了将近四个小时……
 		#先是搞不好QSystemTrayIcon
 		#然后不知道python的thread库和QT的QThread的区别，捣腾了半天python的thread，最终卡界面……
@@ -2548,9 +2573,17 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.treeWidget_rss.setDragDropMode(QAbstractItemView.InternalMove)
 			
 			self.statusBar.clearMessage()
+			
+			del self.daily_update_thread
 		
+		try:
+			self.daily_update_thread
+			return
+		except:
+			pass
 		
-		if manually==False:
+		#启动更新要检查是否需要每日自动更新
+		if start==True:
 			rss_auto_update=self.user_settings.value("rss_auto_update")
 			if rss_auto_update!="true" and rss_auto_update!="True":
 				return
@@ -2573,9 +2606,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			#选出今天应该更新，并且今天没有更新过的feed
 			if today in self.rss_data[rss_url]["frequency"] and last_update!=self.rss_data[rss_url]["last_update"]:
 				updating_url_list.append(rss_url)
-				
-		# print(updating_url_list)
-		# print("Today is",today)
 
 		#传入要更新的列表
 		self.daily_update_thread = RSS_Updator_Threador()
@@ -2616,15 +2646,19 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		def fuckyou():
 			self.treeWidget_rss.setDragEnabled(1)
 			self.treeWidget_rss.setDragDropMode(QAbstractItemView.InternalMove)
-			self.manually_updateing=False
 
 			self.statusBar.clearMessage()
+
+			del self.manually_update_thread
 		
-		# 只允许一个手动更新存在
-		if self.manually_updateing==True:
+		try:
+			# 只允许一个手动更新存在
+			self.manually_update_thread
 			QMessageBox.warning(self,"Warning","上一个手动更新还未结束！")
 			return
-		
+		except:
+			pass
+			
 		selected_item=[item for item in self.treeWidget_rss.selectedItems()]
 
 		#先检查，选中的全部都是RSS吗
@@ -2649,7 +2683,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.manually_update_thread.finished.connect(fuckyou)
 			self.manually_update_thread.started.connect(update_window_title)
 
-			self.manually_updateing=True
 			self.manually_update_thread.start()
 
 			return
@@ -2682,7 +2715,6 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 				self.manually_update_thread.finished.connect(fuckyou)
 				self.manually_update_thread.started.connect(update_window_title)
 
-				self.manually_updateing=True
 				self.manually_update_thread.start()
 				
 				return
@@ -2693,8 +2725,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 	def rss_feed_add(self):
 		"批量导入Standar RSS feed或者Custom RSS feed"
-		def all_work_done(progress_max):
-
+		def partial_work_done(i):
+			self.progress.setValue(i)
+		
+		def fuckyou(progress_max):
+	
 			self.qlock.lock()
 
 			for i in self.adding_feed_thread.successed.keys():
@@ -2718,11 +2753,14 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.progress.setValue(progress_max)
 			self.progress.deleteLater()
 
-			
-		def fuckyou(i):
-			self.progress.setValue(i)
-			
+			del self.adding_feed_thread
 
+		try:
+			self.adding_feed_thread
+			return
+		except:
+			pass
+		
 		if self.rss_searching!="":
 			QMessageBox.warning(self,"Warning","请清空RSS搜索条件！")
 			return
@@ -2830,8 +2868,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				self.adding_feed_thread.setdata(self,need_to_add,TYPE)
 
 				
-				self.adding_feed_thread.progress.connect(fuckyou)
-				self.adding_feed_thread.finished.connect(lambda:all_work_done(progress_max))
+				self.adding_feed_thread.progress.connect(partial_work_done)
+				self.adding_feed_thread.finished.connect(lambda:fuckyou(progress_max))
 				
 				
 				self.adding_feed_thread.start()
@@ -4045,7 +4083,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		############################################################################
 
 	def about(self):
-		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 1.0.0.1\nAuthor: Holence\nContact: Holence08@gmail.com")
+		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 1.0.0.2\nAuthor: Holence\nContact: Holence08@gmail.com")
 
 	def font_set(self,font,font_size):
 		font_size=int(font_size)
@@ -4389,6 +4427,12 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 	def data_validity_check(self):
 		"检查diary concept file rss的data"
 
+		message=QMessageBox(self)
+		message.setWindowTitle("Error")
+		message.setWindowFlag(Qt.WindowStaysOnTopHint)
+		message.setIcon(QMessageBox.Critical)
+		message.setWindowIcon(QIcon(":/icon/holoico_trans.ico"))
+		
 		##########################################################################################################
 		#################################################Diary####################################################
 		##########################################################################################################
@@ -4401,11 +4445,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				#不是从1970到2169年都有的，或者一年不是十二个月的，报错
 				for i in range(len(l)):
 					if data[i]["year"]!=l[i] or len(data[i]["date"])!=12:
-						QMessageBox.critical(self,"Error","Diary_Data.dlcw文件Diary结构出错，请联系相关开发人员！")
+						message.setText("Diary_Data.dlcw文件Diary结构出错，请联系相关开发人员！")
+						message.exec_()
 						return 0
 						
 			except:
-				QMessageBox.critical(self,"Error","Diary_Data.dlcw文件出错，请联系相关开发人员！")
+				message.setText("Diary_Data.dlcw文件出错，请联系相关开发人员！")
+				message.exec_()
 				return 0
 
 		else:
@@ -4432,15 +4478,18 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			try:
 				data=Fernet_Decrypt_Load(self.password,"Concept_Data.dlcw")
 			except:
-				QMessageBox.critical(self,"Error","Concept_Data.dlcw文件出错，请联系相关开发人员！")
+				message.setText("Concept_Data.dlcw文件出错，请联系相关开发人员！")
+				message.exec_()
 				return 0
 
 			try:
 				if "Universe" not in data[0]["name"] or data[0]["parent"]!=[]:
-					QMessageBox.critical(self,"Error","Concept_Data.dlcw文件头部结构出错，请联系相关开发人员！")
+					message.setText("Concept_Data.dlcw文件头部结构出错，请联系相关开发人员！")
+					message.exec_()
 					return 0
 			except:
-				QMessageBox.critical(self,"Error","Concept_Data.dlcw文件数据结构出错，请联系相关开发人员！")
+				message.setText("Concept_Data.dlcw文件数据结构出错，请联系相关开发人员！")
+				message.exec_()
 				return 0
 
 			try:
@@ -4448,11 +4497,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					if isinstance(i["id"],int) and isinstance(i["name"],str) and isinstance(i["detail"],str) and isinstance(i["parent"],list) and isinstance(i["child"],list) and isinstance(i["relative"],list) and isinstance(i["az"],str) and isinstance(i["file"],list):
 						continue
 					else:
-						QMessageBox.critical(self,"Error","Concept_Data.dlcw文件Concept结构出错，请联系相关开发人员！")
+						message.setText("Concept_Data.dlcw文件Concept结构出错，请联系相关开发人员！")
+						message.exec_()
 						return 0
 						
 			except:
-				QMessageBox.critical(self,"Error","Concept_Data.dlcw文件数据结构出错，请联系相关开发人员！")
+				message.setText("Concept_Data.dlcw文件数据结构出错，请联系相关开发人员！")
+				message.exec_()
 				return 0
 			
 			
@@ -4481,13 +4532,15 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			try:
 				data=Fernet_Decrypt_Load(self.password,"File_Data.dlcw")
 			except:
-				QMessageBox.critical(self,"Error","File_Data.dlcw文件出错，请联系相关开发人员！")
+				message.setText("File_Data.dlcw文件出错，请联系相关开发人员！")
+				message.exec_()
 				return 0
 
 			try:
 				self.file_saving_base=decrypt(self.user_settings.value("file_saving_base"))
 			except:
-				# QMessageBox.critical(self,"Error","file_saving_base为空！")
+				# message.setText("file_saving_base为空！")
+				# message.exec_()
 				self.file_saving_base=""
 		else:
 			data={}
@@ -4529,10 +4582,12 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				if list_difference(l0,l1)==[]:
 					pass
 				else:
-					QMessageBox.critical(self,"Error","RSS信息不匹配，请联系相关开发人员！")
+					message.setText("RSS信息不匹配，请联系相关开发人员！")
+					message.exec_()
 					return 0
 			except:
-				QMessageBox.critical(self,"Error","RSS文件出错，请联系相关开发人员！")
+				message.setText("RSS文件出错，请联系相关开发人员！")
+				message.exec_()
 				return 0
 		
 		#第一次进来
@@ -4571,10 +4626,12 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				if list_difference(l0,l1)==[]:
 					pass
 				else:
-					QMessageBox.critical(self,"Error","Zen信息不匹配，请联系相关开发人员！")
+					message.setText("Zen信息不匹配，请联系相关开发人员！")
+					message.exec_()
 					return 0
 			except:
-				QMessageBox.critical(self,"Error","Zen文件出错，请联系相关开发人员！")
+				message.setText("Zen文件出错，请联系相关开发人员！")
+				message.exec_()
 				return 0
 		
 		#第一次进来
@@ -4665,6 +4722,29 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		sticker_text=self.plainTextEdit_sticker.toPlainText()
 		self.user_settings.setValue("sticker",encrypt(sticker_text))
 	
+	def data_backup(self,start=False):
+		
+		def fuckyou():
+			del self.backup_thread
+		
+		try:
+			self.backup_thread
+			return
+		except:
+			pass
+		
+		if start==True:
+			auto_backup=self.user_settings.value("auto_backup")
+			if auto_backup!="true" and auto_backup!="True":
+				return
+		
+		self.backup_thread = Backup_Thread()
+		self.backup_thread.setdata(self)
+		self.backup_thread.finished.connect(fuckyou)
+		self.backup_thread.start()
+
+		
+
 	def data_security_check(self):
 		
 		#1.Concept中的链接文件是否在File_data中存在？
@@ -4703,7 +4783,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			warning_text="Diary中的链接文件在File_Data中缺失：\n"+warning_text
 			QMessageBox.warning(self,"Warning",warning_text)
 
-		QMessageBox.information(self,"Infomation","检查完毕！")
+		QMessageBox.information(self,"Information","检查完毕！")
 		
 	def diary_data_save_out(self):
 		#保存到外存
@@ -4790,6 +4870,14 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.lineEdit_search_concept.setFocus()
 		self.lineEdit_search_concept.selectAll()
 	
+	def concept_search_pressed(self):
+		
+		if self.listWidget_search_concept.item(0)!=None:
+			self.listWidget_search_concept.setCurrentRow(0)
+			self.listWidget_search_concept.setFocus()
+			self.concept_show(self.listWidget_search_concept.item(0).text().split("|")[0]) 
+
+
 	def concept_search_list_update(self):
 		
 		search=self.lineEdit_search_concept.text()
@@ -5945,7 +6033,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						title=result[1]
 					else:
 						title="Unknown Page"
-						self.trayIcon.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
+						self.trayIcon.showMessage("Information","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
 					
 					file_name=">"+title+"|"+i
 					self.file_data[self.y][self.m][self.d][file_name]=[]
@@ -6372,7 +6460,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						title=result[1]
 					else:
 						title="Unknown Page"
-						self.trayIcon.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
+						self.trayIcon.showMessage("Information","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
 					
 					file_name=">"+title+"|"+i
 					self.file_data[self.y][self.m][self.d][file_name]=[]

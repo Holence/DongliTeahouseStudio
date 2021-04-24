@@ -15,6 +15,64 @@ from diary_analyze_dialog import Ui_diary_analyze_dialog
 from concept_related_text_dialog import Ui_concept_related_text_dialog
 from splash_screen import Ui_SplashScreen
 
+class Backup_Thread(QThread):
+	finished=Signal()
+	
+	def setdata(self,parent):
+		self.parent=parent
+	
+	def run(self):
+		try:
+			backup_directory=decrypt(self.parent.user_settings.value("backup_directory"))
+			if backup_directory!="":
+				backup_directory_list=backup_directory.split(";")
+				
+				for backup_directory in backup_directory_list:
+					if os.path.exists(backup_directory):
+						
+						backup_list=os.listdir(backup_directory)
+						valid_list=[]
+						for i in backup_list:
+							try:
+								if int(i)>=19700101 and int(i)<=21691231:
+									valid_list.append(i)
+							except:
+								pass
+						
+						#只保留最后的五个
+						valid_list.sort()
+						while True:
+							if len(valid_list)<=5:
+								break
+							
+							os.removedirs(os.path.join(backup_directory,valid_list[0]))
+							valid_list.pop(0)
+						
+						#每日备份的文件夹名20210424
+						dst="%d%02d%02d"%(self.parent.y,self.parent.m,self.parent.d)
+						try:
+							dst=os.path.join(backup_directory,dst)
+							os.makedirs(dst)
+						except:
+							pass
+						
+						for file_name in ["Diary_Data.dlcw","Diary_Data.dlcw","Concept_Data.dlcw","File_Data.dlcw","RSS_Data.dlcw","RSS_Tree_Data.dlcw","Zen_Data.dlcw","Zen_Tree_Data.dlcw","user_settings.ini"]:
+							file_dst=os.path.join(dst,file_name)
+							shutil.copyfile(file_name,file_dst)
+						
+						self.parent.trayIcon.showMessage("Information","数据备份成功！\n%s"%backup_directory)
+						self.sleep(3)
+					else:
+						if backup_directory!="":
+							self.parent.trayIcon.showMessage("Warning","数据备份地址访问出错！\n%s"%backup_directory)
+							self.sleep(3)
+			else:
+				self.parent.trayIcon.showMessage("Warning","数据备份地址为空！")
+		except:
+			self.parent.trayIcon.showMessage("Warning","未设置数据备份地址！")
+			pass
+		
+		self.finished.emit()
 
 class RSS_Updator_Threador(QThread):
 	"""
@@ -132,8 +190,6 @@ class RSS_Updator_Threador(QThread):
 
 			return
 
-
-
 	def rss_data_update(self):
 
 		for rss_url in self.updating_url_list:
@@ -156,7 +212,6 @@ class RSS_Updator_Threador(QThread):
 
 			time.sleep(5)
 
-		
 	def run(self):
 		self.rss_data_update()
 
@@ -1434,7 +1489,10 @@ class SettingDialog(QDialog,Ui_setting_dialog):
 		self.get_settings()
 
 		self.pushButton_general.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
-		self.pushButton_rss.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(1))
+		self.pushButton_home.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(1))
+		self.pushButton_rss.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(2))
+		self.pushButton_zen.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(3))
+		self.pushButton_library.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(4))
 
 		self.pushButtonfile_saving_base.clicked.connect(self.file_dir_dialog)
 		self.pushButton_font.clicked.connect(self.font_dialog)
@@ -1446,13 +1504,6 @@ class SettingDialog(QDialog,Ui_setting_dialog):
 	def get_settings(self):
 		
 		try:
-			file_saving_base=decrypt(self.parent.user_settings.value("file_saving_base"))
-		except:
-			file_saving_base=""
-			pass
-		self.lineEdit_file_saving_base.setText(file_saving_base)
-		
-		try:
 			self.font=self.parent.user_settings.value("font")
 			self.font_size=self.parent.user_settings.value("font_size")
 			self.lineEdit_font.setText(self.font.family()+";"+str(self.font_size))
@@ -1462,18 +1513,26 @@ class SettingDialog(QDialog,Ui_setting_dialog):
 			pass
 		
 		try:
-			typora_directory=decrypt(self.parent.user_settings.value("typora_directory"))
+			backup_directory=decrypt(self.parent.user_settings.value("backup_directory"))
 		except:
-			typora_directory=""
+			backup_directory=""
 			pass
-		self.lineEdit_typora.setText(typora_directory)
-		
+		self.lineEdit_backup_directory.setText(backup_directory)
+
 		try:
-			sublime_directory=decrypt(self.parent.user_settings.value("sublime_directory"))
+			auto_backup=self.parent.user_settings.value("auto_backup")
+			if auto_backup=="true" or auto_backup=="True":
+				auto_backup=True
+			elif auto_backup=="false" or auto_backup=="False" or auto_backup==None:
+				auto_backup=False
 		except:
-			sublime_directory=""
+			auto_backup=False
 			pass
-		self.lineEdit_sublime.setText(sublime_directory)
+		self.checkBox_auto_backup.setChecked(auto_backup)
+
+		self.lineEdit_password.setText(self.parent.password)
+
+		######################################################################################
 		
 		try:
 			random_text_directory=decrypt(self.parent.user_settings.value("random_text_directory"))
@@ -1481,8 +1540,6 @@ class SettingDialog(QDialog,Ui_setting_dialog):
 			random_text_directory=""
 			pass
 		self.lineEdit_random_text.setText(random_text_directory)
-
-		self.lineEdit_password.setText(self.parent.password)
 		
 		######################################################################################
 
@@ -1510,12 +1567,37 @@ class SettingDialog(QDialog,Ui_setting_dialog):
 			rss_auto_update=False
 			pass
 		self.checkBox_rss_auto_update.setChecked(rss_auto_update)
+		
+		######################################################################################
+		
+		try:
+			typora_directory=decrypt(self.parent.user_settings.value("typora_directory"))
+		except:
+			typora_directory=""
+			pass
+		self.lineEdit_typora.setText(typora_directory)
+		
+		try:
+			sublime_directory=decrypt(self.parent.user_settings.value("sublime_directory"))
+		except:
+			sublime_directory=""
+			pass
+		self.lineEdit_sublime.setText(sublime_directory)
+		
+		######################################################################################
+
+		try:
+			file_saving_base=decrypt(self.parent.user_settings.value("file_saving_base"))
+		except:
+			file_saving_base=""
+			pass
+		self.lineEdit_file_saving_base.setText(file_saving_base)
 	
 	def file_dir_dialog(self):
 		dlg=QFileDialog(self)
 		file_saving_base=dlg.getExistingDirectory()
 		self.lineEdit_file_saving_base.setText(file_saving_base)
-	
+
 	def typora_dir_dialog(self):
 		dlg=QFileDialog(self)
 		typora_directory=dlg.getOpenFileUrl()[0].url().replace("file:///","")
@@ -2408,7 +2490,7 @@ class DiarySearchDialog(QDialog,Ui_diary_search_dialog):
 		# 展示最多前30条，算了，还是全部展示吧
 		# self.listing_result=self.listing_result[:30]
 
-		for i in self.listing_result[:30]:
+		for i in self.listing_result:
 			self.listWidget.addItem(str(i["weight"])+"|"+i["text"])
 			# self.listWidget.addItem(i["text"])
 

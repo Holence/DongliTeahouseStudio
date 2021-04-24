@@ -26,3 +26,7 @@ class MyDarkPalette(QPalette):
 		self.setColor(QPalette.Disabled, QPalette.Highlight, QColor(80, 80, 80))
 		self.setColor(QPalette.HighlightedText, Qt.white)
 		self.setColor(QPalette.Disabled, QPalette.HighlightedText, QColor(127, 127, 127))
+
+class MyBrightPalette(QPalette):
+	def __init__(self):
+		super().__init__()

@@ -761,6 +761,17 @@ class MyDockTitleLabel(QLabel):
 		if event.button()==Qt.LeftButton:
 			self.clicked.emit()
 
+class MyConceptList(QListWidget):
+	enter_pressed=Signal()
+	def __init__(self,parent):
+		super(MyConceptList,self).__init__(parent)
+	
+	def keyPressEvent(self,event):
+		super(MyConceptList, self).keyPressEvent( event )
+		#按回车发出enter_press的信号
+		if event.key()==Qt.Key_Return:
+			self.enter_pressed.emit()
+
 ###############################################################################################
 ###############################################################################################
 ###############################################################################################
