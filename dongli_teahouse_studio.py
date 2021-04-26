@@ -6083,18 +6083,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			if ID not in self.file_data[y][m][d][file_name]:
 				self.file_data[y][m][d][file_name].append(ID)
 		
-		#按照文件名排序，并且把文件夹放在最前面
-		self.concept_data[ID]["file"].sort(key=lambda x:x["file_name"])
-		for index in range(len(self.concept_data[ID]["file"])):
-			file_name=self.concept_data[ID]["file"][index]["file_name"]
-			if which_file_type(file_name)=="folder":
-				folder=self.concept_data[ID]["file"].pop(index)
-				self.concept_data[ID]["file"].insert(0,folder)
-			
+		self.concept_data[ID]["file"]=file_sort(self.concept_data[ID]["file"])
+		
 		#更新事物界面
 		self.concept_show(ID)
-		self.file_library_list_update()
-
+		# self.file_library_list_update()
 
 		self.tab_refresh_current_tab()
 
@@ -6501,16 +6494,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			if file not in already_have:
 				self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"].append(file)
 
-		self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"].sort(key=lambda x:x["file_name"])
-		for index in range(len(self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"])):
-			file_name=self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"][index]["file_name"]
-			if which_file_type(file_name)=="folder":
-				folder=self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"].pop(index)
-				self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"].insert(0,folder)
-
+		self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"]=file_sort(self.diary_data[self.current_year_index]["date"][self.current_month_index][self.current_day_index]["text"][self.current_line_index]["linked_file"])
+		
 		self.diary_line_file_show()
 		self.window_title_update()
-		self.file_library_list_update()
+		# self.file_library_list_update()
 
 		####
 			# for i in links:

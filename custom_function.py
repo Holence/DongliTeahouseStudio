@@ -25,6 +25,52 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+def file_sort(file_list):
+	file_sort_dict={}
+
+	for file in file_list:
+		file_name=file["file_name"]
+		file_extension=file_name.split(".")[-1].lower()
+		
+		if which_file_type(file_name)=="folder":
+			try:
+				file_sort_dict["folder"].append(file)
+			except:
+				file_sort_dict["folder"]=[]
+				file_sort_dict["folder"].append(file)
+		elif which_file_type(file_name)=="url":
+			try:
+				file_sort_dict["url"].append(file)
+			except:
+				file_sort_dict["url"]=[]
+				file_sort_dict["url"].append(file)
+		else:
+			try:
+				file_sort_dict[file_extension].append(file)
+			except:
+				file_sort_dict[file_extension]=[]
+				file_sort_dict[file_extension].append(file)
+	
+	result_list=[]
+	
+	try:
+		for file in sorted(file_sort_dict["folder"],key=lambda x:x["file_name"]):
+			result_list.append(file)
+	except:
+		pass
+	
+	for file_extension in sorted(file_sort_dict.keys()):
+		if file_extension!="folder" and file_extension!="url":
+			for file in sorted(file_sort_dict[file_extension],key=lambda x:x["file_name"]):
+				result_list.append(file)
+	
+	try:
+		for file in sorted(file_sort_dict["url"],key=lambda x:x["file_name"]):
+			result_list.append(file)
+	except:
+		pass
+	
+	return result_list
 
 def generate_key(password):
 	"""

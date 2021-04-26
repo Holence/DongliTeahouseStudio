@@ -882,3 +882,9 @@ rss_tree_drop_update调用rss_tree_build后，滚动条跑到了最上面，怎�
 adding_feed_thread如果被closeEvent打断，可能会卡死（可能是在接受网络数据的过程中）
 
 File_Data、Concept_Data、Diary_Data中，如果缺失了其中的一个，另两个链接的文件信息缺失而且抹也抹不掉。
+
+---
+
+File_Data中是用字典存储的，而删除、重命名是用index定位的，所以搞文件夹排到最前面有点麻烦，就不做了。
+
+Concept Linked File和Text Linked File的File Data是列表，可以排序，每次添加文件进来的时候排序就行了。

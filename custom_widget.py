@@ -389,7 +389,7 @@ class MyTabFileLeafList(QListWidget):
 			
 			delta=8
 			#放大
-			if xscrolls>0 or yscrolls>0 and self.iconSize().width()+delta<64:
+			if xscrolls>0 or yscrolls>0 and self.iconSize().width()+delta<128:
 				icon_size=self.iconSize()+QSize(delta,delta)
 				grid_size=self.gridSize()+QSize(delta,delta)
 			#缩小
@@ -583,7 +583,7 @@ class MyConceptLinkedFileList(QListWidget):
 			
 			delta=8
 			#放大
-			if xscrolls>0 or yscrolls>0 and self.iconSize().width()+delta<64:
+			if xscrolls>0 or yscrolls>0 and self.iconSize().width()+delta<128:
 				icon_size=self.iconSize()+QSize(delta,delta)
 				grid_size=self.gridSize()+QSize(delta,delta)
 			#缩小

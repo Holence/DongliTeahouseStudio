@@ -964,12 +964,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 				self.parent.file_data[y][m][d][file_name].append(ID)
 		
 		#按照文件名排序
-		self.parent.concept_data[ID]["file"].sort(key=lambda x:x["file_name"])
-		for index in range(len(self.parent.concept_data[ID]["file"])):
-			file_name=self.parent.concept_data[ID]["file"][index]["file_name"]
-			if which_file_type(file_name)=="folder":
-				folder=self.parent.concept_data[ID]["file"].pop(index)
-				self.parent.concept_data[ID]["file"].insert(0,folder)
+		self.parent.concept_data[ID]["file"]=file_sort(self.parent.concept_data[ID]["file"])
 
 		parent_ID=self.parent.lineEdit_id.text()
 		if parent_ID!="" and self.current_select_conceptID==int(parent_ID):
