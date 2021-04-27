@@ -14,11 +14,15 @@ from PySide2.QtWebEngineWidgets import *
 from dongli_teahouse_studio_window import Ui_dongli_teahouse_studio_window
 
 class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
-
+	
+	#因为外面设置了app.setQuitOnLastWindowClosed(False)，光用closeEvent是结束不了程序的，得发射结束信号到外面让app quit
+	quitApp=Signal()
+	
 	def __init__(self,password):
 		super().__init__()
 		self.setupUi(self)
 		self.password=password
+		self.boss_coming=False
 		self.user_settings=QSettings("user_settings.ini",QSettings.IniFormat)
 		self.qlock=QMutex(QMutex.NonRecursive)
 		setdefaulttimeout(3.0)
@@ -289,6 +293,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.actionRestore_Main_Window.triggered.connect(self.showNormal)
 		self.actionHide_Main_Window.triggered.connect(self.hide)
 		self.actionRestore_to_Normal_Size.triggered.connect(self.window_restore_normal_size)
+		self.actionBoss_Coming.triggered.connect(self.window_boss_coming)
 		#牛逼疯了！我要的就是这个！
 		#如果是点窗口右上角的的最小化，调用的是self.showMinimized
 		#这会把所有归属于mainwindow的窗口都最小化，我的漂浮dockwidget就没了
@@ -300,7 +305,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.actionToggleConcept.setIcon(QIcon(":/icon/database.svg"))
 		self.actionToggleConcept.setShortcut(QKeySequence(Qt.Key_F5))
 		self.menuView.addAction(self.actionToggleConcept)
-
+		
 		self.actionToggleDiary=self.dockWidget_diary.toggleViewAction()
 		self.actionToggleDiary.setShortcut(QKeySequence(Qt.Key_F6))
 		self.actionToggleDiary.setIcon(QIcon(":/icon/feather.svg"))
@@ -423,15 +428,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.verticalLayout_browser.addWidget(self.browser)
 
 		#恢复界面设置
-		try:
-			self.restoreGeometry(self.user_settings.value("geometry"))
-			self.restoreState(self.user_settings.value("windowState"))
-			self.resize(self.user_settings.value("size"))
-			self.move(self.user_settings.value("pos"))
-			self.splitter_rss.restoreState(self.user_settings.value("splitter_rss"))
-			self.splitter_zen.restoreState(self.user_settings.value("splitter_zen"))
-		except:
-			pass
+		self.window_state_restore()
 		
 		try:
 			font=self.user_settings.value("font")
@@ -543,7 +540,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			message.setIcon(QMessageBox.Critical)
 			message.setWindowIcon(QIcon(":/icon/holoico_trans.ico"))
 			message.exec_()
-			exit()
+			self.quitApp.emit()
 
 	def initialize_custom_tab(self):
 		#custom_tabs_shown存储正在界面上展示的tabs，这些是用来实时与concept data同步更新的
@@ -613,10 +610,12 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.trayIconMenu.addAction(self.actionRestore_Main_Window)
 		self.trayIconMenu.addAction(self.actionRestore_to_Normal_Size)
 		self.trayIconMenu.addAction(self.actionStay_on_Top)
+		self.trayIconMenu.addAction(self.actionBoss_Coming)
 		self.trayIconMenu.addSeparator()
 		self.trayIconMenu.addAction(self.actionExit)
 
 		self.trayIcon.setContextMenu(self.trayIconMenu)
+		self.trayIcon.activated.connect(self.window_resurrection)
 		self.trayIcon.show()
 
 	def initialize_menu(self):
@@ -778,13 +777,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#3
 		#保存界面设置
 		splash_screen.label_description.setText("<strong>Saving</strong> Window Data")
-		self.user_settings.setValue("geometry",self.saveGeometry())
-		self.user_settings.setValue("windowState",self.saveState())
-		self.user_settings.setValue("size",self.size())
-		self.user_settings.setValue("pos",self.pos())
-		self.user_settings.setValue("splitter_rss",self.splitter_rss.saveState())
-		self.user_settings.setValue("splitter_zen",self.splitter_zen.saveState())
-		self.user_settings.setValue("custom_tab_data",encrypt(self.custom_tab_data))
+		self.window_state_save()
 		splash_screen.progress()
 
 		#4
@@ -796,6 +789,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 		delay_msecs(800)
 		splash_screen.close()
+
+		self.quitApp.emit()
 
 
 		####
@@ -1754,9 +1749,25 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 						
 						date_and_name=i.replace(self.file_saving_base,"")[1:].split("/")
 
+						#允许拖入日级目录更下层的子文件
 						if "|" not in i and len(date_and_name)>4:
-							QMessageBox.warning(self,"Warning","禁止从内部路径之下导入文件，先拖出到内部路径之外处。")
-							break
+							
+							file_name=os.path.basename(i)
+							file_dst=self.file_saving_today_dst+"/"+file_name
+							
+							self.file_saving_today_dst_exist_check()
+
+							#文件添加，有可能硬盘被拔掉了
+							try:
+								shutil.move(i,file_dst)
+							except:
+								QMessageBox.warning(self,"Warning","路径访问出错！移动失败！")
+								break
+
+							#文件链接concept置空
+							self.file_data[self.y][self.m][self.d][file_name]=[]
+							
+							continue
 						
 						#考虑把这些文件复制出去
 						y=int(date_and_name[0])
@@ -3963,8 +3974,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 	def tab_set_font(self,tab):
 		"因为Tab是动态生成的，所以creat和resurrection时要再来设置一下字体"
-		font=self.user_settings.value("font")
-		font_size=int(self.user_settings.value("font_size"))
+		try:
+			font=self.user_settings.value("font")
+			font_size=int(self.user_settings.value("font_size"))
+		except:
+			return
 
 		font.setPointSize(int(font_size*0.8))
 		tab.lineEdit_id.setFont(font)
@@ -4358,7 +4372,29 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					tab.concept_linked_file_rename()
 					break
 
+	def window_state_save(self):
+		self.user_settings.setValue("geometry",self.saveGeometry())
+		self.user_settings.setValue("windowState",self.saveState())
+		self.user_settings.setValue("size",self.size())
+		self.user_settings.setValue("pos",self.pos())
+		self.user_settings.setValue("splitter_rss",self.splitter_rss.saveState())
+		self.user_settings.setValue("splitter_zen",self.splitter_zen.saveState())
+		self.user_settings.setValue("custom_tab_data",encrypt(self.custom_tab_data))
+	
+	def window_state_restore(self):
+		try:
+			self.restoreGeometry(self.user_settings.value("geometry"))
+			self.restoreState(self.user_settings.value("windowState"))
+			self.resize(self.user_settings.value("size"))
+			self.move(self.user_settings.value("pos"))
+			self.splitter_rss.restoreState(self.user_settings.value("splitter_rss"))
+			self.splitter_zen.restoreState(self.user_settings.value("splitter_zen"))
+		except:
+			pass
+
 	def window_toggle_maximun(self):
+		self.btn_maximize.show()
+		self.btn_minimize.show()
 		if self.isMaximized():
 			self.showNormal()
 			self.btn_maximize.setIcon(QIcon(":/icon/cil-window-maximize.png"))
@@ -4367,7 +4403,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			self.btn_maximize.setIcon(QIcon(":/icon/cil-window-restore.png"))
 
 	def window_toggle_fullscreen(self):
-		
 		if self.isFullScreen():
 			self.showNormal()
 			self.btn_maximize.show()
@@ -4382,7 +4417,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		return bool(self.windowFlags() & Qt.WindowStaysOnTopHint)
 
 	def window_toggle_stay_on_top(self):
-		
 		#正在置顶，取消置顶
 		if self.window_is_stay_on_top()==True:
 			self.setWindowFlag(Qt.WindowStaysOnTopHint,False)
@@ -4399,8 +4433,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			self.dockWidget_library.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 			self.dockWidget_sticker.setWindowFlag(Qt.WindowStaysOnTopHint,True)
 		
-		# #很奇怪，设置WindowStaysOnTopHint后，所有漂浮的窗口都会被最小化
-		# #所以还得一个一个恢复显示状态
+		#很奇怪，设置WindowStaysOnTopHint后，所有漂浮的窗口都会被最小化
+		#所以还得一个一个恢复显示状态
 		if self.isFullScreen():
 			self.showFullScreen()
 		else:
@@ -4424,6 +4458,74 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		h=mini_size.height()
 		self.setGeometry(x,y,w,h)
 
+	def window_boss_coming(self):
+		self.boss_coming=True
+		self.window_state_save()
+
+		self.hide()
+		if self.dockWidget_concept.isFloating():
+			self.dockWidget_concept.hide()
+		if self.dockWidget_diary.isFloating():
+			self.dockWidget_diary.hide()
+		if self.dockWidget_library.isFloating():
+			self.dockWidget_library.hide()
+		if self.dockWidget_sticker.isFloating():
+			self.dockWidget_sticker.hide()
+
+		#IconMenu的选项清空
+		self.actionSetting.setVisible(False)
+		self.actionToggleConcept.setVisible(False)
+		self.actionToggleDiary.setVisible(False)
+		self.actionToggleLibrary.setVisible(False)
+		self.actionToggleSticker.setVisible(False)
+		self.actionToggle_Fullscreen.setVisible(False)
+		self.actionHide_Main_Window.setVisible(False)
+		self.actionRestore_Main_Window.setVisible(False)
+		self.actionRestore_to_Normal_Size.setVisible(False)
+		self.actionStay_on_Top.setVisible(False)
+		self.actionBoss_Coming.setVisible(False)
+
+	def window_resurrection(self,reason):
+		def resurrection_or_nothing(successed):
+			checkin.hide()
+
+			#登入恢复界面
+			if successed==1:
+				self.boss_coming=False
+				self.showNormal()
+				self.window_state_restore()
+
+				self.actionSetting.setVisible(True)
+				self.actionToggleConcept.setVisible(True)
+				self.actionToggleDiary.setVisible(True)
+				self.actionToggleLibrary.setVisible(True)
+				self.actionToggleSticker.setVisible(True)
+				self.actionToggle_Fullscreen.setVisible(True)
+				self.actionHide_Main_Window.setVisible(True)
+				self.actionRestore_Main_Window.setVisible(True)
+				self.actionRestore_to_Normal_Size.setVisible(True)
+				self.actionStay_on_Top.setVisible(True)
+				self.actionBoss_Coming.setVisible(True)
+			
+			#取消登入
+			elif successed==0:
+				return
+			
+			#如果密码输错五次，直接保存数据，退出
+			elif successed==-1:
+				QMessageBox.critical(self,"Error","吔屎嘞！\n💩💩💩💩💩💩\nYou Shouldn't Be Here!!\n😒😒😒😒😒😒\n出て行け！\n🐷🐷🐷🐷🐷🐷\nУбирайся отсюда!\n🌚🌚🌚🌚🌚🌚")
+				self.close()
+			
+		if reason==QSystemTrayIcon.DoubleClick:
+			if self.boss_coming==False:
+				self.showNormal()
+			else:
+				loop=QEventLoop()
+				checkin=PasswordCheckWindow()
+				checkin.closed.connect(resurrection_or_nothing)
+				checkin.closed.connect(loop.quit)
+				loop.exec_()
+	
 	def data_validity_check(self):
 		"检查diary concept file rss的data"
 
@@ -4743,8 +4845,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.backup_thread.finished.connect(fuckyou)
 		self.backup_thread.start()
 
-		
-
 	def data_security_check(self):
 		
 		#1.Concept中的链接文件是否在File_data中存在？
@@ -4876,7 +4976,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			self.listWidget_search_concept.setCurrentRow(0)
 			self.listWidget_search_concept.setFocus()
 			self.concept_show(self.listWidget_search_concept.item(0).text().split("|")[0]) 
-
 
 	def concept_search_list_update(self):
 		
@@ -5979,9 +6078,34 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				try:
 					date_and_name=i.replace(self.file_saving_base,"")[1:].split("/")
 					
+					#允许拖入日级目录更下层的子文件
 					if "|" not in i and len(date_and_name)>4:
-						QMessageBox.warning(self,"Warning","禁止从内部路径之下导入文件，先拖出到内部路径之外处。")
-						break
+						
+						file_name=os.path.basename(i)
+						file_dst=self.file_saving_today_dst+"/"+file_name
+						
+						self.file_saving_today_dst_exist_check()
+
+						#文件添加，有可能硬盘被拔掉了
+						try:
+							shutil.move(i,file_dst)
+						except:
+							QMessageBox.warning(self,"Warning","路径访问出错！移动失败！")
+							break
+
+						#文件链接concept置空
+						self.file_data[self.y][self.m][self.d][file_name]=[]
+					
+						adding_file.append(
+							{
+								"y":self.y,
+								"m":self.m,
+								"d":self.d,
+								"file_name":file_name
+							}
+						)
+
+						continue
 					
 					y=int(date_and_name[0])
 					m=int(date_and_name[1])
@@ -6355,7 +6479,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				else:
 					self.toolBox_text.setItemText(1,"Text Linked File")
 
-	
 	def diary_line_file_link(self,links):
 		"""
 		从file library中进来的直接添加到当前日期，（如果带有内部路径，报错！）
@@ -6397,9 +6520,34 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				try:
 					date_and_name=i.replace(self.file_saving_base,"")[1:].split("/")
 
+					#允许拖入日级目录更下层的子文件
 					if "|" not in i and len(date_and_name)>4:
-						QMessageBox.warning(self,"Warning","禁止从内部路径之下导入文件，先拖出到内部路径之外处。")
-						break
+						
+						file_name=os.path.basename(i)
+						file_dst=self.file_saving_today_dst+"/"+file_name
+						
+						self.file_saving_today_dst_exist_check()
+
+						#文件添加，有可能硬盘被拔掉了
+						try:
+							shutil.move(i,file_dst)
+						except:
+							QMessageBox.warning(self,"Warning","路径访问出错！移动失败！")
+							break
+
+						#文件链接concept置空
+						self.file_data[self.y][self.m][self.d][file_name]=[]
+					
+						adding_file.append(
+							{
+								"y":self.y,
+								"m":self.m,
+								"d":self.d,
+								"file_name":file_name
+							}
+						)
+						
+						continue
 					
 					y=int(date_and_name[0])
 					m=int(date_and_name[1])
@@ -6741,6 +6889,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 from password_check_window import Ui_password_check_window
 
 class PasswordCheckWindow(QMainWindow,Ui_password_check_window):
+	"成功登陆emit 1，密码错误五次emit -1，取消登陆emit 0"
+	closed=Signal(int)
 	def __init__(self):
 		super().__init__()
 		self.setupUi(self)
@@ -6752,8 +6902,8 @@ class PasswordCheckWindow(QMainWindow,Ui_password_check_window):
 		#Signal
 		self.buttonBox.button(QDialogButtonBox.Ok).clicked.connect(self.ok_clicked)
 		self.lineEdit.returnPressed.connect(self.ok_clicked)
-		self.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.close)
-		self.btn_close.clicked.connect(self.close)
+		self.buttonBox.button(QDialogButtonBox.Cancel).clicked.connect(self.login_cancel)
+		self.btn_close.clicked.connect(self.login_cancel)
 
 		#初始化加密状态信息
 		self.user_settings=QSettings("user_settings.ini",QSettings.IniFormat)
@@ -6771,6 +6921,7 @@ class PasswordCheckWindow(QMainWindow,Ui_password_check_window):
 		#尝试的次数
 		self.left_times=5
 		
+		self.setFocus()
 		self.lineEdit.setFocus()
 		self.show()
 
@@ -6785,14 +6936,19 @@ class PasswordCheckWindow(QMainWindow,Ui_password_check_window):
 			
 			new_cheker=Fernet_Encrypt(self.password,"Dongli Teahouse")
 			self.user_settings.setValue("password_checker",new_cheker)
+			self.closed.emit(1)
 			self.close()
-			DongliTeahouseStudio(self.password)
 		else:
 			if Fernet_Decrypt(self.password,self.cheker)=="Dongli Teahouse":
+				self.closed.emit(1)
 				self.close()
-				DongliTeahouseStudio(self.password)
 			else:
 				self.left_times-=1
 				self.label.setText("Wrong Password! Remaining Times: %s"%self.left_times)
 				if self.left_times==0:
+					self.closed.emit(-1)
 					self.close()
+	
+	def login_cancel(self):
+		self.closed.emit(0)
+		self.close()

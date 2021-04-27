@@ -2037,6 +2037,7 @@ p, li { white-space: pre-wrap; }
     <addaction name="actionRestore_Main_Window"/>
     <addaction name="actionRestore_to_Normal_Size"/>
     <addaction name="actionStay_on_Top"/>
+    <addaction name="actionBoss_Coming"/>
     <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuFile">
@@ -3509,6 +3510,18 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="text">
     <string>Backup Data</string>
+   </property>
+  </action>
+  <action name="actionBoss_Coming">
+   <property name="icon">
+    <iconset resource="resource.qrc">
+     <normaloff>:/icon/users.svg</normaloff>:/icon/users.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Boss Coming</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
    </property>
   </action>
  </widget>

@@ -859,9 +859,34 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 				try:
 					date_and_name=i.replace(self.parent.file_saving_base,"")[1:].split("/")
 					
+					#允许拖入日级目录更下层的子文件
 					if "|" not in i and len(date_and_name)>4:
-						QMessageBox.warning(self,"Warning","禁止从内部路径之下导入文件，先拖出到内部路径之外处。")
-						break
+						
+						file_name=os.path.basename(i)
+						file_dst=self.parent.file_saving_today_dst+"/"+file_name
+						
+						self.parent.file_saving_today_dst_exist_check()
+
+						#文件添加，有可能硬盘被拔掉了
+						try:
+							shutil.move(i,file_dst)
+						except:
+							QMessageBox.warning(self,"Warning","路径访问出错！移动失败！")
+							break
+
+						#文件链接concept置空
+						self.parent.file_data[self.parent.y][self.parent.m][self.parent.d][file_name]=[]
+					
+						adding_file.append(
+							{
+								"y":self.parent.y,
+								"m":self.parent.m,
+								"d":self.parent.d,
+								"file_name":file_name
+							}
+						)
+						
+						continue
 					
 					y=int(date_and_name[0])
 					m=int(date_and_name[1])
