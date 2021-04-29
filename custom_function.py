@@ -370,7 +370,6 @@ def which_file_type(file_url):
 		# if "." not in file_name:
 		# 	return "folder"
 		# else:
-		
 
 def find_dict_in_string(s,name):
 	"尝试在字符串中找出格式为 name:\{  \}的字典，返回一个字典，若找不到返回False"
@@ -423,6 +422,120 @@ def find_dict_in_string(s,name):
 	find="{\""+s[index_head:index_tail]+"}"
 	
 	return json.loads(find)
+
+class MarkdownNode():
+	"""
+	将标题中的#和标题名分别用level(int)和name记录
+	用gnerate_markdown_tree_from_text生成text
+	用generate_text_from_markdown_tree生成树
+	"""
+	def __init__(self,name,level,index):
+		self.__name=name#标题的名字
+		self.__level=level#标题的级数
+		self.__index=index#在node_list中的第几个
+		self.__text=""#该层级后面的文本
+		self.__pos=0#在文本中的位置
+		self.__parent=None#父节点
+		self.__child=[]#子节点
+
+	def addText(self,text):
+		self.__text=self.__text+text
+	
+	def setPos(self,pos):
+		self.__pos=pos
+	
+	def addChild(self,node):
+		self.__child.append(node)
+	
+	def clearChild(self):
+		self.__child=[]
+	
+	def setParent(self,node):
+		self.__parent=node
+	
+	def name(self):
+		return self.__name
+	
+	def level(self):
+		return self.__level
+	
+	def setLevel(self,level):
+		self.__level=level
+	
+	def index(self):
+		return self.__index
+	
+	def text(self):
+		return self.__text
+	
+	def pos(self):
+		return self.__pos
+	
+	def child(self):
+		return self.__child
+	
+	def parent(self):
+		return self.__parent
+
+def gnerate_markdown_tree_from_text(text):
+	"输入markdown text，输出node_list，其中第一个元素是Head节点，通过node.child()从上到下去访问即可"
+	node_list=[]
+
+	#Head节点
+	index=0
+	current_name="Head"
+	current_level=0
+	current_node=MarkdownNode(current_name,current_level,index)
+	node_list.append(current_node)
+	
+	pos=0
+	for i in text.split("\n"):
+		pos+=len(i)+1
+		post_level=current_level
+		
+		try:
+			current_level=len(re.match("^#+(?= )",i).group())
+			current_name=re.findall("(?<=# ).*",i)[0]
+
+			#深入一级，
+			if current_level>post_level:
+				parent_node=current_node
+			
+			elif current_level==post_level:
+				parent_node=current_node.parent()
+			
+			elif current_level<post_level:
+				parent_node=current_node
+				for j in range(post_level-current_level+1):
+					parent_node=parent_node.parent()
+			
+			index+=1
+			current_node=MarkdownNode(current_name,current_level,index)
+			parent_node.addChild(current_node)
+			current_node.setParent(parent_node)
+			current_node.setPos(pos)
+			node_list.append(current_node)
+
+		except:
+			#是文本
+			current_node.addText(i+"\n")
+			pass
+	
+	return node_list
+
+def generate_text_from_markdown_tree(node_list):
+	def deep_append_text(node):
+		temp=""
+		for child in node.child():
+			temp+="#"*child.level()+" "+child.name()+"\n"+child.text()
+
+			temp+=deep_append_text(child)
+		
+		return temp
+		
+	text=""
+	text=deep_append_text(node_list[0])
+	return text
 
 class RSS_Parser():
 	################################################################################
@@ -631,4 +744,3 @@ class RSS_Parser():
 		
 		except:
 			return ("Failed",None,None)
-		

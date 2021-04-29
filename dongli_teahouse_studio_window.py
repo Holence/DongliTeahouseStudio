@@ -642,7 +642,6 @@ class Ui_dongli_teahouse_studio_window(object):
         self.frame_3.setFrameShape(QFrame.StyledPanel)
         self.frame_3.setFrameShadow(QFrame.Raised)
         self.horizontalLayout_6 = QHBoxLayout(self.frame_3)
-        self.horizontalLayout_6.setSpacing(0)
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
         self.splitter_zen = QSplitter(self.frame_3)
         self.splitter_zen.setObjectName(u"splitter_zen")
@@ -691,12 +690,11 @@ class Ui_dongli_teahouse_studio_window(object):
         self.horizontalLayout_4.setSpacing(0)
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
         self.horizontalLayout_4.setContentsMargins(0, 0, 0, 0)
-        self.textEdit_viewer_zen = QTextBrowser(self.page_3)
+        self.textEdit_viewer_zen = QTextEdit(self.page_3)
         self.textEdit_viewer_zen.setObjectName(u"textEdit_viewer_zen")
         self.textEdit_viewer_zen.setStyleSheet(u"")
         self.textEdit_viewer_zen.setReadOnly(True)
         self.textEdit_viewer_zen.setTextInteractionFlags(Qt.LinksAccessibleByMouse|Qt.TextSelectableByMouse)
-        self.textEdit_viewer_zen.setOpenExternalLinks(True)
 
         self.horizontalLayout_4.addWidget(self.textEdit_viewer_zen)
 
@@ -776,6 +774,15 @@ class Ui_dongli_teahouse_studio_window(object):
         self.verticalLayout_11.addLayout(self.horizontalLayout_11)
 
         self.splitter_zen.addWidget(self.layoutWidget5)
+        self.treeWidget_segment = MyTreeWidget(self.splitter_zen)
+        self.treeWidget_segment.setObjectName(u"treeWidget_segment")
+        self.treeWidget_segment.setTabKeyNavigation(True)
+        self.treeWidget_segment.setDragEnabled(True)
+        self.treeWidget_segment.setDragDropMode(QAbstractItemView.InternalMove)
+        self.treeWidget_segment.setAutoExpandDelay(750)
+        self.treeWidget_segment.setAnimated(True)
+        self.treeWidget_segment.setHeaderHidden(True)
+        self.splitter_zen.addWidget(self.treeWidget_segment)
 
         self.horizontalLayout_6.addWidget(self.splitter_zen)
 
@@ -1649,7 +1656,7 @@ class Ui_dongli_teahouse_studio_window(object):
 
         self.retranslateUi(dongli_teahouse_studio_window)
 
-        self.stackedWidget.setCurrentIndex(0)
+        self.stackedWidget.setCurrentIndex(3)
         self.stackedWidget_zen.setCurrentIndex(0)
         self.toolBox_text.setCurrentIndex(0)
         self.toolBox_text.layout().setSpacing(0)
@@ -1844,6 +1851,8 @@ class Ui_dongli_teahouse_studio_window(object):
         self.pushButton_sublime.setText("")
         self.lineEdit_zen_text_search.setPlaceholderText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Regex Search", None))
         self.label_zen_text_search.setText(QCoreApplication.translate("dongli_teahouse_studio_window", u"0", None))
+        ___qtreewidgetitem2 = self.treeWidget_segment.headerItem()
+        ___qtreewidgetitem2.setText(0, QCoreApplication.translate("dongli_teahouse_studio_window", u"1", None));
         self.dockWidget_diary.setWindowTitle(QCoreApplication.translate("dongli_teahouse_studio_window", u"Diary", None))
         self.label_diary_icon.setText("")
         self.label_titlebar_diary.setText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Diary", None))

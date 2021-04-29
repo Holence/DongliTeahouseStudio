@@ -603,7 +603,7 @@ QPushButton:pressed {
             </size>
            </property>
            <property name="currentIndex">
-            <number>0</number>
+            <number>3</number>
            </property>
            <widget class="QWidget" name="stackedWidgetPage_home">
             <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -849,9 +849,6 @@ p, li { white-space: pre-wrap; }
                 <enum>QFrame::Raised</enum>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_6">
-                <property name="spacing">
-                 <number>0</number>
-                </property>
                 <item>
                  <widget class="QSplitter" name="splitter_zen">
                   <property name="orientation">
@@ -946,7 +943,7 @@ p, li { white-space: pre-wrap; }
                          <number>0</number>
                         </property>
                         <item>
-                         <widget class="QTextBrowser" name="textEdit_viewer_zen">
+                         <widget class="QTextEdit" name="textEdit_viewer_zen">
                           <property name="styleSheet">
                            <string notr="true"/>
                           </property>
@@ -962,9 +959,6 @@ p, li { white-space: pre-wrap; }
                           </property>
                           <property name="textInteractionFlags">
                            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByMouse</set>
-                          </property>
-                          <property name="openExternalLinks">
-                           <bool>true</bool>
                           </property>
                          </widget>
                         </item>
@@ -1117,6 +1111,31 @@ p, li { white-space: pre-wrap; }
                      </layout>
                     </item>
                    </layout>
+                  </widget>
+                  <widget class="MyTreeWidget" name="treeWidget_segment">
+                   <property name="tabKeyNavigation">
+                    <bool>true</bool>
+                   </property>
+                   <property name="dragEnabled">
+                    <bool>true</bool>
+                   </property>
+                   <property name="dragDropMode">
+                    <enum>QAbstractItemView::InternalMove</enum>
+                   </property>
+                   <property name="autoExpandDelay">
+                    <number>750</number>
+                   </property>
+                   <property name="animated">
+                    <bool>true</bool>
+                   </property>
+                   <property name="headerHidden">
+                    <bool>true</bool>
+                   </property>
+                   <column>
+                    <property name="text">
+                     <string>1</string>
+                    </property>
+                   </column>
                   </widget>
                  </widget>
                 </item>

@@ -263,12 +263,19 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.treeWidget_zen.itemDoubleClicked.connect(self.zen_segment_show)
 
 		self.plainTextEdit_zen.editingFinished.connect(self.zen_segment_save)
+		self.plainTextEdit_zen.editingFinished.connect(self.zen_text_tree_build)
 
 		self.pushButton_sublime.clicked.connect(self.zen_open_sublime)
 		self.pushButton_typora.clicked.connect(self.zen_open_typora)
 		
+		#编辑的同时统计数字和搜索的个数
 		#QPlainTextEdit没有textEdited，自制的MyPlainTextEdit侦测keypress放出edited信号
 		self.plainTextEdit_zen.edited.connect(self.zen_text_search_or_count)
+		
+		self.treeWidget_segment.dropped.connect(self.zen_text_tree_drop_update)
+		self.treeWidget_segment.itemClicked.connect(self.zen_text_tree_itemClicked)
+
+		#zen搜索
 		self.lineEdit_zen_text_search.textEdited.connect(self.zen_text_search_or_count)
 		self.lineEdit_zen_text_search.returnPressed.connect(self.zen_text_search_or_count)
 
@@ -1159,6 +1166,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.plainTextEdit_zen.setPlainText(text)
 		
 		self.zen_text_search_or_count()
+		self.zen_text_tree_build()
 
 		# 奶奶的 《老 子》 不干了
 		# zen_searching=self.lineEdit_zen_search.text()
@@ -6831,7 +6839,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			except:
 				return
 			l=[m.span() for m in l]
-			#出来的是形如[(0, 1), (2, 4), (5, 6)]的下表列表，(起始位置,终止位置的后一位)
+			#出来的是形如[(0, 1), (2, 4), (5, 6)]的下标列表，(起始位置,终止位置的后一位)
 			for i in l:
 				begin=i[0]
 				end=i[1]
@@ -6870,6 +6878,93 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		# 	text=self.textEdit_viewer_zen.toPlainText()
 		# 	cursor=QTextCursor(self.textEdit_viewer_zen.document())
 
+	def zen_text_tree_build(self):
+		def deep_check_expand(root):
+			for index in range(root.childCount()):
+				item=root.child(index)
+				tree_expand.append(item.isExpanded())
+				deep_check_expand(item)
+			
+		def deep_build_text_tree(node,root):
+			#index是用来设置Expand的
+			for child in node.child():
+				node_name=child.name()
+				index=child.index()
+				#treeitem的附带信息：node_name,index,
+				temp=QTreeWidgetItem(root,[node_name,str(index)])
+				
+				try:
+					#这里self.markdown_node_list中node的index 和 tree_expand列表中的index是对应上的，就可以通用
+					temp.setExpanded(tree_expand[index])
+				except:
+					pass
+				
+				deep_build_text_tree(child,temp)
+		
+		text=self.plainTextEdit_zen.toPlainText()
+		
+		self.markdown_node_list=gnerate_markdown_tree_from_text(text)
+		
+		root=self.treeWidget_segment.invisibleRootItem()
+
+		#记录Expand属性，这里不用名称字典了，直接去对应第几个就行了
+		tree_expand=[None]
+		deep_check_expand(root)
+
+		self.treeWidget_segment.clear()
+		deep_build_text_tree(self.markdown_node_list[0],root)
+
+	def zen_text_tree_itemClicked(self):
+		index=int(self.treeWidget_segment.currentItem().text(1))
+		node=self.markdown_node_list[index]
+		
+		pos=node.pos()-2
+		cursor=QTextCursor(self.plainTextEdit_zen.document())
+		cursor.setPosition(pos,QTextCursor.MoveAnchor)
+		self.plainTextEdit_zen.moveCursor(QTextCursor.End)
+		self.plainTextEdit_zen.setTextCursor(cursor)
+	
+	def zen_text_tree_drop_update(self):
+		def deep_change_parent_and_child(root_item,root_node):
+			root_node.clearChild()
+			
+			for index in range(root_item.childCount()):
+				child_item=root_item.child(index)
+				child_node_index=int(child_item.text(1))
+				child_node=self.markdown_node_list[child_node_index]
+
+				child_node.setParent(root_node)
+				root_node.addChild(child_node)
+
+				deep_change_parent_and_child(child_item,child_node)
+		
+		def deep_fix_level(root_node):
+			root_level=root_node.level()
+			for index in range(len(root_node.child())):
+				child_node=root_node.child()[index]
+				child_level=child_node.level()
+				if child_level-root_level!=1:
+					child_node.setLevel(root_level+1)
+				
+				deep_fix_level(child_node)
+
+		root=self.treeWidget_segment.invisibleRootItem()
+
+		#根据TreeWidget的层级修复self.markdown_node_list中各个node的parent、child关联信息
+		deep_change_parent_and_child(root,self.markdown_node_list[0])
+
+		#根据self.markdown_node_list中各个node的parent、child的关联信息，修复node的level属性
+		deep_fix_level(self.markdown_node_list[0])
+
+		#根据self.markdown_node_list生成新的text
+		text=generate_text_from_markdown_tree(self.markdown_node_list)
+
+		#放置新的text
+		self.plainTextEdit_zen.setPlainText(text)
+
+		#根据新的text，生成新的self.markdown_node_list，以及新的TreeWidget的层级
+		self.zen_text_tree_build()
+	
 	def diary_random_date(self):
 		pool=[]
 		# replace diary data中的old data

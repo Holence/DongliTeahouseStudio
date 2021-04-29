@@ -155,7 +155,7 @@ class MyChartView(QtCharts.QChartView):
 			self.__press_pos = event.pos()
 
 class MyTreeWidget(QTreeWidget):
-	"RSS Tree用了这个"
+	"RSS\Zen\Segment Tree用了这个"
 	dropped=Signal()
 	def __init__(self, parent):
 		super(MyTreeWidget, self).__init__(parent)
@@ -198,6 +198,8 @@ class MyPlainTextEdit(QPlainTextEdit):
 	editingFinished = Signal()
 	receivedFocus = Signal()
 	edited=Signal()
+	# returnPressed=Signal()
+
 	def __init__(self, parent):
 		super(MyPlainTextEdit, self).__init__(parent)
 		self._changed = False
@@ -243,6 +245,9 @@ class MyPlainTextEdit(QPlainTextEdit):
 	
 	def keyPressEvent(self,event):
 		super(MyPlainTextEdit, self).keyPressEvent( event )
+		# if event.key()==Qt.Key_Return:
+		# 	self.returnPressed.emit()
+		
 		self.edited.emit()
 
 class MyTextEdit(QTextEdit):

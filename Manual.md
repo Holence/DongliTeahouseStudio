@@ -883,6 +883,8 @@ adding_feed_thread如果被closeEvent打断，可能会卡死（可能是在接�
 
 File_Data、Concept_Data、Diary_Data中，如果缺失了其中的一个，另两个链接的文件信息缺失而且抹也抹不掉。
 
+Zen Sgement Text Search如果结果多了会很卡……
+
 ---
 
 File_Data中是用字典存储的，而删除、重命名是用index定位的，所以搞文件夹排到最前面有点麻烦，就不做了。
