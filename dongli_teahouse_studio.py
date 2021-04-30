@@ -252,17 +252,22 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#Zen
 		self.actionCreate_Zen_Folder.triggered.connect(self.zen_folder_create)
 		self.actionAdd_Zen_Segment.triggered.connect(self.zen_segment_add)
+
+		#切换编辑、预览模式
 		self.actionSwitch_between_View_Edit.triggered.connect(self.zen_switch_mode)
 		
-		#zen搜索
+		#zen树
 		self.lineEdit_zen_search.textEdited.connect(self.zen_tree_build)
 		
-		#每次拖动排阶级后，就检查，
+		#每次拖动排阶级后，就检查
 		self.treeWidget_zen.dropped.connect(self.zen_tree_drop_update)
 
+		#点击文章，展示文章
 		self.treeWidget_zen.itemDoubleClicked.connect(self.zen_segment_show)
-
+		
+		#自动保存
 		self.plainTextEdit_zen.editingFinished.connect(self.zen_segment_save)
+		#生成chapter树
 		self.plainTextEdit_zen.editingFinished.connect(self.zen_text_tree_build)
 
 		self.pushButton_sublime.clicked.connect(self.zen_open_sublime)
@@ -273,7 +278,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.plainTextEdit_zen.edited.connect(self.zen_text_search_or_count)
 		
 		self.treeWidget_segment.dropped.connect(self.zen_text_tree_drop_update)
-		self.treeWidget_segment.itemClicked.connect(self.zen_text_tree_itemClicked)
+		self.treeWidget_segment.itemClicked.connect(self.zen_text_scroll_to_chapter)
 
 		#zen搜索
 		self.lineEdit_zen_text_search.textEdited.connect(self.zen_text_search_or_count)
@@ -409,7 +414,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 	def initialize_window(self):
 
 		#设置拖动坐标和控件
-		self.label_title_bar_top.set_drag_papa(self)
+		self.label_title_bar_top.setPapa(self)
 
 		#无边框
 		self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.CustomizeWindowHint)
@@ -1159,7 +1164,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		
 		segment_name=self.treeWidget_zen.currentItem().text(0)
 		
-		# self.stackedWidget_zen.setCurrentIndex(0)
+		self.treeWidget_segment.temp_storing=0
 		text=self.zen_data[segment_name]
 
 		self.textEdit_viewer_zen.setMarkdown(text)
@@ -1216,6 +1221,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.textEdit_viewer_zen.setMarkdown(text)
 		
 		self.zen_text_search_or_count()
+		self.zen_text_scroll_to_chapter()
 		
 			####
 				#更新cursor位置
@@ -2588,8 +2594,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			
 		
 		def fuckyou():
-			self.treeWidget_rss.setDragEnabled(1)
-			self.treeWidget_rss.setDragDropMode(QAbstractItemView.InternalMove)
+			# self.treeWidget_rss.setDragEnabled(1)
+			# self.treeWidget_rss.setDragDropMode(QAbstractItemView.InternalMove)
 			
 			self.statusBar.clearMessage()
 			
@@ -2607,12 +2613,13 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			if rss_auto_update!="true" and rss_auto_update!="True":
 				return
 
-		# 在每日更新的时候有qlock请求，
+		# 在更新的时候有qlock请求，
 		# 如果这时拖动了树会调用rss_tree_data_update去更新tree_data
 		# 就会请求qlock，就会和每日更新的qlock争抢，导致界面假死
 		# 所以禁止拖动树
-		self.treeWidget_rss.setDragEnabled(0)
-		self.treeWidget_rss.setDragDropMode(QAbstractItemView.NoDragDrop)
+		# 发现假死发生的概率不大，假死也不是很严重，那就算了吧
+		# self.treeWidget_rss.setDragEnabled(0)
+		# self.treeWidget_rss.setDragDropMode(QAbstractItemView.NoDragDrop)
 
 
 		#制定今天更新的列表
@@ -2663,8 +2670,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.rss_tree_build()
 		
 		def fuckyou():
-			self.treeWidget_rss.setDragEnabled(1)
-			self.treeWidget_rss.setDragDropMode(QAbstractItemView.InternalMove)
+			# self.treeWidget_rss.setDragEnabled(1)
+			# self.treeWidget_rss.setDragDropMode(QAbstractItemView.InternalMove)
 
 			self.statusBar.clearMessage()
 
@@ -2677,7 +2684,15 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			return
 		except:
 			pass
-			
+		
+		# 在更新的时候有qlock请求，
+		# 如果这时拖动了树会调用rss_tree_data_update去更新tree_data
+		# 就会请求qlock，就会和每日更新的qlock争抢，导致界面假死
+		# 所以禁止拖动树
+		# 发现假死发生的概率不大，假死也不是很严重，那就算了吧
+		# self.treeWidget_rss.setDragEnabled(0)
+		# self.treeWidget_rss.setDragDropMode(QAbstractItemView.NoDragDrop)
+
 		selected_item=[item for item in self.treeWidget_rss.selectedItems()]
 
 		#先检查，选中的全部都是RSS吗
@@ -4105,7 +4120,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		############################################################################
 
 	def about(self):
-		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 1.0.0.2\nAuthor: Holence\nContact: Holence08@gmail.com")
+		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 1.0.0.3\nAuthor: Holence\nContact: Holence08@gmail.com")
 
 	def font_set(self,font,font_size):
 		font_size=int(font_size)
@@ -4165,6 +4180,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		#偏小
 		font.setPointSize(int(font_size*0.8))
 		self.treeWidget_zen.setFont(font)
+		self.treeWidget_segment.setFont(font)
 		self.listWidget_rss.setFont(font)
 		self.treeWidget_rss.setFont(font)
 		self.lineEdit_search_concept.setFont(font)
@@ -6914,15 +6930,27 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.treeWidget_segment.clear()
 		deep_build_text_tree(self.markdown_node_list[0],root)
 
-	def zen_text_tree_itemClicked(self):
-		index=int(self.treeWidget_segment.currentItem().text(1))
+	def zen_text_scroll_to_chapter(self):
+		try:
+			index=int(self.treeWidget_segment.currentItem().text(1))
+			self.treeWidget_segment.temp_storing=index
+		except:
+			index=self.treeWidget_segment.temp_storing
 		node=self.markdown_node_list[index]
 		
-		pos=node.pos()-2
-		cursor=QTextCursor(self.plainTextEdit_zen.document())
-		cursor.setPosition(pos,QTextCursor.MoveAnchor)
-		self.plainTextEdit_zen.moveCursor(QTextCursor.End)
-		self.plainTextEdit_zen.setTextCursor(cursor)
+		if self.stackedWidget_zen.currentIndex()==1:
+			#Edit模式
+			pos=node.pos()-1
+			cursor=QTextCursor(self.plainTextEdit_zen.document().findBlock(pos))
+			self.plainTextEdit_zen.moveCursor(QTextCursor.End)
+			self.plainTextEdit_zen.setTextCursor(cursor)
+
+		if self.stackedWidget_zen.currentIndex()==0:
+			#View模式
+			line=node.line()-1
+			cursor=QTextCursor(self.textEdit_viewer_zen.document().findBlockByLineNumber(line))
+			self.textEdit_viewer_zen.moveCursor(QTextCursor.End)
+			self.textEdit_viewer_zen.setTextCursor(cursor)
 	
 	def zen_text_tree_drop_update(self):
 		def deep_change_parent_and_child(root_item,root_node):
@@ -6961,9 +6989,16 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 		#放置新的text
 		self.plainTextEdit_zen.setPlainText(text)
+		self.zen_text_search_or_count()
+
+		if self.stackedWidget_zen.currentIndex()==0:
+			#View模式
+			self.textEdit_viewer_zen.setMarkdown(text)
 
 		#根据新的text，生成新的self.markdown_node_list，以及新的TreeWidget的层级
 		self.zen_text_tree_build()
+		self.zen_text_scroll_to_chapter()
+
 	
 	def diary_random_date(self):
 		pool=[]
@@ -6990,7 +7025,7 @@ class PasswordCheckWindow(QMainWindow,Ui_password_check_window):
 		super().__init__()
 		self.setupUi(self)
 		#设置拖动坐标和控件
-		self.label_title_bar_top.set_drag_papa(self)
+		self.label_title_bar_top.setPapa(self)
 		#无边框
 		self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint | Qt.CustomizeWindowHint)
 

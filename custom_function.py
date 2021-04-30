@@ -434,7 +434,8 @@ class MarkdownNode():
 		self.__level=level#标题的级数
 		self.__index=index#在node_list中的第几个
 		self.__text=""#该层级后面的文本
-		self.__pos=0#在文本中的位置
+		self.__pos=0#在文本中的字符位数，编辑模式定位用
+		self.__line=0#在文本中的行数，预览模式定位用
 		self.__parent=None#父节点
 		self.__child=[]#子节点
 
@@ -443,6 +444,9 @@ class MarkdownNode():
 	
 	def setPos(self,pos):
 		self.__pos=pos
+	
+	def setLine(self,line):
+		self.__line=line
 	
 	def addChild(self,node):
 		self.__child.append(node)
@@ -471,6 +475,9 @@ class MarkdownNode():
 	def pos(self):
 		return self.__pos
 	
+	def line(self):
+		return self.__line
+	
 	def child(self):
 		return self.__child
 	
@@ -489,8 +496,13 @@ def gnerate_markdown_tree_from_text(text):
 	node_list.append(current_node)
 	
 	pos=0
+	line=0
 	for i in text.split("\n"):
 		pos+=len(i)+1
+
+		if i:
+			line+=1
+		
 		post_level=current_level
 		
 		try:
@@ -514,6 +526,7 @@ def gnerate_markdown_tree_from_text(text):
 			parent_node.addChild(current_node)
 			current_node.setParent(parent_node)
 			current_node.setPos(pos)
+			current_node.setLine(line)
 			node_list.append(current_node)
 
 		except:
@@ -527,7 +540,7 @@ def generate_text_from_markdown_tree(node_list):
 	def deep_append_text(node):
 		temp=""
 		for child in node.child():
-			temp+="#"*child.level()+" "+child.name()+"\n"+child.text()
+			temp+="#"*child.level()+" "+child.name()+"\n\n"+child.text()+"\n\n"
 
 			temp+=deep_append_text(child)
 		
@@ -535,6 +548,7 @@ def generate_text_from_markdown_tree(node_list):
 		
 	text=""
 	text=deep_append_text(node_list[0])
+	text=re.sub("\n\n\n+","\n\n",text)
 	return text
 
 class RSS_Parser():

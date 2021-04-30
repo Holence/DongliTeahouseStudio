@@ -599,6 +599,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.verticalLayout_browser.setContentsMargins(0, 0, 0, 0)
         self.lineEdit_browser = QLineEdit(self.verticalLayoutWidget)
         self.lineEdit_browser.setObjectName(u"lineEdit_browser")
+        self.lineEdit_browser.setDragEnabled(True)
 
         self.verticalLayout_browser.addWidget(self.lineEdit_browser)
 
@@ -690,11 +691,12 @@ class Ui_dongli_teahouse_studio_window(object):
         self.horizontalLayout_4.setSpacing(0)
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
         self.horizontalLayout_4.setContentsMargins(0, 0, 0, 0)
-        self.textEdit_viewer_zen = QTextEdit(self.page_3)
+        self.textEdit_viewer_zen = QTextBrowser(self.page_3)
         self.textEdit_viewer_zen.setObjectName(u"textEdit_viewer_zen")
         self.textEdit_viewer_zen.setStyleSheet(u"")
         self.textEdit_viewer_zen.setReadOnly(True)
         self.textEdit_viewer_zen.setTextInteractionFlags(Qt.LinksAccessibleByMouse|Qt.TextSelectableByMouse)
+        self.textEdit_viewer_zen.setOpenExternalLinks(True)
 
         self.horizontalLayout_4.addWidget(self.textEdit_viewer_zen)
 
@@ -779,6 +781,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.treeWidget_segment.setTabKeyNavigation(True)
         self.treeWidget_segment.setDragEnabled(True)
         self.treeWidget_segment.setDragDropMode(QAbstractItemView.InternalMove)
+        self.treeWidget_segment.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.treeWidget_segment.setAutoExpandDelay(750)
         self.treeWidget_segment.setAnimated(True)
         self.treeWidget_segment.setHeaderHidden(True)
@@ -1656,7 +1659,7 @@ class Ui_dongli_teahouse_studio_window(object):
 
         self.retranslateUi(dongli_teahouse_studio_window)
 
-        self.stackedWidget.setCurrentIndex(3)
+        self.stackedWidget.setCurrentIndex(0)
         self.stackedWidget_zen.setCurrentIndex(0)
         self.toolBox_text.setCurrentIndex(0)
         self.toolBox_text.layout().setSpacing(0)

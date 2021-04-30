@@ -159,6 +159,7 @@ class MyTreeWidget(QTreeWidget):
 	dropped=Signal()
 	def __init__(self, parent):
 		super(MyTreeWidget, self).__init__(parent)
+		self.temp_storing=0#segment的chapter定位需要记录选中的index，不想放在DongliTeahou类里了，太乱了
 	
 	def dropEvent(self,event):
 		super(MyTreeWidget,self).dropEvent(event)
@@ -721,7 +722,7 @@ class MyTitleLabel(QLabel):
 		#原理不明，重定义事件函数吗？
 		self.mouseDoubleClickEvent = self.dobleClickMaximizeRestore
 
-	def set_drag_papa(self,parent):
+	def setPapa(self,parent):
 		self.parent=parent
 	
 	def mousePressEvent(self, event):
@@ -742,8 +743,8 @@ class MyTitleLabel(QLabel):
 				self.parent.move(self.parent.pos() + (event.pos() - self.__press_pos))
 		
 	def dobleClickMaximizeRestore(self,event):
-		"双击事件"
-		if event.type() == QEvent.MouseButtonDblClick:
+		"双击切换最大化"
+		if event.type() == QEvent.MouseButtonDblClick and event.button()==Qt.LeftButton:
 			QTimer.singleShot(50, self.parent.window_toggle_maximun)
 
 class MyStackButton(QPushButton):
@@ -776,6 +777,7 @@ class MyConceptList(QListWidget):
 		#按回车发出enter_press的信号
 		if event.key()==Qt.Key_Return:
 			self.enter_pressed.emit()
+
 
 ###############################################################################################
 ###############################################################################################
