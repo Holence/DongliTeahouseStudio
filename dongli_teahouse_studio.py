@@ -270,19 +270,18 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		#生成chapter树
 		self.plainTextEdit_zen.editingFinished.connect(self.zen_text_tree_build)
 
-		self.pushButton_sublime.clicked.connect(self.zen_open_sublime)
-		self.pushButton_typora.clicked.connect(self.zen_open_typora)
+		self.pushButton_typora.clicked.connect(lambda:self.zen_open_textEditor("typora"))
+		self.pushButton_sublime.clicked.connect(lambda:self.zen_open_textEditor("sublime"))
 		
 		#编辑的同时统计数字和搜索的个数
 		#QPlainTextEdit没有textEdited，自制的MyPlainTextEdit侦测keypress放出edited信号
-		self.plainTextEdit_zen.edited.connect(self.zen_text_search_or_count)
+		self.plainTextEdit_zen.edited.connect(self.zen_text_count)
 		
 		self.treeWidget_segment.dropped.connect(self.zen_text_tree_drop_update)
 		self.treeWidget_segment.itemClicked.connect(self.zen_text_scroll_to_chapter)
 
 		#zen搜索
-		self.lineEdit_zen_text_search.textEdited.connect(self.zen_text_search_or_count)
-		self.lineEdit_zen_text_search.returnPressed.connect(self.zen_text_search_or_count)
+		self.lineEdit_zen_text_search.returnPressed.connect(self.zen_text_search)
 
 		#########################################################################################################
 		#Tab
@@ -1163,6 +1162,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			return
 		
 		segment_name=self.treeWidget_zen.currentItem().text(0)
+		self.treeWidget_zen.temp_storing=segment_name
 		
 		self.treeWidget_segment.temp_storing=0
 		text=self.zen_data[segment_name]
@@ -1170,7 +1170,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.textEdit_viewer_zen.setMarkdown(text)
 		self.plainTextEdit_zen.setPlainText(text)
 		
-		self.zen_text_search_or_count()
+		self.lineEdit_zen_text_search.clear()
+		self.zen_text_count()
 		self.zen_text_tree_build()
 
 		# 奶奶的 《老 子》 不干了
@@ -1187,20 +1188,18 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		# 	self.textEdit_viewer_zen.setTextCursor(cursor)
 	
 	def zen_segment_save(self):
-		try:
-			segment_name=self.treeWidget_zen.currentItem().text(0)
-			self.zen_data[segment_name]=self.plainTextEdit_zen.toPlainText()
-		except:
-			pass
+		
+		segment_name=self.treeWidget_zen.temp_storing
+		self.zen_data[segment_name]=self.plainTextEdit_zen.toPlainText()
 	
 	def zen_switch_mode(self):
 		# self.stackedWidget_zen的第0个是textEdit_viewer_zen
 		# self.stackedWidget_zen的第1个是plainTextEdit_zen
 
-		
-
 		if self.stackedWidget_zen.currentIndex()==0:
 			#切换到编辑模式
+			self.lineEdit_zen_text_search.clear()
+			self.zen_text_count()
 			self.stackedWidget_zen.setCurrentIndex(1)
 
 			####
@@ -1219,13 +1218,12 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.stackedWidget_zen.setCurrentIndex(0)
 			text=self.plainTextEdit_zen.toPlainText()
 			self.textEdit_viewer_zen.setMarkdown(text)
-		
-		self.zen_text_search_or_count()
-		self.zen_text_scroll_to_chapter()
-		
+			
 			####
 				#更新cursor位置
 				# self.plainTextEdit_zen.update_cursor_pos()
+		
+		self.zen_text_scroll_to_chapter()
 
 	def zen_edit(self):
 		selected_item=[item for item in self.treeWidget_zen.selectedItems()]
@@ -6800,99 +6798,159 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				self.diary_line_file_show()
 				self.window_title_update()
 
-	def zen_open_typora(self):
-		try:
-			typora_directory=decrypt(self.user_settings.value("typora_directory"))
-		except:
-			QMessageBox.warning(self,"Warning","请先设置Typora启动路径！")
-			return
-
-		if typora_directory!="":
+	def zen_open_textEditor(self,mode):
+		if mode=="typora":
 			try:
-				Popen(typora_directory)
-			except Exception as e:
-				QMessageBox.warning(self,"Warning","%s"%e)
-		else:
-			QMessageBox.warning(self,"Warning","请先设置Typora启动路径！")
-			return
-
-	def zen_open_sublime(self):
-		
-		try:
-			sublime_directory=decrypt(self.user_settings.value("sublime_directory"))
-		except:
-			QMessageBox.warning(self,"Warning","请先设置Sublime启动路径！")
-			return
-
-		if sublime_directory!="":
-			try:
-				Popen(sublime_directory)
-			except Exception as e:
-				QMessageBox.warning(self,"Warning","%s"%e)
-		else:
-			QMessageBox.warning(self,"Warning","请先设置Sublime启动路径！")
-			return
-
-	def zen_text_search_or_count(self):
-		
-		def zen_count():
-			count=len(text)
-			self.label_zen_text_search.setText(str(count))
-		
-		def text_fmt_clear():
-			"恢复初始着色"
-			cursor.setPosition(0, QTextCursor.MoveAnchor)
-			cursor.setPosition(len(text), QTextCursor.KeepAnchor)
-			cursor.setCharFormat(fmt)
-		
-		def text_search():
-			#上色
-			fmt.setBackground(QColor(107,114,74))
-			
-			#正则搜索
-			try:
-				l=re.finditer(searching,text)
+				textEditor_directory=decrypt(self.user_settings.value("typora_directory"))
 			except:
+				QMessageBox.warning(self,"Warning","请先设置Typora启动路径！")
 				return
-			l=[m.span() for m in l]
-			#出来的是形如[(0, 1), (2, 4), (5, 6)]的下标列表，(起始位置,终止位置的后一位)
-			for i in l:
-				begin=i[0]
-				end=i[1]
-				cursor.setPosition(begin, QTextCursor.MoveAnchor)
-				cursor.setPosition(end, QTextCursor.KeepAnchor)
-				cursor.setCharFormat(fmt)
+		elif mode=="sublime":
+			try:
+				textEditor_directory=decrypt(self.user_settings.value("sublime_directory"))
+			except:
+				QMessageBox.warning(self,"Warning","请先设置Sublime启动路径！")
+				return
+		
+		text=self.plainTextEdit_zen.toPlainText()
+		
+		if textEditor_directory!="":
+			try:
+				text=textEditor_edit(textEditor_directory,text)
+				self.plainTextEdit_zen.setPlainText(text)
+				self.zen_text_tree_build()
+				self.zen_text_count()
 
-			count=len(l)
-			self.label_zen_text_search.setText(str(count))
+				if self.stackedWidget_zen.currentIndex()==0:
+					#View模式
+					self.textEdit_viewer_zen.setMarkdown(text)
+					self.zen_text_search()
+				
+			except Exception as e:
+				QMessageBox.warning(self,"Warning","%s"%e)
+		else:
+			QMessageBox.warning(self,"Warning","请先设置启动路径！")
+			return
 
+	def zen_text_search(self):
+		"预览界面搜索高亮"
 
 		searching=self.lineEdit_zen_text_search.text()
+		if searching=="":
+			self.zen_text_count()
+			return
 		
-		fmt=QTextCharFormat()
-
-		#显示总字数的以plainTextEdit_zen为准
+		"恢复初始着色"
+		#还不如直接set一遍，这比一个一个重置快多了
+		self.stackedWidget_zen.setCurrentIndex(0)
 		text=self.plainTextEdit_zen.toPlainText()
-
-		if self.stackedWidget_zen.currentIndex()==1:
-			#Edit模式
-			cursor=QTextCursor(self.plainTextEdit_zen.document())
-			text_fmt_clear()
-			if searching=="":
-				zen_count()
-			else:
-				text_search()
-
-		if self.stackedWidget_zen.currentIndex()==0:
-			#View模式
-			if searching=="":
-				zen_count()
-			else:
-				pass
+		self.textEdit_viewer_zen.setMarkdown(text)
+		####
+			# 一个一个重置太慢了
+			# cursor=QTextCursor(self.textEdit_viewer_zen.document())
+			# for i in range(len(text)):
+			# 	cursor.setPosition(i,QTextCursor.MoveAnchor)
+			# 	cursor.movePosition(QTextCursor.NextCharacter,QTextCursor.KeepAnchor)
+			# 	fmt=cursor.charFormat()
+			# 	fmt.setBackground(QColor(0,0,0,0))
+			# 	cursor.setCharFormat(fmt)
 		
-		# 发现markdown的标记格式会被fmt抹掉，那view模式下的搜索高亮还是削了吧……
-		# 	text=self.textEdit_viewer_zen.toPlainText()
-		# 	cursor=QTextCursor(self.textEdit_viewer_zen.document())
+		text=self.textEdit_viewer_zen.toPlainText()
+
+		"正则搜索"
+		try:
+			l=re.finditer(searching,text)
+		except:
+			return
+		l=[m.span() for m in l]
+		
+		"上色"
+		cursor=QTextCursor(self.textEdit_viewer_zen.document())
+		for i in l:
+			begin=i[0]
+			end=i[1]
+			cursor.setPosition(begin, QTextCursor.MoveAnchor)
+			fmt=cursor.charFormat()
+			fmt.setBackground(QColor(107,114,74))
+			
+			cursor.setPosition(end, QTextCursor.KeepAnchor)
+			cursor.setCharFormat(fmt)
+
+		"计数"
+		count=len(l)
+		self.label_zen_text_search.setText(str(count))
+	
+	def zen_text_count(self):
+		"字数统计"
+
+		text=self.plainTextEdit_zen.toPlainText()
+		count=len(text)
+		self.label_zen_text_search.setText(str(count))
+	
+	####
+		# 因为QPlainTextEdit中修改了fmt后会把undo吞了，只好削了编辑界面的搜索高亮了
+		# 编辑界面只会显示字数统计，搜索自动跳转到预览界面
+		# 不过现在倒是可以在预览界面保持markdown格式的同时搜索高亮了
+		# def zen_text_search_or_count(self):
+			
+		# 	def zen_count():
+		# 		count=len(text)
+		# 		self.label_zen_text_search.setText(str(count))
+			
+		# 	def text_fmt_clear():
+		# 		"恢复初始着色"
+		# 		cursor.setPosition(0, QTextCursor.MoveAnchor)
+		# 		cursor.setPosition(len(text), QTextCursor.KeepAnchor)
+		# 		cursor.setCharFormat(fmt)
+			
+		# 	def text_search():
+		# 		#上色
+		# 		fmt.setBackground(QColor(107,114,74))
+				
+		# 		#正则搜索
+		# 		try:
+		# 			l=re.finditer(searching,text)
+		# 		except:
+		# 			return
+		# 		l=[m.span() for m in l]
+		# 		#出来的是形如[(0, 1), (2, 4), (5, 6)]的下标列表，(起始位置,终止位置的后一位)
+		# 		for i in l:
+		# 			begin=i[0]
+		# 			end=i[1]
+		# 			cursor.setPosition(begin, QTextCursor.MoveAnchor)
+		# 			cursor.setPosition(end, QTextCursor.KeepAnchor)
+		# 			cursor.setCharFormat(fmt)
+
+		# 		count=len(l)
+		# 		self.label_zen_text_search.setText(str(count))
+
+
+		# 	searching=self.lineEdit_zen_text_search.text()
+			
+		# 	fmt=QTextCharFormat()
+
+		# 	#显示总字数的以plainTextEdit_zen为准
+		# 	text=self.plainTextEdit_zen.toPlainText()
+
+		# 	if self.stackedWidget_zen.currentIndex()==1:
+		# 		#Edit模式
+		# 		cursor=QTextCursor(self.plainTextEdit_zen.document())
+		# 		text_fmt_clear()
+		# 		if searching=="":
+		# 			zen_count()
+		# 		else:
+		# 			text_search()
+
+		# 	if self.stackedWidget_zen.currentIndex()==0:
+		# 		#View模式
+		# 		if searching=="":
+		# 			zen_count()
+		# 		else:
+		# 			pass
+			
+		# 	# 发现markdown的标记格式会被fmt抹掉，那view模式下的搜索高亮还是削了吧……
+		# 	# 	text=self.textEdit_viewer_zen.toPlainText()
+		# 	# 	cursor=QTextCursor(self.textEdit_viewer_zen.document())
 
 	def zen_text_tree_build(self):
 		def deep_check_expand(root):
@@ -6919,7 +6977,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		
 		text=self.plainTextEdit_zen.toPlainText()
 		
-		self.markdown_node_list=gnerate_markdown_tree_from_text(text)
+		result=gnerate_markdown_tree_from_text(text,self)
+		if result!=[]:
+			self.markdown_node_list=result
+		else:
+			return
 		
 		root=self.treeWidget_segment.invisibleRootItem()
 
@@ -6989,16 +7051,15 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 		#放置新的text
 		self.plainTextEdit_zen.setPlainText(text)
-		self.zen_text_search_or_count()
 
 		if self.stackedWidget_zen.currentIndex()==0:
 			#View模式
 			self.textEdit_viewer_zen.setMarkdown(text)
+			self.zen_text_search()
 
 		#根据新的text，生成新的self.markdown_node_list，以及新的TreeWidget的层级
 		self.zen_text_tree_build()
 		self.zen_text_scroll_to_chapter()
-
 	
 	def diary_random_date(self):
 		pool=[]

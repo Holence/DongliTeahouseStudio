@@ -25,6 +25,25 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+def textEditor_edit(textEditor_directory,text):
+	
+	with open("$temp","w",encoding="utf-8") as f:
+		f.write(text)
+	
+	subprocess=Popen([textEditor_directory,"$temp"])
+	subprocess.wait()
+
+	with open("$temp","r",encoding="utf-8") as f:
+		text=f.read()
+	
+	clear_temp_file()
+
+	return text
+
+def clear_temp_file():
+	with open("$temp","w",encoding="utf-8") as f:
+		f.write("")
+
 def file_sort(file_list):
 	file_sort_dict={}
 
@@ -484,7 +503,7 @@ class MarkdownNode():
 	def parent(self):
 		return self.__parent
 
-def gnerate_markdown_tree_from_text(text):
+def gnerate_markdown_tree_from_text(text,parent):
 	"输入markdown text，输出node_list，其中第一个元素是Head节点，通过node.child()从上到下去访问即可"
 	node_list=[]
 
@@ -497,11 +516,17 @@ def gnerate_markdown_tree_from_text(text):
 	
 	pos=0
 	line=0
+	
 	for i in text.split("\n"):
 		pos+=len(i)+1
 
 		if i:
-			line+=1
+			if i[:2]=="| " and i[:3]!="| -":
+				line+=i.count("|")-1
+			elif i=="> " or i==">":
+				pass
+			else:
+				line+=1
 		
 		post_level=current_level
 		
@@ -511,6 +536,9 @@ def gnerate_markdown_tree_from_text(text):
 
 			#深入一级，
 			if current_level>post_level:
+				if current_level-post_level>1:
+					QMessageBox.warning(parent,"Warning","标题越级！\n\n%s"%i)
+					return []
 				parent_node=current_node
 			
 			elif current_level==post_level:

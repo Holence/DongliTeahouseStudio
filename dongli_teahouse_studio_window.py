@@ -1850,7 +1850,13 @@ class Ui_dongli_teahouse_studio_window(object):
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:'SimSun'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:18pt;\"><br /></p></body></html>", None))
+#if QT_CONFIG(tooltip)
+        self.pushButton_typora.setToolTip(QCoreApplication.translate("dongli_teahouse_studio_window", u"Do Not Open The Program Beforehand!", None))
+#endif // QT_CONFIG(tooltip)
         self.pushButton_typora.setText("")
+#if QT_CONFIG(tooltip)
+        self.pushButton_sublime.setToolTip(QCoreApplication.translate("dongli_teahouse_studio_window", u"Do Not Open The Program Beforehand!", None))
+#endif // QT_CONFIG(tooltip)
         self.pushButton_sublime.setText("")
         self.lineEdit_zen_text_search.setPlaceholderText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Regex Search", None))
         self.label_zen_text_search.setText(QCoreApplication.translate("dongli_teahouse_studio_window", u"0", None))
