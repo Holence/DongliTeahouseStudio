@@ -5173,7 +5173,15 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 							if old_id in changed_id_dict_keys:
 								self.file_data[year_index][month_index][day][file][linked_item_index]=changed_id_dict[old_id]
 		
-
+		#修正tab的根节点
+		for tab_index in range(len(self.custom_tabs_shown)):
+			if self.custom_tabs_shown[tab_index].tab_selection_id in changed_id_dict_keys:
+				self.custom_tabs_shown[tab_index].tab_selection_id=changed_id_dict[self.custom_tabs_shown[tab_index].tab_selection_id]
+		#修正tab的根节点
+		for tab_index in range(len(self.custom_tab_data)):
+			if self.custom_tab_data[tab_index][1] in changed_id_dict_keys:
+				self.custom_tab_data[tab_index][1]=changed_id_dict[self.custom_tab_data[tab_index][1]]
+		
 		self.diary_line_concept_list_update()
 		self.concept_search_list_update()
 
@@ -5430,7 +5438,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 									if item_id==ID:
 										text_list.append({
 											"date":str(year_index+1970)+"."+str(month_index+1)+"."+str(self.diary_data[year_index]["date"][month_index][day_index]["day"]),
-											"text":self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["line_text"]
+											"text":self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["line_text"],
+											"y":year_index,
+											"m":month_index,
+											"d":day_index,
+											"index":line_index
 										})
 				if text_list!=[]:
 					message=QMessageBox()
@@ -5441,20 +5453,33 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					# message.setGeometry(0,0,800,400)
 
 					message.setIcon(QMessageBox.Warning)
+					message.setStandardButtons(QMessageBox.Ok)
+					message.addButton(QMessageBox.Cancel)
+					message.setDefaultButton(QMessageBox.Cancel)
 
 					#然而\n
 					#\n
 					#"这就是最简单(zhizhang)的改大小方法                                                         用空格和回车填充                           简单易用好上手！"
-					warning_text=str(ID)+"|"+"%s"%self.concept_data[ID]["name"]+" 在日志中已存在：\n\n\n                                                                "
+					warning_text=str(ID)+"|"+"%s"%self.concept_data[ID]["name"]+" 在日志中已存在：\n\n删除该Concept将会同时删除在以下文本中的关联！\n\n                                                                "
 					message.setText(warning_text)
 
+					#警告
 					warning_detailed_text=""
 					for i in text_list:
 						warning_detailed_text+=i["date"]+" : "+i["text"]+"\n"
 					message.setDetailedText(warning_detailed_text)
 
-					message.exec_()
-					return
+					#仍要删除
+					if message.exec_()==QMessageBox.Ok:
+						for line in text_list:
+							year_index=line["y"]
+							month_index=line["m"]
+							day_index=line["d"]
+							line_index=line["index"]
+							self.diary_data[year_index]["date"][month_index][day_index]["text"][line_index]["linked_concept"].remove(ID)
+					#取消删除
+					else:
+						return
 				
 
 				#把关联物的关联信息删掉
@@ -5540,13 +5565,19 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 									if old_id in changed_id_dict_keys:
 										self.file_data[year_index][month_index][day][file][linked_item_index]=changed_id_dict[old_id]
 				
+				#修正tab的根节点
+				for tab_index in range(len(self.custom_tabs_shown)):
+					if self.custom_tabs_shown[tab_index].tab_selection_id in changed_id_dict_keys:
+						self.custom_tabs_shown[tab_index].tab_selection_id=changed_id_dict[self.custom_tabs_shown[tab_index].tab_selection_id]
+				#修正tab的根节点
+				for tab_index in range(len(self.custom_tab_data)):
+					if self.custom_tab_data[tab_index][1] in changed_id_dict_keys:
+						self.custom_tab_data[tab_index][1]=changed_id_dict[self.custom_tab_data[tab_index][1]]
 
 				self.diary_line_concept_list_update()
 				self.concept_search_list_update()
 
 				self.tab_refresh_current_tab()
-
-
 		
 		except:
 			pass
