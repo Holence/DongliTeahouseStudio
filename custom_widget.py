@@ -159,7 +159,12 @@ class MyTreeWidget(QTreeWidget):
 	dropped=Signal()
 	def __init__(self, parent):
 		super(MyTreeWidget, self).__init__(parent)
-		self.temp_storing=0#segment的chapter定位需要记录选中的index，不想放在DongliTeahou类里了，太乱了
+		
+		self.temp_storing=0
+		#不想放在DongliTeahou类里了，太乱了
+		#treeWidget_segment中存储segment定位选中的chapter的index
+		#treeWidget_zen中存储当前点击的segment的名字
+		#treeWidget_rss中存储当前点击的rss
 	
 	def dropEvent(self,event):
 		super(MyTreeWidget,self).dropEvent(event)

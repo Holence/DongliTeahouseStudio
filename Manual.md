@@ -4,7 +4,7 @@
 
 语言：简体中文
 
-对应版本：1.0.0.1
+对应版本：1.0.0.3
 
 ## 前言
 
@@ -441,15 +441,13 @@ Ctrl+F搜索Diary。
 }
 ```
 
-
-
 ### Zen
 
-一个内置的Markdown编辑、预览器，附带正则搜索功能（只在Edit界面）、Typora、Sublime快捷方式（可在Setting中设置启动位置）
+一个内置的Markdown编辑、预览器（可在Setting中设置启动位置）
 
 ![zen](Manual.assets/zen.png)
 
-#### 编辑模式 \ 预览模式切换
+#### Edit \ View模式切换
 
 按F9
 
@@ -460,6 +458,26 @@ Ctrl+F搜索Diary。
 F: xxx或者f: xxx搜索文件夹名
 
 t: xxx或者T: xxx搜Segment的内容
+
+#### Segment正则搜索
+
+只能在View界面（因为CharFormat的修改会清空QPlainTextEdit的Undo栈）
+
+#### Segment Chapter定位
+
+点击Chapter Tree中的一项，在Edit \ View模式中定位到章节（View模式的定位仍然存在瑕疵）
+
+#### Segment Chapter重排
+
+拖动右边的Chapter Tree进行重排（可批量），程序会自动修改Markdown标题级数
+
+#### 第三方编辑器快捷方式
+
+用Typora、Sublime编辑当前文本
+
+#### Folder View
+
+展示一个Folder内所有Segment的合集，将按从上到下的顺序连接各个Segment
 
 #### Zen Data相关*
 
@@ -487,8 +505,6 @@ Segment的信息zen_data存储在Zen_Data.dlcw中：
     "Test2": "Test2"
 }
 ```
-
-
 
 ### Tab
 
@@ -818,8 +834,6 @@ Ctrl+Q
 ```python
 self.user_settings.setValue("sticker",encrypt(sticker_text))
 ```
-
-
 
 ## 显示
 

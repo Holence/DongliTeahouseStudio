@@ -41,6 +41,7 @@ class Ui_mytabwidget_form(object):
         self.treeWidget.setItemsExpandable(True)
         self.treeWidget.setSortingEnabled(False)
         self.treeWidget.setAnimated(True)
+        self.treeWidget.setExpandsOnDoubleClick(False)
         self.splitter_whole.addWidget(self.treeWidget)
         self.treeWidget.header().setVisible(False)
         self.layoutWidget = QWidget(self.splitter_whole)

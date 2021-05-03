@@ -580,6 +580,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.treeWidget_rss.setSortingEnabled(False)
         self.treeWidget_rss.setAnimated(True)
         self.treeWidget_rss.setAllColumnsShowFocus(False)
+        self.treeWidget_rss.setExpandsOnDoubleClick(False)
         self.treeWidget_rss.header().setVisible(False)
 
         self.verticalLayout.addWidget(self.treeWidget_rss)
@@ -673,6 +674,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.treeWidget_zen.setSortingEnabled(False)
         self.treeWidget_zen.setAnimated(True)
         self.treeWidget_zen.setAllColumnsShowFocus(False)
+        self.treeWidget_zen.setExpandsOnDoubleClick(False)
         self.treeWidget_zen.header().setVisible(False)
 
         self.verticalLayout_9.addWidget(self.treeWidget_zen)
@@ -785,6 +787,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.treeWidget_segment.setAutoExpandDelay(750)
         self.treeWidget_segment.setAnimated(True)
         self.treeWidget_segment.setHeaderHidden(True)
+        self.treeWidget_segment.setExpandsOnDoubleClick(False)
         self.splitter_zen.addWidget(self.treeWidget_segment)
 
         self.horizontalLayout_6.addWidget(self.splitter_zen)

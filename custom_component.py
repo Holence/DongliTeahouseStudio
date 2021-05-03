@@ -412,7 +412,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		self.plainTextEdit_detail.editingFinished.connect(self.concept_info_edited_and_save)
 
 		#点击更新文件列表并且显示concept内容
-		self.treeWidget.itemClicked.connect(self.tree_item_clicked)
+		self.treeWidget.itemDoubleClicked.connect(self.tree_item_clicked)
 
 		#文件区
 		self.listWidget_file_root.itemDoubleClicked.connect(self.root_file_open)

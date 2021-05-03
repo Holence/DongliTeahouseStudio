@@ -234,11 +234,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		self.actionAdd_RSS_Feed.triggered.connect(self.rss_feed_add)
 		self.actionOpen_WebPage_In_Browser.triggered.connect(self.rss_open_webpage)
 		#点击treeitem，show文章列表
-		self.treeWidget_rss.itemClicked.connect(self.rss_feed_article_list_show)
+		self.treeWidget_rss.itemDoubleClicked.connect(self.rss_feed_article_list_show)
 		#每次拖动排阶级后，就检查，RSS不能作为folder
 		self.treeWidget_rss.dropped.connect(self.rss_tree_drop_update)
 		#点击文章
-		self.listWidget_rss.itemClicked.connect(self.rss_feed_article_show)
+		self.listWidget_rss.itemDoubleClicked.connect(self.rss_feed_article_show)
 		#手动更新RSS
 		self.actionUpdate_Feed_Manually.triggered.connect(self.rss_feed_manually_update)
 		#rss搜索
@@ -533,7 +533,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 			#####################################################################################################################
 
-			self.current_rss_showing=None#如果点开的是rss，那么放的是rss_url；如果点开的是folder，那么存所有文章结构体的列表
+			self.treeWidget_rss.temp_storing=None#如果点开的是rss，那么放的是rss_url；如果点开的是folder，那么存所有文章结构体的列表
 
 			self.rss_tree_build()
 			self.rss_feed_daily_update(start=True)
@@ -1158,19 +1158,31 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 	def zen_segment_show(self):
 		TYPE=self.treeWidget_zen.currentItem().text(1)
-		if TYPE=="Folder":
-			return
+		self.lineEdit_zen_text_search.clear()
 		
-		segment_name=self.treeWidget_zen.currentItem().text(0)
-		self.treeWidget_zen.temp_storing=segment_name
+		if TYPE=="Segment":
+			segment_name=self.treeWidget_zen.currentItem().text(0)
+			self.treeWidget_zen.temp_storing=segment_name
+			
+			text=self.zen_data[segment_name]
+			
+		elif TYPE=="Folder":
+			if self.stackedWidget_zen.currentIndex()==1:
+				#切换到预览模式
+				self.stackedWidget_zen.setCurrentIndex(0)
+			
+			folder_name=self.treeWidget_zen.currentItem().text(0)
+			self.treeWidget_zen.temp_storing=-1
+			text=""
+			for i in self.zen_tree_data:
+				if type(i)==dict and i["folder_name"]==folder_name:
+					for segment_name in i["Segment"]:
+						text+=self.zen_data[segment_name]+"\n\n"
+					break
 		
 		self.treeWidget_segment.temp_storing=0
-		text=self.zen_data[segment_name]
-
 		self.textEdit_viewer_zen.setMarkdown(text)
 		self.plainTextEdit_zen.setPlainText(text)
-		
-		self.lineEdit_zen_text_search.clear()
 		self.zen_text_count()
 		self.zen_text_tree_build()
 
@@ -1188,6 +1200,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		# 	self.textEdit_viewer_zen.setTextCursor(cursor)
 	
 	def zen_segment_save(self):
+
+		#点击了Folder的话不允许编辑，这里赋值了-1
+		if self.treeWidget_zen.temp_storing==-1:
+			QMessageBox.warning(self,"Warning","合集模式不能编辑！")
+			return
 		
 		segment_name=self.treeWidget_zen.temp_storing
 		self.zen_data[segment_name]=self.plainTextEdit_zen.toPlainText()
@@ -1196,6 +1213,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		# self.stackedWidget_zen的第0个是textEdit_viewer_zen
 		# self.stackedWidget_zen的第1个是plainTextEdit_zen
 
+		#点击了Folder的话不允许编辑，这里赋值了-1
+		if self.treeWidget_zen.temp_storing==-1:
+			QMessageBox.warning(self,"Warning","合集模式不能编辑！")
+			return
+		
 		if self.stackedWidget_zen.currentIndex()==0:
 			#切换到编辑模式
 			self.lineEdit_zen_text_search.clear()
@@ -3638,7 +3660,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 			#点的不是folder，而是rss
 			if rss_url!="":
-				self.current_rss_showing=rss_url
+				self.treeWidget_rss.temp_storing=rss_url
 				article_list=self.rss_data[rss_url]["article_list"]
 				for article in article_list:
 					#这里可以直接按顺序列出，因为放入的时候我已经把新的放在最前面了
@@ -3660,9 +3682,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 							feed_list.append(rss_url)
 						break
 
-				# self.current_rss_showing存所有文章结构体的列表，
+				# self.treeWidget_rss.temp_storing存所有文章结构体的列表，
 				# 每个文章结构体的结构：[article_name,article_url,article_read,article_time,rss_url,article_index]
-				self.current_rss_showing=[]
+				self.treeWidget_rss.temp_storing=[]
 				for rss_url in feed_list:
 					article_list=self.rss_data[rss_url]["article_list"]
 
@@ -3673,13 +3695,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						article_read=article[2]
 						article_time=article[3]
 						article_index=index#文章在feed中所属的index，记录这个方便点文章时，回去标记已读过
-						self.current_rss_showing.append([article_name,article_url,article_read,article_time,rss_url,article_index])
+						self.treeWidget_rss.temp_storing.append([article_name,article_url,article_read,article_time,rss_url,article_index])
 						index+=1
 
 				#按时间排序
-				self.current_rss_showing.sort(key=lambda x:x[3],reverse=True)
+				self.treeWidget_rss.temp_storing.sort(key=lambda x:x[3],reverse=True)
 				
-				for i in self.current_rss_showing:
+				for i in self.treeWidget_rss.temp_storing:
 					article_name=i[0]
 					if i[2]==False:
 						self.listWidget_rss.addItem("✨|"+article_name)
@@ -3687,15 +3709,15 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						self.listWidget_rss.addItem("🗸|"+article_name)
 				
 				"把正在看的folder的name藏在最后，重新进这个函数的时候有用（就是下面的那种情况），反正那边点击文章的也不会戳到屁股上的"
-				self.current_rss_showing.append(folder_name)
+				self.treeWidget_rss.temp_storing.append(folder_name)
 		except:
 			#tree刷新了，也要更新article list
 			#但是刷新后，rss_url=tree.currentItem()没有东西啊
 			#rss_url不能用了
-			#那就展示和self.current_rss_showing一样的东西好了
+			#那就展示和self.treeWidget_rss.temp_storing一样的东西好了
 			#点的不是folder，而是rss
-			if type(self.current_rss_showing)==str:
-				rss_url=self.current_rss_showing
+			if type(self.treeWidget_rss.temp_storing)==str:
+				rss_url=self.treeWidget_rss.temp_storing
 				article_list=self.rss_data[rss_url]["article_list"]
 				for article in article_list:
 					#这里可以直接按顺序列出，因为放入的时候我已经把新的放在最前面了
@@ -3706,9 +3728,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						self.listWidget_rss.addItem("🗸|"+article_name)
 			
 			#点的是folder，展示下层的所有文章
-			elif type(self.current_rss_showing)==list:
+			elif type(self.treeWidget_rss.temp_storing)==list:
 				"把正在看的folder的name藏在了最后，重新进这个函数的时候有用（就是下面的那种情况），反正那边点击文章的也不会戳到屁股上的"
-				folder_name=self.current_rss_showing[-1]
+				folder_name=self.treeWidget_rss.temp_storing[-1]
 
 				#先列出文件夹中所有的feed
 				feed_list=[]
@@ -3718,9 +3740,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 							feed_list.append(rss_url)
 						break
 
-				# self.current_rss_showing存所有文章结构体的列表，
+				# self.treeWidget_rss.temp_storing存所有文章结构体的列表，
 				# 每个文章结构体的结构：[article_name,article_url,article_read,article_time,rss_url,article_index]
-				self.current_rss_showing=[]
+				self.treeWidget_rss.temp_storing=[]
 				for rss_url in feed_list:
 					article_list=self.rss_data[rss_url]["article_list"]
 
@@ -3731,13 +3753,13 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						article_read=article[2]
 						article_time=article[3]
 						article_index=index#文章在feed中所属的index，记录这个方便点文章时，回去标记已读过
-						self.current_rss_showing.append([article_name,article_url,article_read,article_time,rss_url,article_index])
+						self.treeWidget_rss.temp_storing.append([article_name,article_url,article_read,article_time,rss_url,article_index])
 						index+=1
 
 				#按时间排序
-				self.current_rss_showing.sort(key=lambda x:x[3],reverse=True)
+				self.treeWidget_rss.temp_storing.sort(key=lambda x:x[3],reverse=True)
 				
-				for i in self.current_rss_showing:
+				for i in self.treeWidget_rss.temp_storing:
 					article_name=i[0]
 					if i[2]==False:
 						self.listWidget_rss.addItem("✨|"+article_name)
@@ -3745,12 +3767,12 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						self.listWidget_rss.addItem("🗸|"+article_name)
 				
 				"把正在看的folder的name藏在最后，重新进这个函数的时候有用（就是现在这种情况），反正那边点击文章的也不会戳到屁股上的"
-				self.current_rss_showing.append(folder_name)
+				self.treeWidget_rss.temp_storing.append(folder_name)
 
 	def rss_feed_article_show(self):
 		"""
 		两种情况，文章列表来源于单个rss，或者文章列表来源于folder
-		点击文章是戳不到self.current_rss_showing的屁股上的
+		点击文章是戳不到self.treeWidget_rss.temp_storing的屁股上的
 		"""
 
 		
@@ -3758,8 +3780,8 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		index=self.listWidget_rss.currentRow()
 
 		#文章列表来源于单个rss
-		if type(self.current_rss_showing)==str:
-			article=self.rss_data[self.current_rss_showing]["article_list"][index]
+		if type(self.treeWidget_rss.temp_storing)==str:
+			article=self.rss_data[self.treeWidget_rss.temp_storing]["article_list"][index]
 			article_name=article[0]
 			article_url=article[1]
 			
@@ -3768,7 +3790,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				self.qlock.lock()
 
 				article[2]=True
-				self.rss_data[self.current_rss_showing]["unread"]-=1
+				self.rss_data[self.treeWidget_rss.temp_storing]["unread"]-=1
 
 				self.qlock.unlock()
 
@@ -3778,10 +3800,10 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				self.rss_tree_build()
 			
 		#文章列表来源于folder
-		# self.current_rss_showing存所有文章结构体的列表，
+		# self.treeWidget_rss.temp_storing存所有文章结构体的列表，
 		# 每个文章结构体的结构：[article_name,article_url,article_read,article_time,rss_url,article_index]
-		elif type(self.current_rss_showing)==list:
-			article=self.current_rss_showing[index]
+		elif type(self.treeWidget_rss.temp_storing)==list:
+			article=self.treeWidget_rss.temp_storing[index]
 			article_name=article[0]
 			article_url=article[1]
 			rss_url=article[4]
@@ -6998,6 +7020,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			self.treeWidget_segment.temp_storing=index
 		except:
 			index=self.treeWidget_segment.temp_storing
+		
 		node=self.markdown_node_list[index]
 		
 		if self.stackedWidget_zen.currentIndex()==1:
@@ -7038,6 +7061,12 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				
 				deep_fix_level(child_node)
 
+		#点击了Folder的话不允许编辑，这里赋值了-1
+		if self.treeWidget_zen.temp_storing==-1:
+			self.zen_text_tree_build()
+			QMessageBox.warning(self,"Warning","合集模式不能编辑！")
+			return
+		
 		root=self.treeWidget_segment.invisibleRootItem()
 
 		#根据TreeWidget的层级修复self.markdown_node_list中各个node的parent、child关联信息
