@@ -116,6 +116,7 @@ class Ui_diary_search_dialog(object):
 
     def retranslateUi(self, diary_search_dialog):
         diary_search_dialog.setWindowTitle(QCoreApplication.translate("diary_search_dialog", u"Search Diary Text", None))
+        self.lineEdit.setPlaceholderText(QCoreApplication.translate("diary_search_dialog", u"Search Text&Concept Name", None))
         self.checkBox.setText(QCoreApplication.translate("diary_search_dialog", u"Sort by Date", None))
     # retranslateUi
 

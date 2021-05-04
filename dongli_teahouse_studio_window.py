@@ -330,7 +330,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.label_title_bar_top.setSizePolicy(sizePolicy2)
         font = QFont()
         font.setFamily(u"Segoe UI")
-        font.setPointSize(12)
+        font.setPointSize(18)
         font.setBold(True)
         font.setItalic(False)
         font.setWeight(75)
@@ -1833,6 +1833,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.btn_stack_menu.setText("")
         self.label_home.setText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Home", None))
         self.label_hello.setText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Welcome", None))
+        self.lineEdit_rss_search.setPlaceholderText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Search Feed / F: Folder / U: URL", None))
         ___qtreewidgetitem = self.treeWidget_rss.headerItem()
         ___qtreewidgetitem.setText(0, QCoreApplication.translate("dongli_teahouse_studio_window", u"1", None));
 #if QT_CONFIG(statustip)
@@ -1843,6 +1844,7 @@ class Ui_dongli_teahouse_studio_window(object):
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:'SimSun'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:18pt;\"><br /></p></body></html>", None))
+        self.lineEdit_zen_search.setPlaceholderText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Search Segment / F: Folder / T: Text", None))
         ___qtreewidgetitem1 = self.treeWidget_zen.headerItem()
         ___qtreewidgetitem1.setText(0, QCoreApplication.translate("dongli_teahouse_studio_window", u"1", None));
 #if QT_CONFIG(statustip)
@@ -1876,6 +1878,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.label_library_icon.setText("")
         self.label_titlebar_library.setText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Library", None))
         self.pushButton_library_close.setText("")
+        self.lineEdit_search_file.setPlaceholderText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Search File / \\d / \\c / \\^c", None))
         self.label_sizegrip_library.setText("")
         self.menuView.setTitle(QCoreApplication.translate("dongli_teahouse_studio_window", u"View", None))
         self.menuFile.setTitle(QCoreApplication.translate("dongli_teahouse_studio_window", u"File", None))
@@ -1898,6 +1901,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.label_concept_icon.setText("")
         self.label_titlebar_concept.setText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Concept", None))
         self.pushButton_concept_close.setText("")
+        self.lineEdit_search_concept.setPlaceholderText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Search Concept / \\^c / \\^p", None))
         self.label_id.setText(QCoreApplication.translate("dongli_teahouse_studio_window", u"ID", None))
         self.label_name.setText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Name", None))
         self.label_detail.setText(QCoreApplication.translate("dongli_teahouse_studio_window", u"Detail", None))

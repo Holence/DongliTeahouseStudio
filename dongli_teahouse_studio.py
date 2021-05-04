@@ -1334,6 +1334,78 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.zen_tree_build()
 		pass
 
+	def zen_delete(self):
+		
+		delete_list=[item for item in self.treeWidget_zen.selectedItems()]
+
+		dlg = QDialog(self)
+		dlg.setWindowTitle("Delete Warning")
+
+		warning_text="确认要删除这些Segment吗？注意，删除文件夹将会删除文件夹下的所有Segment！\n这是无法撤销的操作！\n"
+		for item in delete_list:
+			if item.text(1)=="Segment":
+				warning_text+="Segment: "+item.text(0)+"\n"
+			elif item.text(1)=="Folder":
+				warning_text+="Folder: "+item.text(0)+"\n"
+		name_label=QLabel(warning_text)
+		
+		QBtn = QDialogButtonBox.Ok | QDialogButtonBox.Cancel
+		buttonBox = QDialogButtonBox(QBtn)
+		buttonBox.accepted.connect(dlg.accept)
+		buttonBox.rejected.connect(dlg.reject)
+
+		layout=QVBoxLayout()
+		layout.addWidget(name_label)
+		layout.addWidget(buttonBox)
+		dlg.setLayout(layout)
+
+		if dlg.exec_():
+			
+			#先删Segment
+			for item in delete_list:
+				#如果是Segment
+				if item.text(1)=="Segment":
+
+					segment_name=item.text(0)
+
+					#去zen_tree_data中删除那个str
+					for i in range(len(self.zen_tree_data)):
+						#folder
+						if type(self.zen_tree_data[i])==dict:
+							for j in range(len(self.zen_tree_data[i]["Segment"])):
+								if self.zen_tree_data[i]["Segment"][j]==segment_name:
+									self.zen_tree_data[i]["Segment"].pop(j)
+									break
+						#顶层的RSS
+						if type(self.zen_tree_data[i])==str:
+							if self.zen_tree_data[i]==segment_name:
+								self.zen_tree_data.pop(i)
+								break
+
+					del self.zen_data[segment_name]
+
+			
+			#再删Folder
+			for item in delete_list:
+				#如果是Folder
+				if item.text(1)=="Folder":
+					folder_name=item.text(0)
+
+					for i in range(len(self.zen_tree_data)):
+						#folder
+						if type(self.zen_tree_data[i])==dict:
+							if self.zen_tree_data[i]["folder_name"]==folder_name:
+								
+								for segment_name in self.zen_tree_data[i]["Segment"]:
+									del self.zen_data[segment_name]
+									
+								del self.zen_tree_data[i]
+								break
+
+			self.zen_tree_build()
+			self.plainTextEdit_zen.clear()
+			self.textEdit_viewer_zen.clear()
+
 	def diary_text_search(self):
 		dlg=DiarySearchDialog(self)
 		if self.window_is_stay_on_top()==True:
@@ -4368,6 +4440,10 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		#rss删除feed or folder
 		elif self.treeWidget_rss.hasFocus():
 			self.rss_feed_delete()
+		
+		#zen删除Segment or folder
+		elif self.treeWidget_zen.hasFocus():
+			self.zen_delete()
 		
 		#file manager处删除库的文件
 		elif self.listWidget_search_file.hasFocus():

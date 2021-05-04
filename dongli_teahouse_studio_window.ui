@@ -173,7 +173,7 @@ QPushButton:pressed {
             <property name="font">
              <font>
               <family>Segoe UI</family>
-              <pointsize>12</pointsize>
+              <pointsize>18</pointsize>
               <weight>75</weight>
               <italic>false</italic>
               <bold>true</bold>
@@ -713,7 +713,11 @@ QPushButton:pressed {
                   <widget class="QWidget" name="layoutWidget4">
                    <layout class="QVBoxLayout" name="verticalLayout">
                     <item>
-                     <widget class="QLineEdit" name="lineEdit_rss_search"/>
+                     <widget class="QLineEdit" name="lineEdit_rss_search">
+                      <property name="placeholderText">
+                       <string>Search Feed / F: Folder / U: URL</string>
+                      </property>
+                     </widget>
                     </item>
                     <item>
                      <widget class="MyTreeWidget" name="treeWidget_rss">
@@ -867,7 +871,11 @@ p, li { white-space: pre-wrap; }
                   <widget class="QWidget" name="layoutWidget">
                    <layout class="QVBoxLayout" name="verticalLayout_9">
                     <item>
-                     <widget class="QLineEdit" name="lineEdit_zen_search"/>
+                     <widget class="QLineEdit" name="lineEdit_zen_search">
+                      <property name="placeholderText">
+                       <string>Search Segment / F: Folder / T: Text</string>
+                      </property>
+                     </widget>
                     </item>
                     <item>
                      <widget class="MyTreeWidget" name="treeWidget_zen">
@@ -1871,6 +1879,9 @@ p, li { white-space: pre-wrap; }
              <height>0</height>
             </size>
            </property>
+           <property name="placeholderText">
+            <string>Search File / \d / \c / \^c</string>
+           </property>
           </widget>
          </item>
          <item>
@@ -2578,6 +2589,9 @@ p, li { white-space: pre-wrap; }
              <width>270</width>
              <height>0</height>
             </size>
+           </property>
+           <property name="placeholderText">
+            <string>Search Concept / \^c / \^p</string>
            </property>
           </widget>
          </item>
