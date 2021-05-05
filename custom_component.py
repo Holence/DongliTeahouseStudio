@@ -45,7 +45,7 @@ class Backup_Thread(QThread):
 							if len(valid_list)<=5:
 								break
 							
-							os.removedirs(os.path.join(backup_directory,valid_list[0]))
+							delete_to_recyclebin(os.path.join(backup_directory,valid_list[0]))
 							valid_list.pop(0)
 						
 						#每日备份的文件夹名20210424

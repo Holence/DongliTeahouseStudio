@@ -1212,7 +1212,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 	def zen_switch_mode(self):
 		# self.stackedWidget_zen的第0个是textEdit_viewer_zen
 		# self.stackedWidget_zen的第1个是plainTextEdit_zen
-
+		if self.treeWidget_zen.temp_storing==0:
+			return
 		#点击了Folder的话不允许编辑，这里赋值了-1
 		if self.treeWidget_zen.temp_storing==-1:
 			QMessageBox.warning(self,"Warning","合集模式不能编辑！")
@@ -1331,7 +1332,9 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 							
 							break
 					index+=1
+			
 			self.zen_tree_build()
+			self.treeWidget_zen.temp_storing=new_name
 		pass
 
 	def zen_delete(self):
@@ -4804,7 +4807,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				if list_difference(l0,l1)==[]:
 					pass
 				else:
-					message.setText("RSS信息不匹配，请联系相关开发人员！")
+					message.setText("RSS信息不匹配，请联系相关开发人员！\n\n%s"%list_difference(l0,l1))
 					message.exec_()
 					return 0
 			except:
@@ -4848,7 +4851,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				if list_difference(l0,l1)==[]:
 					pass
 				else:
-					message.setText("Zen信息不匹配，请联系相关开发人员！")
+					message.setText("Zen信息不匹配，请联系相关开发人员！\n\n%s"%list_difference(l0,l1))
 					message.exec_()
 					return 0
 			except:
