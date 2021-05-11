@@ -4438,7 +4438,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		
 		#concept删除relationship
 		elif self.listWidget_parent.hasFocus() or self.listWidget_child.hasFocus() or self.listWidget_relative.hasFocus():
-			self.concept_realationship_remove()
+			self.concept_relationship_remove()
 		
 		#rss删除feed or folder
 		elif self.treeWidget_rss.hasFocus():
@@ -5691,9 +5691,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					return
 				else:
 					self.concept_data[item_ID]["parent"].append(link_ID)
-					self.concept_data[item_ID]["parent"].sort()
+					self.concept_data[item_ID]["parent"].sort(key=lambda x:self.concept_data[x]["name"])
 					self.concept_data[link_ID]["child"].append(item_ID)
-					self.concept_data[link_ID]["child"].sort()
+					self.concept_data[link_ID]["child"].sort(key=lambda x:self.concept_data[x]["name"])
 			
 			if mode=="child":
 				if link_ID==item_ID:
@@ -5710,9 +5710,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					return
 				else:
 					self.concept_data[item_ID]["child"].append(link_ID)
-					self.concept_data[item_ID]["child"].sort()
+					self.concept_data[item_ID]["child"].sort(key=lambda x:self.concept_data[x]["name"])
 					self.concept_data[link_ID]["parent"].append(item_ID)
-					self.concept_data[link_ID]["parent"].sort()
+					self.concept_data[link_ID]["parent"].sort(key=lambda x:self.concept_data[x]["name"])
 				
 			if mode=="relative":
 				if link_ID==item_ID:
@@ -5723,9 +5723,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					return
 				else:
 					self.concept_data[item_ID]["relative"].append(link_ID)
-					self.concept_data[item_ID]["relative"].sort()
+					self.concept_data[item_ID]["relative"].sort(key=lambda x:self.concept_data[x]["name"])
 					self.concept_data[link_ID]["relative"].append(item_ID)
-					self.concept_data[link_ID]["relative"].sort()
+					self.concept_data[link_ID]["relative"].sort(key=lambda x:self.concept_data[x]["name"])
 			
 			#更新事物界面
 			self.concept_show(item_ID)
@@ -5734,7 +5734,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		except:
 			pass
 
-	def concept_realationship_remove(self):
+	def concept_relationship_remove(self):
 		try:
 			item_ID=int(self.lineEdit_id.text())
 
