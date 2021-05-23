@@ -22,6 +22,29 @@ class Ui_mytabwidget_form(object):
         if not mytabwidget_form.objectName():
             mytabwidget_form.setObjectName(u"mytabwidget_form")
         mytabwidget_form.resize(727, 598)
+        mytabwidget_form.setStyleSheet(u"QListWidget::item:selected {\n"
+"    border-radius:5px;\n"
+"    background-color:rgb(73, 73, 73);\n"
+"}\n"
+"\n"
+"QTreeWidget::item:selected {\n"
+"    border-radius:5px;\n"
+"    background-color:rgb(73, 73, 73);\n"
+"}\n"
+"\n"
+"QTreeWidget::branch:has-children:!has-siblings:closed,\n"
+"QTreeWidget::branch:closed:has-children:has-siblings {\n"
+"	image: url(:/icon/chevron-right.svg);\n"
+"}\n"
+"\n"
+"QTreeWidget::branch:open:has-children:!has-siblings,\n"
+"QTreeWidget::branch:open:has-children:has-siblings  {\n"
+"	image: url(:/icon/arrow-down.svg);\n"
+"}\n"
+"\n"
+"QTreeWidget::branch {\n"
+"    background-color:rgb(42,42,42);\n"
+"}")
         self.horizontalLayout = QHBoxLayout(mytabwidget_form)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.splitter_whole = QSplitter(mytabwidget_form)

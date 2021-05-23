@@ -22,6 +22,10 @@ class Ui_diary_analyze_dialog(object):
         icon = QIcon()
         icon.addFile(u":/icon/holoico_trans.ico", QSize(), QIcon.Normal, QIcon.Off)
         diary_analyze_dialog.setWindowIcon(icon)
+        diary_analyze_dialog.setStyleSheet(u"QListWidget::item:selected {\n"
+"    border-radius:5px;\n"
+"    background-color:rgb(73, 73, 73);\n"
+"}")
         self.verticalLayout_2 = QVBoxLayout(diary_analyze_dialog)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.splitter_whole = QSplitter(diary_analyze_dialog)

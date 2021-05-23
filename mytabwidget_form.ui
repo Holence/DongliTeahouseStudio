@@ -13,6 +13,31 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QListWidget::item:selected {
+    border-radius:5px;
+    background-color:rgb(73, 73, 73);
+}
+
+QTreeWidget::item:selected {
+    border-radius:5px;
+    background-color:rgb(73, 73, 73);
+}
+
+QTreeWidget::branch:has-children:!has-siblings:closed,
+QTreeWidget::branch:closed:has-children:has-siblings {
+	image: url(:/icon/chevron-right.svg);
+}
+
+QTreeWidget::branch:open:has-children:!has-siblings,
+QTreeWidget::branch:open:has-children:has-siblings  {
+	image: url(:/icon/arrow-down.svg);
+}
+
+QTreeWidget::branch {
+    background-color:rgb(42,42,42);
+}</string>
+  </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
     <widget class="QSplitter" name="splitter_whole">

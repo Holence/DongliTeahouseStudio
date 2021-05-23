@@ -22,6 +22,10 @@ class Ui_diary_search_dialog(object):
         icon = QIcon()
         icon.addFile(u":/icon/holoico_trans.ico", QSize(), QIcon.Normal, QIcon.Off)
         diary_search_dialog.setWindowIcon(icon)
+        diary_search_dialog.setStyleSheet(u"QListWidget::item:selected {\n"
+"    border-radius:5px;\n"
+"    background-color:rgb(73, 73, 73);\n"
+"}")
         self.horizontalLayout_2 = QHBoxLayout(diary_search_dialog)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.splitter = QSplitter(diary_search_dialog)
@@ -51,6 +55,14 @@ class Ui_diary_search_dialog(object):
         self.listWidget = QListWidget(self.layoutWidget)
         self.listWidget.setObjectName(u"listWidget")
         self.listWidget.setMinimumSize(QSize(220, 0))
+        self.listWidget.setStyleSheet(u"QListWidget::item {\n"
+"    background-color:rgb(51, 51, 51);\n"
+"}\n"
+"\n"
+"QListWidget::item:selected {\n"
+"    border-radius:5px;\n"
+"    background-color:rgb(73, 73, 73);\n"
+"}")
         self.listWidget.setDragDropMode(QAbstractItemView.InternalMove)
         self.listWidget.setDefaultDropAction(Qt.MoveAction)
         self.listWidget.setSpacing(10)
@@ -80,7 +92,7 @@ class Ui_diary_search_dialog(object):
         self.listWidget_concept.setMaximumSize(QSize(16777215, 60))
         self.listWidget_concept.setDragEnabled(False)
         self.listWidget_concept.setDragDropOverwriteMode(False)
-        self.listWidget_concept.setDragDropMode(QAbstractItemView.InternalMove)
+        self.listWidget_concept.setDragDropMode(QAbstractItemView.NoDragDrop)
         self.listWidget_concept.setDefaultDropAction(Qt.MoveAction)
         self.listWidget_concept.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.listWidget_concept.setMovement(QListView.Free)

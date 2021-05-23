@@ -4103,21 +4103,22 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		tab.lineEdit_name.setFont(font)
 		tab.plainTextEdit_detail.setFont(font)
 		tab.listWidget_relative.setFont(font)
-		tab.listWidget_file_root.setFont(font)
-		tab.listWidget_file_leafs.setFont(font)
 		tab.treeWidget.setFont(font)
 		tab.tabWidget.setFont(font)
 		
 		font.setPointSize(font_size)
 		tab.textEdit_viewer.setFont(font)
 
+		font.setPointSize(int(font_size*0.75))
 		tab.listWidget_file_root.setIconSize(QSize(font_size*2,font_size*2))
-		tab.listWidget_file_root.setGridSize(QSize(font_size*6,font_size*6))
+		tab.listWidget_file_root.setGridSize(QSize(font_size*5,font_size*7))
+		tab.listWidget_file_root.setFont(font)
 		tab.listWidget_file_root.setSpacing(font_size*2)
 		tab.listWidget_file_root.setWordWrap(1)
 		
 		tab.listWidget_file_leafs.setIconSize(QSize(font_size*2,font_size*2))
-		tab.listWidget_file_leafs.setGridSize(QSize(font_size*6,font_size*6))
+		tab.listWidget_file_leafs.setGridSize(QSize(font_size*5,font_size*7))
+		tab.listWidget_file_leafs.setFont(font)
 		tab.listWidget_file_leafs.setSpacing(font_size*2)
 		tab.listWidget_file_leafs.setWordWrap(1)
 
@@ -4290,8 +4291,6 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 		self.listWidget_text_related_concept.setFont(font)
 		
-		self.listWidget_concept_linked_file.setFont(font)
-		self.listWidget_text_linked_file.setFont(font)
 		
 		#展示区偏大
 		font.setPointSize(int(font_size*1.2))
@@ -4326,14 +4325,17 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		font.setPointSize(10)
 		self.calendarWidget.setFont(font)
 
+		font.setPointSize(int(font_size*0.75))
 		#文件列表的icon与间距大小
 		self.listWidget_text_linked_file.setIconSize(QSize(font_size*2,font_size*2))
-		self.listWidget_text_linked_file.setGridSize(QSize(font_size*6,font_size*6))
+		self.listWidget_text_linked_file.setGridSize(QSize(font_size*5,font_size*7))
+		self.listWidget_text_linked_file.setFont(font)
 		self.listWidget_text_linked_file.setSpacing(font_size*2)
 		self.listWidget_text_linked_file.setWordWrap(1)
 
 		self.listWidget_concept_linked_file.setIconSize(QSize(font_size*2,font_size*2))
-		self.listWidget_concept_linked_file.setGridSize(QSize(font_size*6,font_size*6))
+		self.listWidget_concept_linked_file.setGridSize(QSize(font_size*5,font_size*7))
+		self.listWidget_concept_linked_file.setFont(font)
 		self.listWidget_concept_linked_file.setSpacing(font_size*2)
 		self.listWidget_concept_linked_file.setWordWrap(1)
 
@@ -4343,21 +4345,22 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 			tab.lineEdit_name.setFont(font)
 			tab.plainTextEdit_detail.setFont(font)
 			tab.listWidget_relative.setFont(font)
-			tab.listWidget_file_root.setFont(font)
-			tab.listWidget_file_leafs.setFont(font)
 			tab.treeWidget.setFont(font)
 			tab.tabWidget.setFont(font)
 			
 			font.setPointSize(font_size)
 			tab.textEdit_viewer.setFont(font)
 
+			font.setPointSize(int(font_size*0.75))
 			tab.listWidget_file_root.setIconSize(QSize(font_size*2,font_size*2))
-			tab.listWidget_file_root.setGridSize(QSize(font_size*6,font_size*6))
+			tab.listWidget_file_root.setGridSize(QSize(font_size*5,font_size*7))
+			tab.listWidget_file_root.setFont(font)
 			tab.listWidget_file_root.setSpacing(font_size*2)
 			tab.listWidget_file_root.setWordWrap(1)
 			
 			tab.listWidget_file_leafs.setIconSize(QSize(font_size*2,font_size*2))
-			tab.listWidget_file_leafs.setGridSize(QSize(font_size*6,font_size*6))
+			tab.listWidget_file_leafs.setGridSize(QSize(font_size*5,font_size*7))
+			tab.listWidget_file_leafs.setFont(font)
 			tab.listWidget_file_leafs.setSpacing(font_size*2)
 			tab.listWidget_file_leafs.setWordWrap(1)
 	

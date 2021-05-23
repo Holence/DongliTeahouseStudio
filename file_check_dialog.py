@@ -22,6 +22,10 @@ class Ui_file_check_dialog(object):
         icon = QIcon()
         icon.addFile(u":/icon/holoico_trans.ico", QSize(), QIcon.Normal, QIcon.Off)
         file_check_dialog.setWindowIcon(icon)
+        file_check_dialog.setStyleSheet(u"QListWidget::item:selected {\n"
+"    border-radius:5px;\n"
+"    background-color:rgb(73, 73, 73);\n"
+"}")
         self.horizontalLayout_12 = QHBoxLayout(file_check_dialog)
         self.horizontalLayout_12.setObjectName(u"horizontalLayout_12")
         self.verticalLayout_3 = QVBoxLayout()

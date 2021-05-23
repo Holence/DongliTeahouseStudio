@@ -22,6 +22,10 @@ class Ui_rss_feed_edit_dialog(object):
         icon = QIcon()
         icon.addFile(u":/icon/holoico_trans.ico", QSize(), QIcon.Normal, QIcon.Off)
         rss_feed_edit_dialog.setWindowIcon(icon)
+        rss_feed_edit_dialog.setStyleSheet(u"QListWidget::item:selected {\n"
+"    border-radius:5px;\n"
+"    background-color:rgb(73, 73, 73);\n"
+"}")
         self.horizontalLayout_2 = QHBoxLayout(rss_feed_edit_dialog)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.horizontalLayout = QHBoxLayout()

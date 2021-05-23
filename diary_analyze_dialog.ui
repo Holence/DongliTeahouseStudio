@@ -17,6 +17,12 @@
    <iconset resource="resource.qrc">
     <normaloff>:/icon/holoico_trans.ico</normaloff>:/icon/holoico_trans.ico</iconset>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QListWidget::item:selected {
+    border-radius:5px;
+    background-color:rgb(73, 73, 73);
+}</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <widget class="QSplitter" name="splitter_whole">

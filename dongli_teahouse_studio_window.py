@@ -31,7 +31,31 @@ class Ui_dongli_teahouse_studio_window(object):
         icon = QIcon()
         icon.addFile(u":/icon/holoico_trans.ico", QSize(), QIcon.Normal, QIcon.Off)
         dongli_teahouse_studio_window.setWindowIcon(icon)
-        dongli_teahouse_studio_window.setStyleSheet(u"QDockWidget QPushButton {	\n"
+        dongli_teahouse_studio_window.setStyleSheet(u"QListWidget::item:selected {\n"
+"    border-radius:5px;\n"
+"    background-color:rgb(73, 73, 73);\n"
+"}\n"
+"\n"
+"QTreeWidget::item:selected {\n"
+"    border-radius:5px;\n"
+"    background-color:rgb(73, 73, 73);\n"
+"}\n"
+"\n"
+"QTreeWidget::branch:has-children:!has-siblings:closed,\n"
+"QTreeWidget::branch:closed:has-children:has-siblings {\n"
+"	image: url(:/icon/chevron-right.svg);\n"
+"}\n"
+"\n"
+"QTreeWidget::branch:open:has-children:!has-siblings,\n"
+"QTreeWidget::branch:open:has-children:has-siblings  {\n"
+"	image: url(:/icon/arrow-down.svg);\n"
+"}\n"
+"\n"
+"QTreeWidget::branch {\n"
+"    background-color:rgb(42,42,42);\n"
+"}\n"
+"\n"
+"QDockWidget QPushButton {	\n"
 "	border: none;\n"
 "	background-color: transparent;\n"
 "}\n"
@@ -46,7 +70,8 @@ class Ui_dongli_teahouse_studio_window(object):
 "	border: none;\n"
 "	background-color: transparent;\n"
 "}\n"
-"QWidget#stack_btn_frame QPushButton:hover{\n"
+"QWidget#stack_btn_fra"
+                        "me QPushButton:hover{\n"
 "	background-color: rgb(40,40,40);\n"
 "}\n"
 "QWidget#stack_btn_frame QPushButton:pressed {	\n"
@@ -910,6 +935,14 @@ class Ui_dongli_teahouse_studio_window(object):
         self.listWidget_lines = MyLineEditList(self.splitter_text)
         self.listWidget_lines.setObjectName(u"listWidget_lines")
         self.listWidget_lines.setMinimumSize(QSize(270, 0))
+        self.listWidget_lines.setStyleSheet(u"QListWidget::item {\n"
+"    background-color:rgb(51, 51, 51);\n"
+"}\n"
+"\n"
+"QListWidget::item:selected {\n"
+"    border-radius:5px;\n"
+"    background-color:rgb(73, 73, 73);\n"
+"}")
         self.listWidget_lines.setDragEnabled(True)
         self.listWidget_lines.setDragDropMode(QAbstractItemView.InternalMove)
         self.listWidget_lines.setDefaultDropAction(Qt.MoveAction)
@@ -1537,6 +1570,14 @@ class Ui_dongli_teahouse_studio_window(object):
         self.listWidget_concept_related_text = QListWidget(self.page_concept_related_text)
         self.listWidget_concept_related_text.setObjectName(u"listWidget_concept_related_text")
         self.listWidget_concept_related_text.setMinimumSize(QSize(220, 0))
+        self.listWidget_concept_related_text.setStyleSheet(u"QListWidget::item {\n"
+"    background-color:rgb(51, 51, 51);\n"
+"}\n"
+"\n"
+"QListWidget::item:selected {\n"
+"    border-radius:5px;\n"
+"    background-color:rgb(73, 73, 73);\n"
+"}")
         self.listWidget_concept_related_text.setDragDropMode(QAbstractItemView.InternalMove)
         self.listWidget_concept_related_text.setDefaultDropAction(Qt.MoveAction)
         self.listWidget_concept_related_text.setSpacing(10)

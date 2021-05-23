@@ -22,6 +22,14 @@ class Ui_concept_related_text_dialog(object):
         icon = QIcon()
         icon.addFile(u":/icon/holoico_trans.ico", QSize(), QIcon.Normal, QIcon.Off)
         concept_related_text_dialog.setWindowIcon(icon)
+        concept_related_text_dialog.setStyleSheet(u"QListWidget::item {\n"
+"    background-color:rgb(51, 51, 51);\n"
+"}\n"
+"\n"
+"QListWidget::item:selected {\n"
+"    border-radius:5px;\n"
+"    background-color:rgb(73, 73, 73);\n"
+"}")
         self.horizontalLayout = QHBoxLayout(concept_related_text_dialog)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.gridLayout_4 = QGridLayout()
@@ -69,6 +77,7 @@ class Ui_concept_related_text_dialog(object):
 
         self.listWidget_source = QListWidget(concept_related_text_dialog)
         self.listWidget_source.setObjectName(u"listWidget_source")
+        self.listWidget_source.setStyleSheet(u"")
         self.listWidget_source.setDragDropMode(QAbstractItemView.DragOnly)
         self.listWidget_source.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.listWidget_source.setSpacing(10)
@@ -86,6 +95,7 @@ class Ui_concept_related_text_dialog(object):
 
         self.listWidget_target = QListWidget(concept_related_text_dialog)
         self.listWidget_target.setObjectName(u"listWidget_target")
+        self.listWidget_target.setStyleSheet(u"")
         self.listWidget_target.setDragDropMode(QAbstractItemView.DropOnly)
         self.listWidget_target.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.listWidget_target.setSpacing(10)

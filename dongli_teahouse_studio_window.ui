@@ -18,7 +18,31 @@
     <normaloff>:/icon/holoico_trans.ico</normaloff>:/icon/holoico_trans.ico</iconset>
   </property>
   <property name="styleSheet">
-   <string notr="true">QDockWidget QPushButton {	
+   <string notr="true">QListWidget::item:selected {
+    border-radius:5px;
+    background-color:rgb(73, 73, 73);
+}
+
+QTreeWidget::item:selected {
+    border-radius:5px;
+    background-color:rgb(73, 73, 73);
+}
+
+QTreeWidget::branch:has-children:!has-siblings:closed,
+QTreeWidget::branch:closed:has-children:has-siblings {
+	image: url(:/icon/chevron-right.svg);
+}
+
+QTreeWidget::branch:open:has-children:!has-siblings,
+QTreeWidget::branch:open:has-children:has-siblings  {
+	image: url(:/icon/arrow-down.svg);
+}
+
+QTreeWidget::branch {
+    background-color:rgb(42,42,42);
+}
+
+QDockWidget QPushButton {	
 	border: none;
 	background-color: transparent;
 }
@@ -1441,6 +1465,16 @@ p, li { white-space: pre-wrap; }
             <width>270</width>
             <height>0</height>
            </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QListWidget::item {
+    background-color:rgb(51, 51, 51);
+}
+
+QListWidget::item:selected {
+    border-radius:5px;
+    background-color:rgb(73, 73, 73);
+}</string>
           </property>
           <property name="dragEnabled">
            <bool>true</bool>
@@ -2927,6 +2961,16 @@ p, li { white-space: pre-wrap; }
               <width>220</width>
               <height>0</height>
              </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QListWidget::item {
+    background-color:rgb(51, 51, 51);
+}
+
+QListWidget::item:selected {
+    border-radius:5px;
+    background-color:rgb(73, 73, 73);
+}</string>
             </property>
             <property name="dragDropMode">
              <enum>QAbstractItemView::InternalMove</enum>
