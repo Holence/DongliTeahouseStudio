@@ -49,7 +49,7 @@ class Backup_Thread(QThread):
 							valid_list.pop(0)
 						
 						#每日备份的文件夹名20210424
-						dst="%d%02d%02d"%(self.parent.y,self.parent.m,self.parent.d)
+						dst="%d%02d%02d"%(self.parent.year,self.parent.month,self.parent.day)
 						try:
 							dst=os.path.join(backup_directory,dst)
 							os.makedirs(dst)
@@ -311,7 +311,7 @@ class RSS_Adding_Getor_Threador(QThread):
 		if Status=="Done":
 			
 			#标记最新更新日期
-			last_update=str(self.parent.y)+str(self.parent.m)+str(self.parent.d)
+			last_update=str(self.parent.year)+str(self.parent.month)+str(self.parent.day)
 
 			#新建feed容器
 			self.successed[rss_url]={
@@ -835,9 +835,9 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 		
 		#存不存在当日文件的容器
 		try:
-			self.parent.file_data[self.parent.y][self.parent.m][self.parent.d]
+			self.parent.file_data[self.parent.year][self.parent.month][self.parent.day]
 		except:
-			self.parent.file_data[self.parent.y][self.parent.m][self.parent.d]={}
+			self.parent.file_data[self.parent.year][self.parent.month][self.parent.day]={}
 
 		adding_file=[]
 
@@ -869,19 +869,23 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 
 						#文件添加，有可能硬盘被拔掉了
 						try:
-							shutil.move(i,file_dst)
+							if file_name not in os.listdir(self.parent.file_saving_today_dst):
+								shutil.move(i,file_dst)
+							else:
+								QMessageBox.warning(self,"Warning","文件重名！移动失败！")
+								break
 						except:
 							QMessageBox.warning(self,"Warning","路径访问出错！移动失败！")
 							break
 
 						#文件链接concept置空
-						self.parent.file_data[self.parent.y][self.parent.m][self.parent.d][file_name]=[]
+						self.parent.file_data[self.parent.year][self.parent.month][self.parent.day][file_name]=[]
 					
 						adding_file.append(
 							{
-								"y":self.parent.y,
-								"m":self.parent.m,
-								"d":self.parent.d,
+								"y":self.parent.year,
+								"m":self.parent.month,
+								"d":self.parent.day,
 								"file_name":file_name
 							}
 						)
@@ -941,7 +945,7 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 						self.parent.trayIcon.showMessage("Infomation","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
 					
 					file_name=">"+title+"|"+i
-					self.parent.file_data[self.parent.y][self.parent.m][self.parent.d][file_name]=[]
+					self.parent.file_data[self.parent.year][self.parent.month][self.parent.day][file_name]=[]
 
 				else:
 				
@@ -952,19 +956,23 @@ class MyTabWidget(QWidget,Ui_mytabwidget_form):
 					
 					#文件添加，有可能硬盘被拔掉了
 					try:
-						shutil.move(i,file_dst)
+						if file_name not in os.listdir(self.parent.file_saving_today_dst):
+							shutil.move(i,file_dst)
+						else:
+							QMessageBox.warning(self,"Warning","文件重名！移动失败！")
+							break
 					except:
 						QMessageBox.warning(self,"Warning","路径访问出错！移动失败！")
 						break
 					
 					#文件链接concept置空
-					self.parent.file_data[self.parent.y][self.parent.m][self.parent.d][file_name]=[]
+					self.parent.file_data[self.parent.year][self.parent.month][self.parent.day][file_name]=[]
 				
 				adding_file.append(
 					{
-						"y":self.parent.y,
-						"m":self.parent.m,
-						"d":self.parent.d,
+						"y":self.parent.year,
+						"m":self.parent.month,
+						"d":self.parent.day,
 						"file_name":file_name
 					}
 				)
@@ -1506,6 +1514,7 @@ class SettingDialog(QDialog,Ui_setting_dialog):
 		super().__init__()
 		self.setupUi(self)
 		self.parent=parent
+
 		self.get_settings()
 
 		self.pushButton_general.clicked.connect(lambda:self.stackedWidget.setCurrentIndex(0))
@@ -1670,6 +1679,8 @@ class RSSFeedEditDialog(QDialog,Ui_rss_feed_edit_dialog):
 		super().__init__()
 		self.setupUi(self)
 		self.parent=parent
+		self.setGeometry(self.parent.x()+100,self.parent.y()+100,self.parent.width()-200,self.parent.height()-200)
+
 		self.rss_url_list=rss_url_list
 		
 		self.listWidget.itemSelectionChanged.connect(self.save_and_show_feed)
@@ -1925,6 +1936,8 @@ class FileCheckDialog(QDialog,Ui_file_check_dialog):
 		self.splitter.setStretchFactor(0,10)
 		self.splitter.setStretchFactor(1,1)
 		self.parent=parent
+		self.setGeometry(self.parent.x()+100,self.parent.y()+100,self.parent.width()-200,self.parent.height()-200)
+
 		self.missing=missing
 		self.redundant=redundant
 
@@ -2210,6 +2223,8 @@ class ConceptRelatedTextEditDialog(QDialog,Ui_concept_related_text_dialog):
 		super().__init__()
 		self.setupUi(self)
 		self.parent=parent
+		self.setGeometry(self.parent.x()+100,self.parent.y()+100,self.parent.width()-200,self.parent.height()-200)
+
 		self.source_id=source_id
 
 		self.text_list=[]
@@ -2385,6 +2400,7 @@ class DiarySearchDialog(QDialog,Ui_diary_search_dialog):
 		super().__init__()
 		self.setupUi(self)
 		self.parent=parent
+		self.setGeometry(self.parent.x()+100,self.parent.y()+100,self.parent.width()-200,self.parent.height()-200)
 
 		try:
 			font=self.parent.user_settings.value("font")
@@ -2520,6 +2536,8 @@ class DiaryAnalyzeDialog(QDialog,Ui_diary_analyze_dialog):
 		self.setupUi(self)
 		
 		self.parent=parent
+		self.setGeometry(self.parent.x()+100,self.parent.y()+100,self.parent.width()-200,self.parent.height()-200)
+
 		self.begin_date=self.parent.calendarWidget.selectedDate()#当前分析的开始日期，是QDate类型
 		self.end_date=self.parent.calendarWidget.selectedDate()#当前分析的结束日期，是QDate类型
 

@@ -516,11 +516,11 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			#####################################################################################################################
 
 			ymd=time.localtime(time.time())
-			self.y=ymd[0]
-			self.m=ymd[1]
-			self.d=ymd[2]
+			self.year=ymd[0]
+			self.month=ymd[1]
+			self.day=ymd[2]
 			#当日存文件的地方
-			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.y)+"/"+str(self.m)+"/"+str(self.d)
+			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.year)+"/"+str(self.month)+"/"+str(self.day)
 			self.searching_file=[]
 			self.file_saving_today_dst_exist=False
 			
@@ -1430,6 +1430,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		missing=[]
 		
 		base=self.file_saving_base
+		if not os.path.exists(base):
+			QMessageBox.warning(self,"Warning","访问Library地址出错！")
+			return
+		
 		for y_dir in os.listdir(base):
 			
 			y=y_dir
@@ -1577,9 +1581,9 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 		def list_file_in_today():
 			try:
-				y=self.y
-				m=self.m
-				d=self.d
+				y=self.year
+				m=self.month
+				d=self.day
 				self.label_titlebar_library.setText("Library : Searching: Date: %s.%s.%s"%(y,m,d))
 
 				for file_name in sorted(self.file_data[y][m][d].keys()):
@@ -1797,9 +1801,9 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 		
 		#存不存在当日文件的容器
 		try:
-			self.file_data[self.y][self.m][self.d]
+			self.file_data[self.year][self.month][self.day]
 		except:
-			self.file_data[self.y][self.m][self.d]={}
+			self.file_data[self.year][self.month][self.day]={}
 		
 		self.progress=QProgressDialog("Adding File...","Cancel",0,len(links),self)
 		self.progress.setWindowTitle("Adding File...")
@@ -1837,7 +1841,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 					title="Unknown Page"
 					self.trayIcon.showMessage("Information","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
 				file_name=">"+title+"|"+i
-				self.file_data[self.y][self.m][self.d][file_name]=[]
+				self.file_data[self.year][self.month][self.day][file_name]=[]
 
 				####
 					# 制造url文件，已废弃！
@@ -1868,13 +1872,17 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 							#文件添加，有可能硬盘被拔掉了
 							try:
-								shutil.move(i,file_dst)
+								if file_name not in os.listdir(self.file_saving_today_dst):
+									shutil.move(i,file_dst)
+								else:
+									QMessageBox.warning(self,"Warning","文件重名！移动失败！")
+									break
 							except:
 								QMessageBox.warning(self,"Warning","路径访问出错！移动失败！")
 								break
 
 							#文件链接concept置空
-							self.file_data[self.y][self.m][self.d][file_name]=[]
+							self.file_data[self.year][self.month][self.day][file_name]=[]
 							
 							continue
 						
@@ -1914,13 +1922,17 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 				#文件添加，有可能硬盘被拔掉了
 				try:
-					shutil.move(i,file_dst)
+					if file_name not in os.listdir(self.file_saving_today_dst):
+						shutil.move(i,file_dst)
+					else:
+						QMessageBox.warning(self,"Warning","文件重名！移动失败！")
+						break
 				except:
 					QMessageBox.warning(self,"Warning","路径访问出错！移动失败！")
 					break
 					
 				#文件链接concept置空
-				self.file_data[self.y][self.m][self.d][file_name]=[]
+				self.file_data[self.year][self.month][self.day][file_name]=[]
 		
 		self.progress.setValue(len(links))
 		self.progress.deleteLater()
@@ -2622,7 +2634,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			######################################################################################
 			self.file_saving_base=dlg.lineEdit_file_saving_base.text()
 			self.user_settings.setValue("file_saving_base",encrypt(self.file_saving_base))
-			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.y)+"/"+str(self.m)+"/"+str(self.d)
+			self.file_saving_today_dst=self.file_saving_base+"/"+str(self.year)+"/"+str(self.month)+"/"+str(self.day)
 			self.file_library_list_update(start=True)
 
 
@@ -2671,7 +2683,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.qlock.lock()
 			
 			#标记最新更新日期
-			last_update=str(self.y)+str(self.m)+str(self.d)
+			last_update=str(self.year)+str(self.month)+str(self.day)
 			self.rss_data[rss_url]["last_update"]=last_update
 			
 			#如果有新文章，那就append，并且更新tree列表和文章列表
@@ -2719,7 +2731,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 
 		#制定今天更新的列表
 		today=what_day_is_today()#today的范围是0-7，所以如果frequency为0，那么不会自动更新，只能手动更新
-		last_update=str(self.y)+str(self.m)+str(self.d)
+		last_update=str(self.year)+str(self.month)+str(self.day)
 		
 		updating_url_list=[]
 		for rss_url in self.rss_data.keys():
@@ -2748,7 +2760,7 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.qlock.lock()
 
 			#标记最新更新日期
-			last_update=str(self.y)+str(self.m)+str(self.d)
+			last_update=str(self.year)+str(self.month)+str(self.day)
 			self.rss_data[rss_url]["last_update"]=last_update
 			
 			#如果有新文章，那就append，并且更新tree列表和文章列表
@@ -6211,9 +6223,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		
 		#存不存在当日文件的容器
 		try:
-			self.file_data[self.y][self.m][self.d]
+			self.file_data[self.year][self.month][self.day]
 		except:
-			self.file_data[self.y][self.m][self.d]={}
+			self.file_data[self.year][self.month][self.day]={}
 
 		adding_file=[]
 
@@ -6245,19 +6257,23 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 						#文件添加，有可能硬盘被拔掉了
 						try:
-							shutil.move(i,file_dst)
+							if file_name not in os.listdir(self.file_saving_today_dst):
+								shutil.move(i,file_dst)
+							else:
+								QMessageBox.warning(self,"Warning","文件重名！移动失败！")
+								break
 						except:
 							QMessageBox.warning(self,"Warning","路径访问出错！移动失败！")
 							break
 
 						#文件链接concept置空
-						self.file_data[self.y][self.m][self.d][file_name]=[]
+						self.file_data[self.year][self.month][self.day][file_name]=[]
 					
 						adding_file.append(
 							{
-								"y":self.y,
-								"m":self.m,
-								"d":self.d,
+								"y":self.year,
+								"m":self.month,
+								"d":self.day,
 								"file_name":file_name
 							}
 						)
@@ -6317,7 +6333,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						self.trayIcon.showMessage("Information","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
 					
 					file_name=">"+title+"|"+i
-					self.file_data[self.y][self.m][self.d][file_name]=[]
+					self.file_data[self.year][self.month][self.day][file_name]=[]
 
 				else:
 				
@@ -6328,19 +6344,23 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 					#文件添加，有可能硬盘被拔掉了
 					try:
-						shutil.move(i,file_dst)
+						if file_name not in os.listdir(self.file_saving_today_dst):
+							shutil.move(i,file_dst)
+						else:
+							QMessageBox.warning(self,"Warning","文件重名！移动失败！")
+							break
 					except:
 						QMessageBox.warning(self,"Warning","路径访问出错！移动失败！")
 						break
 
 					#文件链接concept置空
-					self.file_data[self.y][self.m][self.d][file_name]=[]
+					self.file_data[self.year][self.month][self.day][file_name]=[]
 				
 				adding_file.append(
 					{
-						"y":self.y,
-						"m":self.m,
-						"d":self.d,
+						"y":self.year,
+						"m":self.month,
+						"d":self.day,
 						"file_name":file_name
 					}
 				)
@@ -6432,7 +6452,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				QMessageBox.critical(self,"Critical Error","%s\n%s\n请手动设置该类型文件的默认启动应用！"%(e[0],e[1]))
 
 	def concept_linked_file_remove(self):
-		
+
 		ID=int(self.lineEdit_id.text())
 
 		dlg = QDialog(self)
@@ -6653,9 +6673,9 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		
 		#存不存在当日文件的容器
 		try:
-			self.file_data[self.y][self.m][self.d]
+			self.file_data[self.year][self.month][self.day]
 		except:
-			self.file_data[self.y][self.m][self.d]={}
+			self.file_data[self.year][self.month][self.day]={}
 
 		adding_file=[]
 
@@ -6687,19 +6707,23 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 						#文件添加，有可能硬盘被拔掉了
 						try:
-							shutil.move(i,file_dst)
+							if file_name not in os.listdir(self.file_saving_today_dst):
+								shutil.move(i,file_dst)
+							else:
+								QMessageBox.warning(self,"Warning","文件重名！移动失败！")
+								break
 						except:
 							QMessageBox.warning(self,"Warning","路径访问出错！移动失败！")
 							break
 
 						#文件链接concept置空
-						self.file_data[self.y][self.m][self.d][file_name]=[]
+						self.file_data[self.year][self.month][self.day][file_name]=[]
 					
 						adding_file.append(
 							{
-								"y":self.y,
-								"m":self.m,
-								"d":self.d,
+								"y":self.year,
+								"m":self.month,
+								"d":self.day,
 								"file_name":file_name
 							}
 						)
@@ -6761,7 +6785,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						self.trayIcon.showMessage("Information","获取网页Title失败，请查看网络连接是否正常！\n%s"%i)
 					
 					file_name=">"+title+"|"+i
-					self.file_data[self.y][self.m][self.d][file_name]=[]
+					self.file_data[self.year][self.month][self.day][file_name]=[]
 
 				else:
 				
@@ -6772,19 +6796,23 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 
 					#文件添加，有可能硬盘被拔掉了
 					try:
-						shutil.move(i,file_dst)
+						if file_name not in os.listdir(self.file_saving_today_dst):
+							shutil.move(i,file_dst)
+						else:
+							QMessageBox.warning(self,"Warning","文件重名！移动失败！")
+							break
 					except:
 						QMessageBox.warning(self,"Warning","路径访问出错！移动失败！")
 						break
 					
 					#文件链接concept置空
-					self.file_data[self.y][self.m][self.d][file_name]=[]
+					self.file_data[self.year][self.month][self.day][file_name]=[]
 				
 				adding_file.append(
 					{
-						"y":self.y,
-						"m":self.m,
-						"d":self.d,
+						"y":self.year,
+						"m":self.month,
+						"d":self.day,
 						"file_name":file_name
 					}
 				)
