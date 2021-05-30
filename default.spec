@@ -3,8 +3,8 @@
 block_cipher = None
 
 
-a = Analysis(['D:\\DongliTeahouse\\main.py'],
-             pathex=['D:\\DongliTeahouse'],
+a = Analysis(['./main.py'],
+             pathex=['./'],
              binaries=[],
              datas=[],
              hiddenimports=[],
