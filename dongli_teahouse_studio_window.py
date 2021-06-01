@@ -27,7 +27,7 @@ class Ui_dongli_teahouse_studio_window(object):
     def setupUi(self, dongli_teahouse_studio_window):
         if not dongli_teahouse_studio_window.objectName():
             dongli_teahouse_studio_window.setObjectName(u"dongli_teahouse_studio_window")
-        dongli_teahouse_studio_window.resize(1442, 1084)
+        dongli_teahouse_studio_window.resize(1448, 1084)
         icon = QIcon()
         icon.addFile(u":/icon/holoico_trans.ico", QSize(), QIcon.Normal, QIcon.Off)
         dongli_teahouse_studio_window.setWindowIcon(icon)
@@ -613,8 +613,23 @@ class Ui_dongli_teahouse_studio_window(object):
         self.splitter_rss.addWidget(self.layoutWidget4)
         self.listWidget_rss = QListWidget(self.splitter_rss)
         self.listWidget_rss.setObjectName(u"listWidget_rss")
+        self.listWidget_rss.setStyleSheet(u"QListWidget::item {\n"
+"    background-color:rgb(51, 51, 51);\n"
+"}\n"
+"\n"
+"QListWidget::item:selected {\n"
+"    border-radius:5px;\n"
+"    background-color:rgb(73, 73, 73);\n"
+"}")
+        self.listWidget_rss.setDragDropMode(QAbstractItemView.DragDrop)
+        self.listWidget_rss.setDefaultDropAction(Qt.IgnoreAction)
+        self.listWidget_rss.setIconSize(QSize(192, 192))
+        self.listWidget_rss.setFlow(QListView.TopToBottom)
         self.listWidget_rss.setProperty("isWrapping", False)
-        self.listWidget_rss.setSpacing(10)
+        self.listWidget_rss.setResizeMode(QListView.Fixed)
+        self.listWidget_rss.setSpacing(30)
+        self.listWidget_rss.setViewMode(QListView.IconMode)
+        self.listWidget_rss.setUniformItemSizes(False)
         self.listWidget_rss.setWordWrap(True)
         self.splitter_rss.addWidget(self.listWidget_rss)
         self.verticalLayoutWidget = QWidget(self.splitter_rss)
@@ -958,7 +973,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.toolBox_text.setFrameShadow(QFrame.Plain)
         self.page_text_related_concept = QWidget()
         self.page_text_related_concept.setObjectName(u"page_text_related_concept")
-        self.page_text_related_concept.setGeometry(QRect(0, 0, 277, 155))
+        self.page_text_related_concept.setGeometry(QRect(0, 0, 277, 144))
         self.horizontalLayout_8 = QHBoxLayout(self.page_text_related_concept)
         self.horizontalLayout_8.setSpacing(0)
         self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
@@ -985,7 +1000,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.toolBox_text.addItem(self.page_text_related_concept, icon46, u"Text Related Concept")
         self.page_text_linked_file = QWidget()
         self.page_text_linked_file.setObjectName(u"page_text_linked_file")
-        self.page_text_linked_file.setGeometry(QRect(0, 0, 277, 155))
+        self.page_text_linked_file.setGeometry(QRect(0, 0, 83, 83))
         self.horizontalLayout_7 = QHBoxLayout(self.page_text_linked_file)
         self.horizontalLayout_7.setSpacing(0)
         self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
@@ -1215,7 +1230,7 @@ class Ui_dongli_teahouse_studio_window(object):
         dongli_teahouse_studio_window.addDockWidget(Qt.LeftDockWidgetArea, self.dockWidget_library)
         self.menubar = QMenuBar(dongli_teahouse_studio_window)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1442, 22))
+        self.menubar.setGeometry(QRect(0, 0, 1448, 23))
         self.menubar.setLayoutDirection(Qt.LeftToRight)
         self.menuView = QMenu(self.menubar)
         self.menuView.setObjectName(u"menuView")
@@ -1562,7 +1577,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.toolBox_concept.setObjectName(u"toolBox_concept")
         self.page_concept_related_text = QWidget()
         self.page_concept_related_text.setObjectName(u"page_concept_related_text")
-        self.page_concept_related_text.setGeometry(QRect(0, 0, 272, 83))
+        self.page_concept_related_text.setGeometry(QRect(0, 0, 255, 83))
         self.horizontalLayout_12 = QHBoxLayout(self.page_concept_related_text)
         self.horizontalLayout_12.setSpacing(0)
         self.horizontalLayout_12.setObjectName(u"horizontalLayout_12")
@@ -1590,7 +1605,7 @@ class Ui_dongli_teahouse_studio_window(object):
         self.toolBox_concept.addItem(self.page_concept_related_text, icon54, u"Concept Related Text")
         self.page_concept_linked_file = QWidget()
         self.page_concept_linked_file.setObjectName(u"page_concept_linked_file")
-        self.page_concept_linked_file.setGeometry(QRect(0, 0, 272, 83))
+        self.page_concept_linked_file.setGeometry(QRect(0, 0, 83, 83))
         self.horizontalLayout_13 = QHBoxLayout(self.page_concept_linked_file)
         self.horizontalLayout_13.setSpacing(0)
         self.horizontalLayout_13.setObjectName(u"horizontalLayout_13")

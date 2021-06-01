@@ -170,7 +170,7 @@ def generate_color():
 def delete_to_recyclebin(filename):
 	"删除成功返回True"
 	result = shell.SHFileOperation((0,shellcon.FO_DELETE,filename,None, shellcon.FOF_SILENT | shellcon.FOF_ALLOWUNDO | shellcon.FOF_NOCONFIRMATION,None,None))  #删除文件到回收站
-	return not result[1]
+	return result[0]==0
 
 
 def getHTML(url,cookie=""):
@@ -192,6 +192,20 @@ def getHTML(url,cookie=""):
 		response.encoding="GBK"
 	
 	return response.text
+
+def getPic(url,cookie="",referer=""):
+	head={}
+
+	if cookie!="":
+		head["cookie"]=cookie
+	if referer!="":
+		head["referer"]=referer
+	
+	head['User-Agent']='Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.152 YaBrowser/21.2.3.73 (beta) Yowser/2.5 Safari/537.36'
+
+	# response=requests.get(url,headers=head,timeout=3)#
+	response=requests.get(url,headers=head)#
+	return response.content
 
 def getTitle(url):
 	"成功的话返回(True,title)，失败的话返回(False,Exception)，其中如果Title中包含url编码（比如|对应的是%7C），自动解析成utf-8编码"
@@ -670,6 +684,50 @@ class RSS_Parser():
 		except:
 			return ("Failed",None,None)
 	
+	def update_Pixiv_IllustrationS(self,cookie):
+		"只要有Pixiv Cookie，就自动更新当日的全总Feed列表：https://www.pixiv.net/bookmark_new_illust.php"
+		try:
+			rss_name=None
+			
+			url="https://www.pixiv.net/bookmark_new_illust.php"
+			response=getHTML(url,cookie)
+			
+			ss=re.findall('(?<=js-mount-point-latest-following"data-items="\[).*?(?=\]")',response)[0]
+			ID_list=re.findall("(?<=&quot;illustId&quot;:&quot;).*?(?=&quot;,)",ss)
+			Title_list=re.findall("(?<=&quot;illustTitle&quot;:&quot;).*?(?=&quot;,)",ss)
+			Thumbnail_url_list=re.findall("(?<=&quot;url&quot;:&quot;).*?(?=&quot;,)",ss)
+
+			#缓存缩略图
+			for i in range(len(ID_list)):
+				ID=ID_list[i]
+				thumbnail_file="./RssCache/"+"PI"+ID+".jpg"
+				if not os.path.exists(thumbnail_file):
+					thumbnail_url=Thumbnail_url_list[i].replace("\\","")
+					Pic=getPic(thumbnail_url,cookie,"https://www.pixiv.net/")
+					with open(thumbnail_file,"wb") as f:
+						f.write(Pic)
+			
+			url_list=[]
+			
+			for i in range(len(ID_list)):
+				
+				try:
+					title=Title_list[i].encode('utf-8').decode('unicode_escape')
+				except:
+					title=Title_list[i]
+				
+				link="https://www.pixiv.net/artworks/"+ID_list[i]
+				url_list.append(
+					{
+						"title":title,
+						"link":link
+					}
+				)
+			return ("Done",rss_name,url_list)
+		
+		except:
+			return ("Failed",None,None)
+
 	def update_Pixiv_Illustration(self,rss_url,cookie=""):
 		"Pixiv导入格式：https://www.pixiv.net/users/3371956"
 
@@ -697,11 +755,60 @@ class RSS_Parser():
 			
 			illustration_dict=response["body"]["illusts"]
 			
+			#这里得去类似
+			# https://www.pixiv.net/ajax/user/2922722/profile/illusts?ids[]=47896781&ids[]=47896782&work_category=illust&is_first_page=1
+			# 的网址请求信息
+			extraInfoList=[]
 			for i in illustration_dict.keys():
 				
+				thumbnail_file="./RssCache/"+i+".jpg"
+				if not os.path.exists(thumbnail_file):
+					extraInfoList.append(i)
+				
+				#二十个 一次请求 太多了会爆掉
+				if len(extraInfoList)==20:
+					extraInfoUrl="https://www.pixiv.net/ajax/user/%s/profile/illusts?"%ID
+					for i in extraInfoList:
+						extraInfoUrl+="ids[]="+i+"&"
+					extraInfoUrl+="work_category=illust&is_first_page=1"
+					
+					extraInfo=json.loads(getHTML(extraInfoUrl,cookie))
+
+					#缓存缩略图
+					for i in extraInfo["body"]["works"].values():
+						id=i["id"]
+						illustration_dict[id]=i["title"]
+						Pic=getPic(i["url"],cookie,"https://www.pixiv.net/")
+						thumbnail_file="./RssCache/"+"PI"+id+".jpg"
+						with open(thumbnail_file,"wb") as f:
+							f.write(Pic)
+					
+					extraInfoList=[]
+			
+			extraInfoUrl="https://www.pixiv.net/ajax/user/%s/profile/illusts?"%ID
+			for i in extraInfoList:
+				extraInfoUrl+="ids[]="+i+"&"
+			extraInfoUrl+="work_category=illust&is_first_page=1"
+			
+			extraInfo=json.loads(getHTML(extraInfoUrl,cookie))
+
+			#缓存缩略图
+			for i in extraInfo["body"]["works"].values():
+				id=i["id"]
+				illustration_dict[id]=i["title"]
+				Pic=getPic(i["url"],cookie,"https://www.pixiv.net/")
+				thumbnail_file="./RssCache/"+"PI"+id+".jpg"
+				with open(thumbnail_file,"wb") as f:
+					f.write(Pic)
+
+			# Extra信息请求完毕
+			#
+			for i in illustration_dict.keys():
+				if i==None:
+					i="Unkown..."
 				url_list.append(
 					{
-						"title":i,
+						"title":illustration_dict[i],
 						"link":"https://www.pixiv.net/artworks/"+i
 					}
 				)

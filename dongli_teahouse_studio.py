@@ -532,7 +532,10 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			self.file_library_list_update(start=True)
 
 			#####################################################################################################################
-
+			
+			if not os.path.exists("./RssCache"):
+				os.makedirs("./RssCache")
+			
 			self.treeWidget_rss.temp_storing=None#如果点开的是rss，那么放的是rss_url；如果点开的是folder，那么存所有文章结构体的列表
 
 			self.rss_tree_build()
@@ -2617,6 +2620,30 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			######################################################################################
 			pixiv_cookie=dlg.lineEdit_pixiv_cookie.text()
 			self.user_settings.setValue("pixiv_cookie",encrypt(pixiv_cookie))
+
+			if pixiv_cookie!="":
+				rss_url="https://www.pixiv.net/bookmark_new_illust.php||Pixiv IllustrationS"
+				feed_name="Pixiv已关注用户的最新作品"
+				
+				try:
+					self.rss_data[rss_url]
+				except:
+					self.rss_data[rss_url]={
+						"type":"Pixiv IllustrationS",
+						"feed_name":feed_name,
+						"unread":0,
+						"frequency":[1,2,3,4,5,6,7],
+						"last_update":str(self.year)+str(self.month)+str(self.day),
+						"article_list":[]
+					}
+					temp=QTreeWidgetItem(["[%s]|"%0+feed_name,"RSS",rss_url])
+					temp.setIcon(0,QIcon(":/icon/rss.svg"))
+
+					self.qlock.lock()
+					self.treeWidget_rss.addTopLevelItem(temp)
+					self.qlock.unlock()
+					
+					self.rss_tree_data_update()
 			
 			instagram_cookie=dlg.lineEdit_instagram_cookie.text()
 			self.user_settings.setValue("instagram_cookie",encrypt(instagram_cookie))
@@ -3119,6 +3146,12 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 							if self.rss_tree_data[i][1]==rss_url:
 								self.rss_tree_data.pop(i)
 								break
+					
+					for article in self.rss_data[rss_url]["article_list"]:
+						try:
+							delete_to_recyclebin("./RssCache/"+article[1].split("/")[-1]+".jpg")
+						except:
+							pass
 
 					del self.rss_data[rss_url]
 					
@@ -3140,6 +3173,12 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 								for j in self.rss_tree_data[i]["RSS"]:
 									feed_url=j[1]
 									del self.rss_data[feed_url]
+								
+								for article in self.rss_data[rss_url]["article_list"]:
+									try:
+										delete_to_recyclebin("./RssCache/"+article[1].split("/")[-1]+".jpg")
+									except:
+										pass
 									
 								del self.rss_tree_data[i]
 								break
@@ -3753,9 +3792,21 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					#这里可以直接按顺序列出，因为放入的时候我已经把新的放在最前面了
 					article_name=article[0]
 					if article[2]==False:
-						self.listWidget_rss.addItem("✨|"+article_name)
+						temp=QListWidgetItem("✨|"+article_name)
+
+						thumbnail_file="./RssCache/"+"".join(map(lambda x:x[0],self.rss_data[rss_url]["type"].split()))+article[1].split("/")[-1]+".jpg"
+						if os.path.exists(thumbnail_file):
+							temp.setIcon(QIcon(thumbnail_file))
+						
+						self.listWidget_rss.addItem(temp)
 					else:
-						self.listWidget_rss.addItem("🗸|"+article_name)
+						temp=QListWidgetItem("🗸|"+article_name)
+
+						thumbnail_file="./RssCache/"+"".join(map(lambda x:x[0],self.rss_data[rss_url]["type"].split()))+article[1].split("/")[-1]+".jpg"
+						if os.path.exists(thumbnail_file):
+							temp.setIcon(QIcon(thumbnail_file))
+						
+						self.listWidget_rss.addItem(temp)
 			
 			#点的是folder，展示下层的所有文章
 			elif rss_url=="":
@@ -3791,9 +3842,21 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				for i in self.treeWidget_rss.temp_storing:
 					article_name=i[0]
 					if i[2]==False:
-						self.listWidget_rss.addItem("✨|"+article_name)
+						temp=QListWidgetItem("✨|"+article_name)
+
+						thumbnail_file="./RssCache/"+"".join(map(lambda x:x[0],self.rss_data[rss_url]["type"].split()))+article[1].split("/")[-1]+".jpg"
+						if os.path.exists(thumbnail_file):
+							temp.setIcon(QIcon(thumbnail_file))
+						
+						self.listWidget_rss.addItem(temp)
 					else:
-						self.listWidget_rss.addItem("🗸|"+article_name)
+						temp=QListWidgetItem("🗸|"+article_name)
+
+						thumbnail_file="./RssCache/"+"".join(map(lambda x:x[0],self.rss_data[rss_url]["type"].split()))+article[1].split("/")[-1]+".jpg"
+						if os.path.exists(thumbnail_file):
+							temp.setIcon(QIcon(thumbnail_file))
+						
+						self.listWidget_rss.addItem(temp)
 				
 				"把正在看的folder的name藏在最后，重新进这个函数的时候有用（就是下面的那种情况），反正那边点击文章的也不会戳到屁股上的"
 				self.treeWidget_rss.temp_storing.append(folder_name)
@@ -3810,9 +3873,21 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					#这里可以直接按顺序列出，因为放入的时候我已经把新的放在最前面了
 					article_name=article[0]
 					if article[2]==False:
-						self.listWidget_rss.addItem("✨|"+article_name)
+						temp=QListWidgetItem("✨|"+article_name)
+
+						thumbnail_file="./RssCache/"+"".join(map(lambda x:x[0],self.rss_data[rss_url]["type"].split()))+article[1].split("/")[-1]+".jpg"
+						if os.path.exists(thumbnail_file):
+							temp.setIcon(QIcon(thumbnail_file))
+						
+						self.listWidget_rss.addItem(temp)
 					else:
-						self.listWidget_rss.addItem("🗸|"+article_name)
+						temp=QListWidgetItem("🗸|"+article_name)
+
+						thumbnail_file="./RssCache/"+"".join(map(lambda x:x[0],self.rss_data[rss_url]["type"].split()))+article[1].split("/")[-1]+".jpg"
+						if os.path.exists(thumbnail_file):
+							temp.setIcon(QIcon(thumbnail_file))
+						
+						self.listWidget_rss.addItem(temp)
 			
 			#点的是folder，展示下层的所有文章
 			elif type(self.treeWidget_rss.temp_storing)==list:
@@ -3849,9 +3924,21 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				for i in self.treeWidget_rss.temp_storing:
 					article_name=i[0]
 					if i[2]==False:
-						self.listWidget_rss.addItem("✨|"+article_name)
+						temp=QListWidgetItem("✨|"+article_name)
+
+						thumbnail_file="./RssCache/"+"".join(map(lambda x:x[0],self.rss_data[rss_url]["type"].split()))+article[1].split("/")[-1]+".jpg"
+						if os.path.exists(thumbnail_file):
+							temp.setIcon(QIcon(thumbnail_file))
+						
+						self.listWidget_rss.addItem(temp)
 					else:
-						self.listWidget_rss.addItem("🗸|"+article_name)
+						temp=QListWidgetItem("🗸|"+article_name)
+
+						thumbnail_file="./RssCache/"+"".join(map(lambda x:x[0],self.rss_data[rss_url]["type"].split()))+article[1].split("/")[-1]+".jpg"
+						if os.path.exists(thumbnail_file):
+							temp.setIcon(QIcon(thumbnail_file))
+						
+						self.listWidget_rss.addItem(temp)
 				
 				"把正在看的folder的name藏在最后，重新进这个函数的时候有用（就是现在这种情况），反正那边点击文章的也不会戳到屁股上的"
 				self.treeWidget_rss.temp_storing.append(folder_name)
@@ -4228,7 +4315,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		############################################################################
 
 	def about(self):
-		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 1.0.0.3\nAuthor: Holence\nContact: Holence08@gmail.com")
+		QMessageBox.about(self,"About","Dongli Teahouse Studio\nVersion: 1.0.0.4\nAuthor: Holence\nContact: Holence08@gmail.com")
 
 	def font_set(self,font,font_size):
 		font_size=int(font_size)

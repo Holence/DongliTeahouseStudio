@@ -123,6 +123,12 @@ class RSS_Updator_Threador(QThread):
 		elif self.parent.rss_data[rss_url]["type"]=="Bandcamp":
 			(Status,feed_name,update_link_list)=self.rss_parser.updata_Bandcamp(rss_url.split("||")[0])
 
+		elif self.parent.rss_data[rss_url]["type"]=="Pixiv IllustrationS":
+			cookie=self.parent.user_settings.value("pixiv_cookie")
+			if cookie!="" and cookie!=None:
+				cookie=decrypt(cookie)
+				(Status,feed_name,update_link_list)=self.rss_parser.update_Pixiv_IllustrationS(cookie)
+		
 		elif self.parent.rss_data[rss_url]["type"]=="Pixiv Illustration":
 			cookie=self.parent.user_settings.value("pixiv_cookie")
 			if cookie!="" and cookie!=None:

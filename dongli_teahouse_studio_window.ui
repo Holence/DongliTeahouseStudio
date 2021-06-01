@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1442</width>
+    <width>1448</width>
     <height>1084</height>
    </rect>
   </property>
@@ -803,11 +803,45 @@ QPushButton:pressed {
                    </layout>
                   </widget>
                   <widget class="QListWidget" name="listWidget_rss">
+                   <property name="styleSheet">
+                    <string notr="true">QListWidget::item {
+    background-color:rgb(51, 51, 51);
+}
+
+QListWidget::item:selected {
+    border-radius:5px;
+    background-color:rgb(73, 73, 73);
+}</string>
+                   </property>
+                   <property name="dragDropMode">
+                    <enum>QAbstractItemView::DragDrop</enum>
+                   </property>
+                   <property name="defaultDropAction">
+                    <enum>Qt::IgnoreAction</enum>
+                   </property>
+                   <property name="iconSize">
+                    <size>
+                     <width>192</width>
+                     <height>192</height>
+                    </size>
+                   </property>
+                   <property name="flow">
+                    <enum>QListView::TopToBottom</enum>
+                   </property>
                    <property name="isWrapping" stdset="0">
                     <bool>false</bool>
                    </property>
+                   <property name="resizeMode">
+                    <enum>QListView::Fixed</enum>
+                   </property>
                    <property name="spacing">
-                    <number>10</number>
+                    <number>30</number>
+                   </property>
+                   <property name="viewMode">
+                    <enum>QListView::IconMode</enum>
+                   </property>
+                   <property name="uniformItemSizes">
+                    <bool>false</bool>
                    </property>
                    <property name="wordWrap">
                     <bool>true</bool>
@@ -1520,7 +1554,7 @@ QListWidget::item:selected {
              <x>0</x>
              <y>0</y>
              <width>277</width>
-             <height>155</height>
+             <height>144</height>
             </rect>
            </property>
            <attribute name="icon">
@@ -1593,8 +1627,8 @@ QListWidget::item:selected {
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>277</width>
-             <height>155</height>
+             <width>83</width>
+             <height>83</height>
             </rect>
            </property>
            <attribute name="icon">
@@ -2106,8 +2140,8 @@ QListWidget::item:selected {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1442</width>
-     <height>22</height>
+     <width>1448</width>
+     <height>23</height>
     </rect>
    </property>
    <property name="layoutDirection">
@@ -2927,7 +2961,7 @@ QListWidget::item:selected {
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>272</width>
+           <width>255</width>
            <height>83</height>
           </rect>
          </property>
@@ -2993,7 +3027,7 @@ QListWidget::item:selected {
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>272</width>
+           <width>83</width>
            <height>83</height>
           </rect>
          </property>

@@ -188,6 +188,14 @@ u: xxx或者U: xxx搜url：
 
 按F10
 
+#### Pixiv已关注用户的最新作品
+
+设置完Pixiv Cookie后自动添加“Pixiv已关注用户的最新作品”的Feed
+
+#### 缩略图相关*
+
+目前只做了Pixiv的缩略图，存储在RSSCache文件夹中，图片名称=RSS type的首字母+图片url的最后一项。（所以“Pixiv Illustration”和“Pixiv IllustrationS”可以共用图片）
+
 #### RSS Data相关*
 
 QTreewidget的column中的三格为：[rss_name,"RSS",rss_url]或[folder_name,"Folder",""]
