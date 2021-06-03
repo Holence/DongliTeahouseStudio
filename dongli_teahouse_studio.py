@@ -526,8 +526,8 @@ class DongliTeahouseStudio(QMainWindow,Ui_dongli_teahouse_studio_window):
 			
 			# 这个不着急，在shutil.move之前做检查就行了
 			# self.file_saving_today_dst_exist_check()
-			if not os.path.exists("./cache"):
-				os.makedirs("./cache")
+			if not os.path.exists("./LocalCache"):
+				os.makedirs("./LocalCache")
 
 			self.file_library_list_update(start=True)
 
@@ -3149,7 +3149,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					
 					for article in self.rss_data[rss_url]["article_list"]:
 						try:
-							delete_to_recyclebin("./RssCache/"+article[1].split("/")[-1]+".jpg")
+							delete_to_recyclebin(ThumbnailDirectoryFromArticleURL(article[1]))
 						except:
 							pass
 
@@ -3176,7 +3176,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 								
 								for article in self.rss_data[rss_url]["article_list"]:
 									try:
-										delete_to_recyclebin("./RssCache/"+article[1].split("/")[-1]+".jpg")
+										delete_to_recyclebin(ThumbnailDirectoryFromArticleURL(article[1]))
 									except:
 										pass
 									
@@ -3267,6 +3267,10 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 						break
 
 					if self.rss_data[rss_url]["article_list"][article_index][2]==True:
+						try:
+							delete_to_recyclebin(ThumbnailDirectoryFromArticleURL(self.rss_data[rss_url]["article_list"][article_index][1]))
+						except:
+							pass
 						self.rss_data[rss_url]["article_list"].pop(article_index)
 						continue
 					else:
@@ -3347,6 +3351,10 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 								break
 
 							if self.rss_data[rss_url]["article_list"][article_index][2]==True:
+								try:
+									delete_to_recyclebin(ThumbnailDirectoryFromArticleURL(self.rss_data[rss_url]["article_list"][article_index][1]))
+								except:
+									pass
 								self.rss_data[rss_url]["article_list"].pop(article_index)
 								continue
 							else:
@@ -3791,10 +3799,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				for article in article_list:
 					#这里可以直接按顺序列出，因为放入的时候我已经把新的放在最前面了
 					article_name=article[0]
+					article_url=article[1]
 					if article[2]==False:
 						temp=QListWidgetItem("✨|"+article_name)
 
-						thumbnail_file="./RssCache/"+"".join(map(lambda x:x[0],self.rss_data[rss_url]["type"].split()))+article[1].split("/")[-1]+".jpg"
+						thumbnail_file=ThumbnailDirectoryFromArticleURL(article_url)
 						if os.path.exists(thumbnail_file):
 							temp.setIcon(QIcon(thumbnail_file))
 						
@@ -3802,7 +3811,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					else:
 						temp=QListWidgetItem("🗸|"+article_name)
 
-						thumbnail_file="./RssCache/"+"".join(map(lambda x:x[0],self.rss_data[rss_url]["type"].split()))+article[1].split("/")[-1]+".jpg"
+						thumbnail_file=ThumbnailDirectoryFromArticleURL(article_url)
 						if os.path.exists(thumbnail_file):
 							temp.setIcon(QIcon(thumbnail_file))
 						
@@ -3841,10 +3850,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				
 				for i in self.treeWidget_rss.temp_storing:
 					article_name=i[0]
+					article_url=i[1]
 					if i[2]==False:
 						temp=QListWidgetItem("✨|"+article_name)
 
-						thumbnail_file="./RssCache/"+"".join(map(lambda x:x[0],self.rss_data[rss_url]["type"].split()))+article[1].split("/")[-1]+".jpg"
+						thumbnail_file=ThumbnailDirectoryFromArticleURL(article_url)
 						if os.path.exists(thumbnail_file):
 							temp.setIcon(QIcon(thumbnail_file))
 						
@@ -3852,7 +3862,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					else:
 						temp=QListWidgetItem("🗸|"+article_name)
 
-						thumbnail_file="./RssCache/"+"".join(map(lambda x:x[0],self.rss_data[rss_url]["type"].split()))+article[1].split("/")[-1]+".jpg"
+						thumbnail_file=ThumbnailDirectoryFromArticleURL(article_url)
 						if os.path.exists(thumbnail_file):
 							temp.setIcon(QIcon(thumbnail_file))
 						
@@ -3872,10 +3882,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				for article in article_list:
 					#这里可以直接按顺序列出，因为放入的时候我已经把新的放在最前面了
 					article_name=article[0]
+					article_url=article[1]
 					if article[2]==False:
 						temp=QListWidgetItem("✨|"+article_name)
 
-						thumbnail_file="./RssCache/"+"".join(map(lambda x:x[0],self.rss_data[rss_url]["type"].split()))+article[1].split("/")[-1]+".jpg"
+						thumbnail_file=ThumbnailDirectoryFromArticleURL(article_url)
 						if os.path.exists(thumbnail_file):
 							temp.setIcon(QIcon(thumbnail_file))
 						
@@ -3883,7 +3894,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					else:
 						temp=QListWidgetItem("🗸|"+article_name)
 
-						thumbnail_file="./RssCache/"+"".join(map(lambda x:x[0],self.rss_data[rss_url]["type"].split()))+article[1].split("/")[-1]+".jpg"
+						thumbnail_file=ThumbnailDirectoryFromArticleURL(article_url)
 						if os.path.exists(thumbnail_file):
 							temp.setIcon(QIcon(thumbnail_file))
 						
@@ -3923,10 +3934,11 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 				
 				for i in self.treeWidget_rss.temp_storing:
 					article_name=i[0]
+					article_url=i[1]
 					if i[2]==False:
 						temp=QListWidgetItem("✨|"+article_name)
 
-						thumbnail_file="./RssCache/"+"".join(map(lambda x:x[0],self.rss_data[rss_url]["type"].split()))+article[1].split("/")[-1]+".jpg"
+						thumbnail_file=ThumbnailDirectoryFromArticleURL(article_url)
 						if os.path.exists(thumbnail_file):
 							temp.setIcon(QIcon(thumbnail_file))
 						
@@ -3934,7 +3946,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 					else:
 						temp=QListWidgetItem("🗸|"+article_name)
 
-						thumbnail_file="./RssCache/"+"".join(map(lambda x:x[0],self.rss_data[rss_url]["type"].split()))+article[1].split("/")[-1]+".jpg"
+						thumbnail_file=ThumbnailDirectoryFromArticleURL(article_url)
 						if os.path.exists(thumbnail_file):
 							temp.setIcon(QIcon(thumbnail_file))
 						
@@ -4377,6 +4389,7 @@ Reddit: https://www.reddit.com/r/SUBREDDIT.rss
 		self.treeWidget_zen.setFont(font)
 		self.treeWidget_segment.setFont(font)
 		self.listWidget_rss.setFont(font)
+		self.listWidget_rss.setIconSize(QSize(196+font_size,196+font_size))
 		self.treeWidget_rss.setFont(font)
 		self.lineEdit_search_concept.setFont(font)
 		self.listWidget_search_concept.setFont(font)

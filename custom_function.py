@@ -25,6 +25,18 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
+def ThumbnailDirectoryFromArticleURL(article_url):
+	if "www" in article_url:
+		perfix=re.findall("(?<=www\.).*?(?=\.)",article_url)[0]
+	else:
+		perfix=re.findall("(?<=://).*?(?=\.)",article_url)[0]
+	
+	suffix=article_url.split("/")[-1]
+
+	dir="./RssCache/"+perfix+suffix+".jpg"
+
+	return dir
+
 def textEditor_edit(textEditor_directory,text):
 	
 	with open("$temp","w",encoding="utf-8") as f:
@@ -644,7 +656,15 @@ class RSS_Parser():
 
 			response=getHTML("https://api.bilibili.com/x/space/arc/search?mid="+up_ID,cookie)
 			video_list=json.loads(response)["data"]["list"]["vlist"]
+
 			for video in video_list:
+				
+				thumbnail_file="./RssCache/"+"bilibili"+video["bvid"]+".jpg"
+				if not os.path.exists(thumbnail_file):
+					Pic=getPic(video["pic"],"","")
+					with open(thumbnail_file,"wb") as f:
+						f.write(Pic)
+				
 				url_list.append(
 					{
 						"title":video["title"],
@@ -671,12 +691,39 @@ class RSS_Parser():
 			html=etree.HTML(response)
 			album_list=html.xpath('//*[@id="music-grid"]/li/a/@href')
 			title_list=list(map(lambda x:x.strip(),html.xpath('//*[@id="music-grid"]/li/a/p/text()')))
+
+			index=0
+			Thumbnail_url_list1=html.xpath('//*[@id="music-grid"]/li/a/div/img/@src')
+			Thumbnail_url_list2=html.xpath('//*[@id="music-grid"]/li/a/div/img/@data-original')
+			
+			
+			for thumbnail_url in Thumbnail_url_list1[:len(Thumbnail_url_list1)-len(Thumbnail_url_list2)]:
+				thumbnail_file="./RssCache/"+band_name.lower()+title_list[index].replace(" ","-").replace("---","-").lower()+".jpg"
+				try:
+					if not os.path.exists(thumbnail_file):
+						Pic=getPic(thumbnail_url,"","")
+						with open(thumbnail_file,"wb") as f:
+							f.write(Pic)
+				except:
+					pass
+				index+=1
+
+			for thumbnail_url in Thumbnail_url_list2:
+				thumbnail_file="./RssCache/"+band_name.lower()+title_list[index].replace(" ","-").replace("---","-").lower()+".jpg"
+				try:
+					if not os.path.exists(thumbnail_file):
+						Pic=getPic(thumbnail_url,"","")
+						with open(thumbnail_file,"wb") as f:
+							f.write(Pic)
+				except:
+					pass
+				index+=1
 			
 			for i in range(len(album_list)):
 				url_list.append(
 					{
 						"title":title_list[i],
-						"link":rss_url+"/"+album_list[i]
+						"link":rss_url+album_list[i]
 					}
 				)
 			return ("Done",band_name,url_list)
@@ -700,7 +747,7 @@ class RSS_Parser():
 			#缓存缩略图
 			for i in range(len(ID_list)):
 				ID=ID_list[i]
-				thumbnail_file="./RssCache/"+"PI"+ID+".jpg"
+				thumbnail_file="./RssCache/"+"pixiv"+ID+".jpg"
 				if not os.path.exists(thumbnail_file):
 					thumbnail_url=Thumbnail_url_list[i].replace("\\","")
 					Pic=getPic(thumbnail_url,cookie,"https://www.pixiv.net/")
@@ -761,7 +808,7 @@ class RSS_Parser():
 			extraInfoList=[]
 			for i in illustration_dict.keys():
 				
-				thumbnail_file="./RssCache/"+i+".jpg"
+				thumbnail_file="./RssCache/"+"pixiv"+i+".jpg"
 				if not os.path.exists(thumbnail_file):
 					extraInfoList.append(i)
 				
@@ -779,7 +826,7 @@ class RSS_Parser():
 						id=i["id"]
 						illustration_dict[id]=i["title"]
 						Pic=getPic(i["url"],cookie,"https://www.pixiv.net/")
-						thumbnail_file="./RssCache/"+"PI"+id+".jpg"
+						thumbnail_file="./RssCache/"+"pixiv"+id+".jpg"
 						with open(thumbnail_file,"wb") as f:
 							f.write(Pic)
 					
@@ -797,7 +844,7 @@ class RSS_Parser():
 				id=i["id"]
 				illustration_dict[id]=i["title"]
 				Pic=getPic(i["url"],cookie,"https://www.pixiv.net/")
-				thumbnail_file="./RssCache/"+"PI"+id+".jpg"
+				thumbnail_file="./RssCache/"+"pixiv"+id+".jpg"
 				with open(thumbnail_file,"wb") as f:
 					f.write(Pic)
 
@@ -858,6 +905,15 @@ class RSS_Parser():
 		except:
 			return ("Failed",None,None)
 	
+	def update_Instagrams(self,cookie):
+		"Instagram当日的全总Feed列表"
+		# Instagram只提供十二条，只要关注了超过十五个人，就不可能少于十二条，所以就没必要做了
+		url="https://www.instagram.com/"
+		response=getHTML(url,cookie)
+		find=re.findall("(?<=>window\.__additionalDataLoaded\('feed',).*?(?=\);</script>)",response)[0]
+		for i in find["user"]["edge_web_feed_timeline"]["edges"]:
+			pass
+
 	def updata_Instagram(self,rss_url,cookie=""):
 		"Instagram导入格式：https://www.instagram.com/ID"
 		try:
@@ -874,7 +930,7 @@ class RSS_Parser():
 			
 			#淦！自己造的轮子，修了半天还是不能保证不出错……没用了……
 			# find=find_dict_in_string(response,"edge_owner_to_timeline_media")
-			
+
 			#
 			find=re.findall("(?<=window\._sharedData = ).*?(?=</script>)",response)[0][:-1]
 			find=json.loads(find)["entry_data"]["ProfilePage"][0]["graphql"]["user"]["edge_owner_to_timeline_media"]["edges"]
@@ -882,6 +938,13 @@ class RSS_Parser():
 			url_list=[]
 			for i in find:
 				ID=i["node"]["shortcode"]
+
+				thumbnail_file="./RssCache/"+"instagram"+ID+".jpg"
+				thumbnail_url=i["node"]["thumbnail_resources"][0]["src"]
+				Pic=getPic(thumbnail_url,"","")
+				with open(thumbnail_file,"wb") as f:
+					f.write(Pic)
+				
 				url_list.append(
 					{
 						"title":ID,

@@ -336,10 +336,10 @@ class MyTabFileLeafList(QListWidget):
 				cache_name="".join(info_list[-4:])
 				
 				pic=QPixmap()
-				if not pic.load("./cache/%s"%cache_name):
+				if not pic.load("./LocalCache/%s"%cache_name):
 					pic.load(file_url)
 					pic=pic.scaled(128,128,Qt.KeepAspectRatio,Qt.FastTransformation)
-					pic.save("./cache/%s"%cache_name)
+					pic.save("./LocalCache/%s"%cache_name)
 				
 				icon=QIcon(pic)
 
@@ -445,10 +445,10 @@ class MyConceptLinkedFileList(QListWidget):
 				cache_name="".join(info_list[-4:])
 				
 				pic=QPixmap()
-				if not pic.load("./cache/%s"%cache_name):
+				if not pic.load("./LocalCache/%s"%cache_name):
 					pic.load(file_url)
 					pic=pic.scaled(128,128,Qt.KeepAspectRatio,Qt.FastTransformation)
-					pic.save("./cache/%s"%cache_name)
+					pic.save("./LocalCache/%s"%cache_name)
 				
 				icon=QIcon(pic)
 			
