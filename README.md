@@ -2,6 +2,8 @@
 
 This is a rough&clumsy demonstration of the real Dongli Teahouse Studio.
 
+This project is deprecated at 2021.7.11. There is a [new version](https://github.com/Holence/DongliTeahouseStudio2).
+
 ---
 
 Features:
